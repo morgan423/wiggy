@@ -1,0 +1,21 @@
+{
+  "$ecran": "Demandes à valider (A6 hors zone, A11 confirmation manuelle)",
+  "$source": "board phase 2, bloc 9b",
+  "$registre": "pro",
+  "$note": "Le board montre la décision « en un tap depuis la notification ». Les notifications sont C1/C2 : en attendant, la décision se prend depuis l’agenda, avec les mêmes mots.",
+  "badge": "Sous réserve de validation",
+  "actions": {
+    "valider": "Valider",
+    "refuser": "Refuser"
+  },
+  "gabarits": {
+    "horsZoneApresRdv": "Hors zone : +{km} après ton dernier rendez-vous."
+  },
+  "$aEcrire": {
+    "$note": "Absent du board : à faire ratifier.",
+    "titre": "À décider",
+    "horsZoneRepere": "Hors zone : {km} de {repere}.",
+    "sejour": "En séjour du {du} au {au}.",
+    "prevenir": "Préviens ta cliente : elle ne reçoit pas encore de SMS automatique."
+  }
+}

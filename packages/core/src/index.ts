@@ -1,0 +1,20 @@
+// Domaine partagé entre l'app mobile pro (Expo), la webapp pro et le web
+// cliente. Tout ce qui est ici doit rester sans dépendance à un runtime :
+// pas de React, pas de Next, pas de Supabase — uniquement des règles métier
+// testables.
+//
+// Les imports portent l'extension .ts explicite : `node --test` en a besoin,
+// et Metro comme Turbopack la résolvent sans broncher. Les tsconfig des
+// consommateurs activent `allowImportingTsExtensions` pour la même raison.
+export * from './tiers.ts'
+export * from './payment-terms.ts'
+export * from './city.ts'
+export * from './money.ts'
+export * from './slug.ts'
+export * from './temps.ts'
+export * from './trajets.ts'
+export * from './avatar.ts'
+export * from './creneaux.ts'
+export * from './adresse.ts'
+export * from './zone.ts'
+export * from './photos.ts'

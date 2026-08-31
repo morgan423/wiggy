@@ -1,0 +1,198 @@
+@import 'tailwindcss';
+/* Thème unique de l'app — généré depuis packages/tokens/wiggy-tokens.json.
+   Ne jamais redéfinir une couleur ici : tout passe par les tokens. */
+@import '../../../../packages/tokens/wiggy-tokens.css';
+
+/* Les deux familles sont chargées par next/font (layout.tsx), qui expose ces
+   variables. Les tokens s'y adossent. */
+@theme {
+  --police-display: var(--font-fraunces);
+  --police-ui: var(--font-jakarta);
+}
+
+body {
+  background: var(--color-fond);
+  color: var(--color-texte-principal);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Une seule couleur de focus, visible sur crème comme sur prune. */
+:focus-visible {
+  outline: 3px solid var(--color-action);
+  outline-offset: 3px;
+  border-radius: var(--radius-champ);
+}
+
+/* ───────────────────────────────────────────────────────────────
+ * Règles invisibles, rendues matérielles.
+ * ─────────────────────────────────────────────────────────────── */
+
+/* Zone tactile minimale : 44 px. Le pro utilise l'app debout, en mouvement,
+   parfois les mains occupées. À appliquer à tout élément interactif. */
+.tactile {
+  min-height: 44px;
+  min-width: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Échelle typographique du design. Fraunces n'est un parfum que sur les
+   grandes tailles ; l'axe WONK reste réservé aux statements.
+   Les tailles design sont le plafond d'un clamp : 92 px sur un écran de
+   375 px déborderait. */
+.statement {
+  font-family: var(--font-display);
+  font-size: var(--text-statement);
+  line-height: var(--leading-statement);
+  font-weight: var(--font-weight-statement);
+  font-variation-settings: var(--wonk);
+}
+.display {
+  font-family: var(--font-display);
+  font-size: var(--text-display);
+  line-height: var(--leading-display);
+  font-weight: var(--font-weight-display);
+}
+.titre {
+  font-family: var(--font-display);
+  font-size: var(--text-titre);
+  line-height: var(--leading-titre);
+  font-weight: var(--font-weight-titre);
+}
+
+/* Le motif trajet : la ligne pointillée entre deux rendez-vous. C'est la
+   signature graphique du produit (brief phase 2, §1.3 ⑤), pas une décoration :
+   elle dit qu'entre deux clientes il y a une route. */
+.trait-trajet {
+  display: inline-block;
+  width: 2px;
+  height: 1.75rem;
+  background-image: linear-gradient(to bottom, var(--color-attente) 55%, transparent 55%);
+  background-size: 2px 8px;
+  border-radius: 1px;
+}
+
+/* Squelettes : opacité seule, jamais de translation ni de dégradé mobile. */
+.squelette {
+  animation: squelette var(--duree-squelette) ease-in-out infinite;
+  background: var(--color-trait-discret);
+  border-radius: var(--radius-champ);
+}
+@keyframes squelette {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+
+/* ── Célébration 1 — confirmation de réservation (cliente) ──
+   Total < 1,3 s. Jamais rejouée. */
+@keyframes carte-miel {
+  from {
+    transform: scale(0.85);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+@keyframes trait-boucle {
+  from {
+    stroke-dashoffset: var(--longueur-trait, 200);
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes fondu {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.celebration-carte {
+  animation: carte-miel var(--duree-pop) var(--courbe-celebration) 250ms both;
+}
+.celebration-trait {
+  animation: trait-boucle var(--duree-souligne) ease-in-out 700ms both;
+}
+.celebration-sms {
+  animation: fondu var(--duree-toast) ease-out 1100ms both;
+}
+
+/* ── Célébration 2 — « Journée bouclée » (pro) ──
+   La boucle qui se ferme EST l'animation. Une fois par jour au maximum. */
+@keyframes segment-plein {
+  from {
+    stroke-dashoffset: var(--longueur-segment, 100);
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+.bouclee-segment {
+  /* 120 ms par segment, enchaînés de gauche à droite à partir de 300 ms.
+     Le rang est porté par --rang, posé sur chaque segment. */
+  animation: segment-plein var(--duree-segment) linear
+    calc(300ms + var(--rang, 0) * var(--duree-segment)) both;
+}
+.bouclee-titre {
+  animation: carte-miel var(--duree-pop) var(--courbe-celebration) 900ms both;
+}
+.bouclee-bilan {
+  animation: fondu var(--duree-toast) ease-out 1350ms both;
+}
+
+/* Le tap — seul mouvement permanent de l'interface, et il répond à un geste.
+   Valeurs design : scale 0.97, 100 ms, ease-out. */
+button,
+a[href],
+[role='button'] {
+  transition: transform var(--duree-tap) var(--courbe-standard);
+}
+button:active,
+a[href]:active,
+[role='button']:active {
+  transform: scale(var(--tap-scale));
+}
+
+/* Zéro animation ambiante : l'app s'ouvre trente fois par jour. Ce qui bouge
+   ici bouge parce qu'un geste vient d'avoir lieu, jamais tout seul. */
+
+@media (prefers-reduced-motion: reduce) {
+  /* Les deux célébrations deviennent un simple fondu. Aucune exception. */
+  .celebration-carte,
+  .celebration-trait,
+  .celebration-sms,
+  .bouclee-segment,
+  .bouclee-titre,
+  .bouclee-bilan {
+    animation: fondu var(--duree-fondu) ease-out both;
+    transform: none;
+  }
+  .squelette {
+    animation: none;
+    opacity: 0.7;
+  }
+  /* Le tap lui-même disparaît : pas de scale sous mouvement réduit. */
+  button:active,
+  a[href]:active,
+  [role='button']:active {
+    transform: none;
+  }
+  *,
+  *::before,
+  *::after {
+    transition-duration: 1ms !important;
+    scroll-behavior: auto !important;
+  }
+}

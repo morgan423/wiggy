@@ -1,0 +1,58 @@
+{
+  "$schema": "wiggy-tokens-v2",
+  "color": {
+    "framboise": { "value": "#C2255C", "role": "action" },
+    "prune": { "value": "#45173C", "role": "texte & blocs" },
+    "miel": { "value": "#F4B23E", "role": "celebration" },
+    "abricot": { "value": "#F98D5C", "role": "attente" },
+    "brique": { "value": "#B8432E", "role": "erreur" },
+    "creme": { "value": "#FBEEE6", "role": "fond" },
+    "surface": { "value": "#FFFDFB", "role": "cartes & champs" },
+    "interaction": {
+      "framboiseHover": "#A81C4E",
+      "framboisePressed": "#8F1A44",
+      "pruneHover": "#58254C"
+    },
+    "derived": {
+      "inkSoft": "rgba(69,23,60,0.72)",
+      "inkMuted": "rgba(69,23,60,0.55)",
+      "border": "rgba(69,23,60,0.14)",
+      "cremeSoft": "rgba(251,238,230,0.75)"
+    }
+  },
+  "font": {
+    "display": { "family": "Fraunces", "rule": "jamais sous 20px, jamais dans l'agenda" },
+    "ui": { "family": "Plus Jakarta Sans" },
+    "wonk": { "fontVariationSettings": "'SOFT' 100, 'WONK' 1", "rule": "statements uniquement" }
+  },
+  "typeScaleRule": "chaque taille est le plafond grand écran — implémentation clamp(60% du token, fluide, token), fixe sous 40px",
+  "typeScale": {
+    "statement": { "size": 92, "lineHeight": 0.98, "weight": 700, "font": "display", "scope": "site uniquement" },
+    "display": { "size": 56, "lineHeight": 1.02, "weight": 700, "font": "display" },
+    "title": { "size": 26, "lineHeight": 1.2, "weight": 600, "font": "display" },
+    "body": { "size": 16, "lineHeight": 1.5, "weight": 400, "font": "ui" },
+    "caption": { "size": 13, "lineHeight": 1.4, "weight": 600, "font": "ui" }
+  },
+  "radius": { "field": 12, "card": 20, "block": 28, "pill": 999 },
+  "space": [4, 8, 12, 16, 24, 32, 48],
+  "shadow": {
+    "card": "0 2px 12px rgba(69,23,60,0.08)",
+    "float": "0 8px 28px rgba(69,23,60,0.14)"
+  },
+  "motion": {
+    "easing": { "celebration": "cubic-bezier(0.2, 1.4, 0.4, 1)", "standard": "ease-out" },
+    "duration": { "tap": 100, "fade": 150, "toast": 200, "underline": 400, "pop": 450, "segment": 120, "skeleton": 1200 },
+    "tapScale": 0.97,
+    "reducedMotion": "fondu 150ms uniquement, sans scale ni translation — aucune exception",
+    "celebrations": {
+      "confirmationCliente": ["0ms tap: bouton scale 0.97 (80ms)", "250ms carte miel: pop 450ms ease-celebration", "700ms prénom: tracé boucle 400ms", "1100ms ligne SMS: fondu 200ms — jamais rejoué"],
+      "journeeBouclee": ["0ms clôture: toast miel", "300ms pastilles reliées gauche→droite 120ms/segment", "900ms statement WONK: pop 450ms", "1350ms bilan: fondu 200ms — 1×/jour max"]
+    }
+  },
+  "breakpoints": { "sm": 480, "md": 768, "lg": 1024, "xl": 1440 },
+  "touch": { "hitMin": 44 },
+  "registres": {
+    "pro": "tutoiement — « Ton prochain rendez-vous »",
+    "cliente": "vouvoiement chaleureux — « Votre rendez-vous est confirmé »"
+  }
+}

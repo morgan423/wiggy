@@ -1,0 +1,230 @@
+import {
+  creneauxDuJour,
+  plagesDuJour,
+  joursOuvrables,
+  can,
+  dureeEstimeeMin,
+  positionDansZone,
+  type Creneau,
+  type Point,
+  type AdresseSaisie,
+  type AdresseTrouvee,
+  type SubscriptionState,
+  type SuggestionAdresse,
+} from '@wiggy/core'
+import { supabaseAdmin, supabaseConfigured } from '@/lib/supabase/admin'
+import { geocoder } from '@/lib/adresse'
+import { zoneDuPro } from '@/lib/zone'
+import { trajets } from '@/lib/trajets'
+
+/**
+ * A3 : les créneaux proposés à la cliente.
+ *
+ * Assemble ce que les autres modules savent faire : les plages du pro, ses
+ * rendez-vous du jour, le géocodage de l'adresse, les temps de trajet réels,
+ * et le moteur de créneaux. Aucune règle métier ici, seulement l'orchestration.
+ *
+ * Le géo-filtrage appartient à l'offre 2 (§2). Un pro en offre 1 propose des
+ * créneaux simples : la vérification passe par `can()`, jamais par un test
+ * d'égalité sur le palier écrit à la main.
+ */
+
+export type JourProposable = { jour: Date; creneaux: Creneau[] }
+
+export type ResultatCreneaux =
+  | {
+      statut: 'ok'
+      jours: JourProposable[]
+      geoFiltre: boolean
+      /** L'adresse géocodée, à enregistrer telle quelle sur le rendez-vous. */
+      adresse: AdresseTrouvee
+      /** A6 : la cliente a demandé malgré le hors-zone. Le pro tranchera. */
+      horsZone: boolean
+    }
+  // L'adresse n'a pas été reconnue : on remonte les candidats proches pour que
+  // l'écran propose une correction plutôt qu'un refus sec.
+  | { statut: 'adresse-a-preciser'; suggestions: SuggestionAdresse[] }
+  // A5 / A6 : l'adresse est hors de la zone déclarée. Ce n'est pas un refus,
+  // c'est un embranchement : séjour sur place, ou demande sous réserve.
+  | {
+      statut: 'hors-zone'
+      adresse: AdresseTrouvee
+      distanceKm: number | null
+      repere: string | null
+    }
+  | { statut: 'indisponible' }
+
+/** Horizon de proposition : deux semaines, comme un agenda de salon. */
+const JOURS_PROPOSES = 14
+
+export async function creneauxProposables(options: {
+  proId: string
+  serviceId: string
+  adresse: AdresseSaisie
+  /**
+   * A6 : la cliente a vu l'avertissement hors zone et demande quand même.
+   * Sans ce drapeau, une adresse hors zone s'arrête à l'embranchement.
+   */
+  accepterHorsZone?: boolean
+  maintenant?: Date
+}): Promise<ResultatCreneaux> {
+  if (!supabaseConfigured()) return { statut: 'indisponible' }
+  const maintenant = options.maintenant ?? new Date()
+  // Droits élargis, à dessein. Calculer une disponibilité suppose de lire
+  // l'agenda du pro : ses horaires, ses rendez-vous, ses congés. Aucune de ces
+  // tables n'a de politique anonyme, et c'est très bien ainsi.
+  //
+  // Ce qui sort d'ici ne contient que des créneaux libres : jamais un nom de
+  // cliente, jamais une adresse, jamais l'existence d'un rendez-vous. La
+  // cliente apprend qu'un horaire est pris, rien de plus.
+  const supabase = supabaseAdmin()
+
+  const [service, reglages, horaires, abonnement] = await Promise.all([
+    supabase
+      .from('services')
+      .select('duration_min')
+      .eq('id', options.serviceId)
+      .eq('pro_id', options.proId)
+      .maybeSingle(),
+    supabase
+      .from('pro_settings')
+      .select('new_client_buffer_min')
+      .eq('pro_id', options.proId)
+      .maybeSingle(),
+    supabase
+      .from('working_hours')
+      .select('weekday, starts_at, ends_at')
+      .eq('pro_id', options.proId),
+    supabase.from('subscriptions').select('tier, status').eq('pro_id', options.proId).maybeSingle(),
+  ])
+
+  if (!service.data || !horaires.data || horaires.data.length === 0)
+    return { statut: 'indisponible' }
+
+  const adresse = await geocoder(options.adresse, 'reservation')
+  if (!adresse.trouve) {
+    return { statut: 'adresse-a-preciser', suggestions: adresse.suggestions }
+  }
+  const lieu = adresse.trouve
+
+  const jours = joursOuvrables(maintenant, horaires.data, JOURS_PROPOSES)
+  if (jours.length === 0) return { statut: 'indisponible' }
+
+  const debutFenetre = jours[0]
+  const finFenetre = new Date(jours[jours.length - 1].getTime() + 24 * 3600 * 1000)
+
+  const [rdvs, conges, blocages] = await Promise.all([
+    supabase
+      .from('appointments')
+      .select('starts_at, ends_at, lat, lng')
+      .eq('pro_id', options.proId)
+      .in('status', ['pending', 'conditional', 'confirmed', 'in_progress'])
+      .gte('starts_at', debutFenetre.toISOString())
+      .lt('starts_at', finFenetre.toISOString()),
+    supabase
+      .from('time_off')
+      .select('starts_at, ends_at')
+      .eq('pro_id', options.proId)
+      .lt('starts_at', finFenetre.toISOString())
+      .gte('ends_at', debutFenetre.toISOString()),
+    supabase
+      .from('blocked_slots')
+      .select('starts_at, ends_at')
+      .eq('pro_id', options.proId)
+      .lt('starts_at', finFenetre.toISOString())
+      .gte('ends_at', debutFenetre.toISOString()),
+  ])
+
+  // Le géo-filtrage est une capacité de l'offre 2. Sans elle, on ne tient pas
+  // compte des lieux : les créneaux restent simples, et c'est conforme.
+  const etat: SubscriptionState = abonnement.data
+    ? { tier: abonnement.data.tier, status: abonnement.data.status }
+    : { tier: 'tier_1', status: 'canceled' }
+  const geoFiltre = can(etat, 'booking_geo_filtered')
+
+  // A5 / A6 : hors zone, on ne calcule pas de créneaux tout de suite. La
+  // cliente choisit d'abord entre « je serai sur place » et « je demande quand
+  // même ». Sans le géo-filtrage (offre 1), la zone ne filtre rien : le pro n'a
+  // pas souscrit à ça.
+  let horsZone = false
+  if (geoFiltre && can(etat, 'booking_travelling')) {
+    const position = positionDansZone(await zoneDuPro(options.proId), {
+      point: lieu.point,
+      inseeCode: lieu.inseeCode,
+    })
+    if (position.statut === 'dehors') {
+      if (!options.accepterHorsZone) {
+        return {
+          statut: 'hors-zone',
+          adresse: lieu,
+          distanceKm: position.distanceKm,
+          repere: position.repere,
+        }
+      }
+      horsZone = true
+    }
+  }
+
+  const rendezVous = (rdvs.data ?? []).map((r) => ({
+    debut: new Date(r.starts_at),
+    fin: new Date(r.ends_at),
+    lieu: geoFiltre && r.lat !== null && r.lng !== null ? { lat: r.lat, lng: r.lng } : null,
+  }))
+
+  const indisponibilites = [...(conges.data ?? []), ...(blocages.data ?? [])].map((i) => ({
+    debut: new Date(i.starts_at),
+    fin: new Date(i.ends_at),
+  }))
+
+  const lookup = await tableDesTrajets(rendezVous, lieu.point, geoFiltre)
+  const duree = service.data.duration_min + (reglages.data?.new_client_buffer_min ?? 0)
+
+  const proposables: JourProposable[] = []
+  for (const jour of jours) {
+    const plages = plagesDuJour(jour, horaires.data, indisponibilites)
+    if (plages.length === 0) continue
+    const finJour = new Date(jour.getTime() + 24 * 3600 * 1000)
+    const creneaux = creneauxDuJour(
+      {
+        plages,
+        rdvs: rendezVous.filter((r) => r.debut >= jour && r.debut < finJour),
+        dureeMin: duree,
+        lieuCliente: lieu.point,
+        pasAvant: maintenant,
+      },
+      lookup,
+    )
+    if (creneaux.length > 0) proposables.push({ jour, creneaux })
+  }
+
+  return { statut: 'ok', jours: proposables, geoFiltre, adresse: lieu, horsZone }
+}
+
+/**
+ * Précalcule les trajets entre chaque rendez-vous localisé et la cliente, en
+ * un seul appel. Le moteur de créneaux, lui, reste synchrone et pur.
+ */
+async function tableDesTrajets(
+  rdvs: { lieu: Point | null }[],
+  cliente: Point,
+  geoFiltre: boolean,
+): Promise<(de: Point, vers: Point) => number> {
+  const lieux = rdvs.map((r) => r.lieu).filter((l): l is Point => l !== null)
+  if (!geoFiltre || lieux.length === 0) return () => 0
+
+  const table = new Map<string, number>()
+  const cle = (a: Point, b: Point) => `${a.lat},${a.lng}>${b.lat},${b.lng}`
+
+  const [versCliente, depuisCliente] = await Promise.all([
+    trajets.matrice(lieux, [cliente]),
+    trajets.matrice([cliente], lieux),
+  ])
+  lieux.forEach((lieu, i) => {
+    table.set(cle(lieu, cliente), versCliente[i][0].minutes)
+    table.set(cle(cliente, lieu), depuisCliente[0][i].minutes)
+  })
+
+  // Repli sur l'estimation si un couple manque : mieux vaut une durée
+  // approchée qu'un zéro, qui laisserait passer un créneau intenable.
+  return (de, vers) => table.get(cle(de, vers)) ?? dureeEstimeeMin(de, vers)
+}

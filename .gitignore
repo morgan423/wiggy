@@ -11,14 +11,14 @@
 !.yarn/versions
 
 # testing
-/coverage
+coverage/
 
-# next.js
-/.next/
-/out/
+# next.js — motifs NON ancrés : l'app vit dans apps/web, pas à la racine.
+.next/
+out/
 
 # production
-/build
+build/
 
 # misc
 .DS_Store
@@ -32,6 +32,8 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+# Le gabarit, lui, doit être versionné : c'est la doc des variables attendues.
+!.env.example
 
 # vercel
 .vercel
@@ -39,3 +41,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Fichier de transit pour les clés, jamais versionné.
+CLES-A-REMPLIR.txt
+
+# Fichier généré pour application manuelle des migrations.
+MIGRATIONS-A-COLLER*.sql

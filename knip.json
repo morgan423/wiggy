@@ -1,0 +1,23 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "ignore": [],
+  "ignoreDependencies": ["tailwindcss"],
+  "tags": ["-@aVenir"],
+  "workspaces": {
+    ".": {
+      "entry": ["scripts/*.mjs"],
+      "project": ["scripts/**/*.mjs", "*.mjs"]
+    },
+    "apps/web": {
+      "entry": ["src/lib/creneaux.ts"],
+      "project": ["src/**/*.{ts,tsx}"]
+    },
+    "apps/pro": {
+      "project": ["**/*.{ts,tsx,js}"]
+    },
+    "packages/*": {
+      "entry": ["src/**/*.test.ts"],
+      "project": ["src/**/*.ts"]
+    }
+  }
+}

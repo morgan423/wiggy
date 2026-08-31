@@ -1,0 +1,215 @@
+{
+  "$description": "Wiggy — thème unique de l'app. Source de vérité : ce fichier. Le CSS et l'export TS sont générés (npm run tokens:build), jamais édités à la main.",
+  "$direction": "Prune & Framboise (voie A, ratifiée phase 1)",
+  "$arbitrage": "Les VALEURS viennent du livrable design (wiggy-tokens v2). Les NOMS et la STRUCTURE sont ceux du dépôt. Toute clé du fichier design doit avoir une correspondance ici : le test de ratification échoue sinon.",
+  "couleur": {
+    "action": {
+      "valeur": "#C2255C",
+      "nom": "Framboise",
+      "usage": "boutons, liens, sélection"
+    },
+    "prune": {
+      "valeur": "#45173C",
+      "nom": "Prune",
+      "usage": "texte et blocs pleine couleur"
+    },
+    "celebration": {
+      "valeur": "#F4B23E",
+      "nom": "Miel",
+      "usage": "confirmé, journée bouclée"
+    },
+    "attente": {
+      "valeur": "#F98D5C",
+      "nom": "Abricot",
+      "usage": "en cours, trajets, sous réserve"
+    },
+    "erreur": {
+      "valeur": "#B8432E",
+      "nom": "Brique",
+      "usage": "erreur factuelle, jamais criarde"
+    },
+    "fond": {
+      "valeur": "#FBEEE6",
+      "nom": "Crème rosée",
+      "usage": "fond de page"
+    },
+    "surface": {
+      "valeur": "#FFFDFB",
+      "nom": "Blanc rosé",
+      "usage": "cartes, champs"
+    },
+    "actionSurvol": {
+      "valeur": "#A81C4E",
+      "nom": "Framboise survolée",
+      "usage": "survol du bouton d'action"
+    },
+    "actionPressee": {
+      "valeur": "#8F1A44",
+      "nom": "Framboise pressée",
+      "usage": "état pressé du bouton d'action"
+    },
+    "pruneSurvol": {
+      "valeur": "#58254C",
+      "nom": "Prune survolée",
+      "usage": "survol des blocs prune"
+    }
+  },
+  "texte": {
+    "principal": {
+      "valeur": "#45173C",
+      "usage": "texte courant sur crème ou surface"
+    },
+    "secondaire": {
+      "valeur": "rgba(69, 23, 60, 0.72)",
+      "usage": "texte secondaire sur crème"
+    },
+    "attenue": {
+      "valeur": "rgba(69, 23, 60, 0.55)",
+      "usage": "captions, métadonnées"
+    },
+    "surPlein": {
+      "valeur": "#FFFDFB",
+      "usage": "texte sur prune, framboise ou brique"
+    },
+    "surPleinDoux": {
+      "valeur": "rgba(251, 238, 230, 0.75)",
+      "usage": "texte secondaire sur prune"
+    },
+    "surMiel": {
+      "valeur": "#45173C",
+      "usage": "texte sur miel ou abricot — jamais du blanc, contraste insuffisant"
+    }
+  },
+  "trait": {
+    "discret": {
+      "valeur": "rgba(69, 23, 60, 0.14)",
+      "usage": "bordures et séparateurs — seul trait autorisé"
+    }
+  },
+  "police": {
+    "display": {
+      "valeur": "Fraunces",
+      "repli": "Georgia, 'Times New Roman', serif"
+    },
+    "ui": {
+      "valeur": "Plus Jakarta Sans",
+      "repli": "system-ui, -apple-system, sans-serif"
+    },
+    "wonk": {
+      "valeur": "'SOFT' 100, 'WONK' 1",
+      "usage": "statements uniquement"
+    }
+  },
+  "typo": {
+    "statement": {
+      "police": "display",
+      "graisse": 700,
+      "taille": 92,
+      "interligne": 0.98,
+      "wonk": true,
+      "portee": "site uniquement"
+    },
+    "display": {
+      "police": "display",
+      "graisse": 700,
+      "taille": 56,
+      "interligne": 1.02,
+      "wonk": false,
+      "portee": "héros d'écran"
+    },
+    "titre": {
+      "police": "display",
+      "graisse": 600,
+      "taille": 26,
+      "interligne": 1.2,
+      "wonk": false,
+      "portee": "prénoms, sections"
+    },
+    "corps": {
+      "police": "ui",
+      "graisse": 400,
+      "taille": 16,
+      "interligne": 1.5,
+      "portee": "toute l'UI"
+    },
+    "caption": {
+      "police": "ui",
+      "graisse": 600,
+      "taille": 13,
+      "interligne": 1.4,
+      "portee": "métadonnées"
+    },
+    "$regle": "chaque taille est le plafond grand écran — implémentation clamp(60 % du token, fluide, token), fixe sous 40 px"
+  },
+  "regles": {
+    "serifTailleMinimale": 20,
+    "serifInterditeDans": ["agenda", "tournee"],
+    "wonkReserveA": ["statement"],
+    "zoneTactileMin": 44
+  },
+  "registres": {
+    "pro": "tutoiement — « Ton prochain rendez-vous »",
+    "cliente": "vouvoiement chaleureux — « Votre rendez-vous est confirmé »"
+  },
+  "radius": {
+    "champ": 12,
+    "carte": 20,
+    "bloc": 28,
+    "pilule": 999
+  },
+  "espacement": {
+    "1": 4,
+    "2": 8,
+    "3": 12,
+    "4": 16,
+    "6": 24,
+    "8": 32,
+    "12": 48
+  },
+  "breakpoint": {
+    "sm": 480,
+    "md": 768,
+    "lg": 1024,
+    "xl": 1440
+  },
+  "ombre": {
+    "carte": {
+      "valeur": "0 2px 12px rgba(69, 23, 60, 0.08)"
+    },
+    "flottante": {
+      "valeur": "0 8px 28px rgba(69, 23, 60, 0.14)"
+    }
+  },
+  "motion": {
+    "$source": "livrable design wiggy-tokens v2 — seule source depuis le 30/08",
+    "easing": {
+      "celebration": "cubic-bezier(0.2, 1.4, 0.4, 1)",
+      "standard": "ease-out"
+    },
+    "duree": {
+      "tap": 100,
+      "fondu": 150,
+      "toast": 200,
+      "souligne": 400,
+      "pop": 450,
+      "segment": 120,
+      "squelette": 1200
+    },
+    "tapScale": 0.97,
+    "mouvementReduit": "fondu 150ms uniquement, sans scale ni translation — aucune exception",
+    "celebrations": {
+      "confirmationCliente": [
+        "0ms tap: bouton scale 0.97 (80ms)",
+        "250ms carte miel: pop 450ms ease-celebration",
+        "700ms prénom: tracé boucle 400ms",
+        "1100ms ligne SMS: fondu 200ms — jamais rejoué"
+      ],
+      "journeeBouclee": [
+        "0ms clôture: toast miel",
+        "300ms pastilles reliées gauche→droite 120ms/segment",
+        "900ms statement WONK: pop 450ms",
+        "1350ms bilan: fondu 200ms — 1×/jour max"
+      ]
+    }
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "$ecran": "Notification copilote (C1/C2)",
+  "$source": "board phase 2, bloc 3c écran 3",
+  "$registre": "pro",
+  "$principe": "Lisible en 2 secondes, en marchant.",
+  "verrouillage": {
+    "titre": "Prochain rendez-vous : Amélie, 14h30",
+    "detail": "12 rue des Lilas · à 8 min en voiture",
+    "boutonPrincipal": "Ouvrir le trajet",
+    "boutonSecondaire": "Voir la fiche"
+  },
+  "bandeauInApp": {
+    "titre": "Amélie · 14h30",
+    "detail": "Départ conseillé : 14h18",
+    "bouton": "Ouvrir le trajet"
+  }
+}

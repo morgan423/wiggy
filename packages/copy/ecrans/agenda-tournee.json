@@ -1,0 +1,41 @@
+{
+  "$ecran": "Ma tournée (C0) et détail du rendez-vous",
+  "$source": "board phase 2, blocs 3c, 5a, 7a, 9b et 12a",
+  "$registre": "pro",
+  "titre": "Ma tournée",
+  "gabarits": {
+    "resume": "Ta tournée · {n} rendez-vous · {km}",
+    "restant": "Plus que {n} rendez-vous et ta journée est bouclée",
+    "prochainDetail": "{adresse} · à {min} min en voiture"
+  },
+  "entete": {
+    "resumeExemple": "Ta tournée · 4 rendez-vous · 12 km"
+  },
+  "sections": {
+    "matin": "Matin · Quartier Zola",
+    "apresMidi": "Après-midi · Centre-ville"
+  },
+  "prochain": {
+    "titre": "Prochain rendez-vous",
+    "trajet": "Ouvrir le trajet",
+    "fiche": "Voir la fiche"
+  },
+  "etats": {
+    "enCours": "En cours",
+    "termine": "Terminé"
+  },
+  "rendezVous": {
+    "cloture": "Terminé",
+    "clotureAction": "Terminer le rendez-vous",
+    "trajet": "8 min de trajet"
+  },
+  "progression": {
+    "restant": "Plus que 3 rendez-vous et ta journée est bouclée"
+  },
+  "$aEcrire": {
+    "$note": "Absent du board : à faire ratifier.",
+    "aVenir": "À venir",
+    "photosCliente": "Ce que ta cliente a envoyé",
+    "sansAdresse": "Adresse non reconnue : pas de trajet calculé."
+  }
+}

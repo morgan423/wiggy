@@ -1,0 +1,21 @@
+{
+  "name": "@wiggy/tokens",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./css": "./wiggy-tokens.css",
+    "./json": "./wiggy-tokens.json"
+  },
+  "scripts": {
+    "build": "node build.mjs",
+    "test": "node --test \"src/**/*.test.ts\"",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^5"
+  }
+}

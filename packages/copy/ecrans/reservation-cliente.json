@@ -1,0 +1,69 @@
+{
+  "$ecran": "Réservation cliente (A1/A3/A5/A6)",
+  "$source": "board phase 2, blocs 3c, 4a, 4b, 7b, 8b et 9b",
+  "$registre": "cliente",
+  "$note": "Les clés de `gabarits` portent des marques {pro}, {cliente}, {quand} : le board illustre avec des noms de démonstration, le produit interpole les vrais.",
+  "$ligneEditoriale": "Formulations impersonnelles ou centrées sur la pro plutôt que « nous » : Wiggy reste discret sur la page de la pro, la cliente reste la cliente de la pro.",
+  "entete": {
+    "sousTitreExemple": "Coiffeuse à domicile · Nantes & alentours"
+  },
+  "gabarits": {
+    "seDeplace": "{pro} se déplace chez vous",
+    "creneauxTitre": "{pro} est près de chez vous :",
+    "aucunCreneauTitre": "{pro} n'est pas près de chez vous cette semaine.",
+    "confirmationTitre": "Votre rendez-vous est confirmé, {cliente}.",
+    "confirmationDetail": "{pro} sera chez vous {quand}, rappel par SMS la veille.",
+    "demandeEnvoyee": "Demande envoyée à {pro}, réponse rapide",
+    "demandeChezLaPro": "Votre demande est chez {pro}, réponse rapide, vous serez prévenue par SMS."
+  },
+  "prestations": {
+    "titre": "Que souhaitez-vous réserver ?"
+  },
+  "creneaux": {
+    "bouton": "Réserver ce créneau"
+  },
+  "sousReserve": {
+    "badge": "Sous réserve de validation",
+    "bouton": "Envoyer la demande"
+  },
+  "parcours": {
+    "etapes": "Prestation → créneau → coordonnées → célébration. Un geste par écran."
+  },
+  "aucunCreneau": {
+    "invitation": "Laissez votre numéro : vous serez prévenue dès qu'une tournée passe dans votre quartier.",
+    "champ": "06 …",
+    "bouton": "Me prévenir"
+  },
+  "$aEcrire": {
+    "$note": "Absent du board : à faire ratifier. Certaines de ces chaînes portent des marques {pro} et {pronom}, comme les gabarits.",
+    "$ratifie": "Relecture du 31/08 : prestationsTitre, adresseAide et coordonneesAide réécrits, choisirPrestation supprimé au profit de la ligne ratifiée du board.",
+    "prestationsTitre": "Ce que {pro} propose",
+    "zoneIntervention": "Se déplace à",
+    "adresseTitre": "Où venir vous coiffer ?",
+    "adresseAide": "Votre adresse nous permet de vous proposer les créneaux où {pro} est déjà dans votre quartier.",
+    "adresseIntrouvable": "Nous ne trouvons pas cette adresse. Vérifiez le numéro, la rue et le code postal.",
+    "adressePreciser": "Est-ce l’une de ces adresses ?",
+    "adresseAucuneSuggestion": "Ajoutez votre code postal, cela nous aidera à la retrouver.",
+    "coordonneesTitre": "Vos coordonnées",
+    "coordonneesAide": "Pour vous confirmer le rendez-vous par SMS.",
+    "horsZoneTitre": "Vous êtes un peu en dehors de la zone habituelle de {pro}.",
+    "horsZoneDemande": "Vous pouvez tout de même lui faire une demande : {pronom} vous répond rapidement.",
+    "horsZoneDemandeSansPronom": "Vous pouvez tout de même lui faire une demande : la réponse arrive rapidement.",
+    "sejourTitre": "Vous serez sur place ?",
+    "sejourAide": "Indiquez l’adresse de votre séjour et ses dates : les créneaux seront calculés depuis là.",
+    "sejourAdresseConnue": "Je connais mon adresse",
+    "sejourHotel": "Je suis à l’hôtel",
+    "sejourHotelAide": "Cherchez votre hôtel, ou saisissez son adresse si vous la connaissez.",
+    "sejourDu": "Du",
+    "sejourAu": "Au",
+    "demandeRefusee": "{pro} ne peut pas se déplacer jusqu’à vous cette fois.",
+    "photosTitre": "Quelques photos, si vous voulez",
+    "photosAide": "Vos cheveux aujourd’hui et ce dont vous rêvez : {pro} prépare mieux, et prévoit le temps qu’il faut.",
+    "photosActuelles": "Vos cheveux aujourd’hui",
+    "photosInspirations": "Vos inspirations",
+    "photosFormats": "Cinq photos au maximum, 5 Mo chacune.",
+    "photosTropNombreuses": "Cinq photos au maximum.",
+    "photosTropLourde": "Chaque photo doit peser moins de 5 Mo.",
+    "photosFormat": "Ce fichier n’est pas une photo."
+  }
+}

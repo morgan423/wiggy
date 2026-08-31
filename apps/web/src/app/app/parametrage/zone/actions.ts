@@ -1,0 +1,51 @@
+'use server'
+
+import { revalidatePath } from 'next/cache'
+import { CommuneInput } from '@wiggy/api'
+import { champ, champTexte } from '@/lib/forms'
+import { requirePro } from '@/lib/auth'
+import { supabaseServer } from '@/lib/supabase/server'
+
+/**
+ * B11 ② — zone d'intervention en liste de communes (méthode tranchée).
+ *
+ * C'est la donnée dont dépendent A3 (créneaux géo-filtrés), A5 (cliente en
+ * déplacement), A6 (hors-zone sous réserve) et A8 (forfait distance).
+ */
+
+const CHEMIN = '/app/parametrage/zone'
+
+export async function ajouterCommune(donnees: FormData) {
+  const saisie = CommuneInput.safeParse({
+    insee_code: champ(donnees, 'insee_code'),
+    name: champ(donnees, 'name'),
+    postal_code: champ(donnees, 'postal_code'),
+    lat: nombreOuNull(champ(donnees, 'lat')),
+    lng: nombreOuNull(champ(donnees, 'lng')),
+  })
+  if (!saisie.success) return
+
+  const { pro } = await requirePro()
+  const supabase = await supabaseServer()
+
+  // La zone existe dès la première commune : A3 a besoin de savoir en quel mode
+  // elle est réglée, même si `communes` est aujourd'hui le seul exposé.
+  await supabase.from('service_areas').upsert({ pro_id: pro.id, mode: 'communes' })
+  await supabase.from('service_area_communes').upsert({ ...saisie.data, pro_id: pro.id })
+
+  revalidatePath(CHEMIN)
+}
+
+export async function retirerCommune(donnees: FormData) {
+  const insee = champTexte(donnees, 'insee_code')
+  if (!insee) return
+  await requirePro()
+  const supabase = await supabaseServer()
+  await supabase.from('service_area_communes').delete().eq('insee_code', insee)
+  revalidatePath(CHEMIN)
+}
+
+function nombreOuNull(valeur: FormDataEntryValue | null): number | null {
+  const n = Number(valeur)
+  return valeur !== null && valeur !== '' && Number.isFinite(n) ? n : null
+}

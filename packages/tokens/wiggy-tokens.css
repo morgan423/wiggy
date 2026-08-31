@@ -1,0 +1,107 @@
+/* ─────────────────────────────────────────────────────────────
+ * Wiggy — thème unique de l'app.
+ *
+ * ⚠️ FICHIER GÉNÉRÉ par packages/tokens/build.mjs.
+ * Toute modification se fait dans wiggy-tokens.json, puis
+ * `npm run tokens:build`. Éditer ce fichier le fera diverger de la
+ * source et le thème cessera d'être unique.
+ *
+ * Direction : Prune & Framboise (voie A, ratifiée phase 1)
+ * ───────────────────────────────────────────────────────────── */
+
+@theme {
+  /* Couleurs sémantiques */
+  /* Framboise — boutons, liens, sélection */
+  --color-action: #C2255C;
+  /* Prune — texte et blocs pleine couleur */
+  --color-prune: #45173C;
+  /* Miel — confirmé, journée bouclée */
+  --color-celebration: #F4B23E;
+  /* Abricot — en cours, trajets, sous réserve */
+  --color-attente: #F98D5C;
+  /* Brique — erreur factuelle, jamais criarde */
+  --color-erreur: #B8432E;
+  /* Crème rosée — fond de page */
+  --color-fond: #FBEEE6;
+  /* Blanc rosé — cartes, champs */
+  --color-surface: #FFFDFB;
+  /* Framboise survolée — survol du bouton d'action */
+  --color-action-survol: #A81C4E;
+  /* Framboise pressée — état pressé du bouton d'action */
+  --color-action-pressee: #8F1A44;
+  /* Prune survolée — survol des blocs prune */
+  --color-prune-survol: #58254C;
+
+  /* Texte */
+  --color-texte-principal: #45173C;
+  --color-texte-secondaire: rgba(69, 23, 60, 0.72);
+  --color-texte-attenue: rgba(69, 23, 60, 0.55);
+  --color-texte-sur-plein: #FFFDFB;
+  --color-texte-sur-plein-doux: rgba(251, 238, 230, 0.75);
+  --color-texte-sur-miel: #45173C;
+
+  /* Traits */
+  --color-trait-discret: rgba(69, 23, 60, 0.14);
+
+  /* Polices */
+  --font-display: var(--police-display), Georgia, 'Times New Roman', serif;
+  --font-sans: var(--police-ui), system-ui, -apple-system, sans-serif;
+  --wonk: 'SOFT' 100, 'WONK' 1;
+
+  /* Échelle typographique — tailles design, rendues responsives */
+  --text-statement: clamp(3.4375rem, 11.5vw, 5.75rem);
+  --leading-statement: 0.98;
+  --font-weight-statement: 700;
+  --text-display: clamp(2.125rem, 7.0vw, 3.5rem);
+  --leading-display: 1.02;
+  --font-weight-display: 700;
+  --text-titre: 1.625rem;
+  --leading-titre: 1.2;
+  --font-weight-titre: 600;
+  --text-corps: 1rem;
+  --leading-corps: 1.5;
+  --font-weight-corps: 400;
+  --text-caption: 0.8125rem;
+  --leading-caption: 1.4;
+  --font-weight-caption: 600;
+  --text-$regle: NaNrem;
+  --leading-$regle: undefined;
+  --font-weight-$regle: undefined;
+
+  /* Points de rupture */
+  --breakpoint-sm: 480px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1440px;
+
+  /* Rayons — la rondeur est le motif structurel */
+  --radius-champ: 12px;
+  --radius-carte: 20px;
+  --radius-bloc: 28px;
+  --radius-pilule: 9999px;
+
+  /* Espacements */
+  --spacing-1: 0.25rem;
+  --spacing-2: 0.5rem;
+  --spacing-3: 0.75rem;
+  --spacing-4: 1rem;
+  --spacing-6: 1.5rem;
+  --spacing-8: 2rem;
+  --spacing-12: 3rem;
+
+  /* Ombres */
+  --shadow-carte: 0 2px 12px rgba(69, 23, 60, 0.08);
+  --shadow-flottante: 0 8px 28px rgba(69, 23, 60, 0.14);
+
+  /* Motion — valeurs du livrable design */
+  --duree-tap: 100ms;
+  --duree-fondu: 150ms;
+  --duree-toast: 200ms;
+  --duree-souligne: 400ms;
+  --duree-pop: 450ms;
+  --duree-segment: 120ms;
+  --duree-squelette: 1200ms;
+  --courbe-celebration: cubic-bezier(0.2, 1.4, 0.4, 1);
+  --courbe-standard: ease-out;
+  --tap-scale: 0.97;
+}

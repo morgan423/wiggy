@@ -1,0 +1,25 @@
+{
+  "$ecran": "États vides, erreurs et hors-ligne",
+  "$source": "board phase 2, bloc 7b",
+  "$registre": "mixte",
+  "$principe": "Les creux du produit sont des invitations à agir, jamais un constat triste. Les erreurs sont factuelles et orientées solution.",
+  "agendaVide": {
+    "$registre": "pro",
+    "titre": "Ta journée est libre.",
+    "invitation": "Partage ton lien : tes clientes réservent, Wiggy construit la tournée.",
+    "bouton": "Partager mon lien"
+  },
+  "smsNonParti": {
+    "$registre": "pro",
+    "titre": "Le SMS de rappel n'est pas parti.",
+    "detail": "Le numéro 06 12 34 56 7 semble incomplet. Corrige-le, puis renvoie le rappel.",
+    "boutonPrincipal": "Corriger le numéro",
+    "boutonSecondaire": "Renvoyer"
+  },
+  "horsLigne": {
+    "$registre": "pro",
+    "titre": "Pas de réseau par ici.",
+    "detail": "Tu peux continuer à travailler : tes modifications se synchroniseront dès que le réseau revient.",
+    "compteur": "2 modifications en attente"
+  }
+}

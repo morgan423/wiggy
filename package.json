@@ -1,26 +1,41 @@
 {
-  "name": "bigoodi",
-  "version": "0.1.0",
+  "name": "wiggy",
   "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
-    "start": "next start",
-    "lint": "eslint"
-  },
-  "dependencies": {
-    "next": "16.3.3",
-    "react": "19.2.8",
-    "react-dom": "19.2.8"
+    "db:check": "node scripts/db-check.mjs",
+    "test": "npm run test --workspaces --if-present",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "lint": "eslint .",
+    "web": "npm run dev --workspace @wiggy/web",
+    "pro": "npm run start --workspace @wiggy/pro",
+    "verify": "npm run tokens:build && npm run db:types && npm run db:check && npm run db:test && npm run db:matrice && npm run design:check && npm run copy:manques && npm run check && npm test",
+    "db:test": "node --test scripts/db-test.mjs",
+    "db:bundle": "node scripts/db-bundle.mjs",
+    "db:matrice": "node scripts/db-matrice.mjs",
+    "tokens:build": "node packages/tokens/build.mjs",
+    "design:check": "node scripts/design-check.mjs",
+    "trajets:calibrage": "node scripts/trajets-calibrage.mjs",
+    "db:types": "node scripts/db-types.mjs",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "deadcode": "knip",
+    "check": "npm run format:check && npm run lint && npm run typecheck && npm run deadcode",
+    "prepare": "husky",
+    "copy:extract": "node scripts/copy-extract.mjs",
+    "copy:manques": "node scripts/copy-manques.mjs"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
-    "eslint": "^9",
-    "eslint-config-next": "16.3.3",
-    "tailwindcss": "^4",
-    "typescript": "^5"
+    "@electric-sql/pglite": "^0.3.13",
+    "@eslint/js": "^9.39.5",
+    "eslint": "^9.39.5",
+    "eslint-config-prettier": "^10.1.8",
+    "husky": "^9.1.7",
+    "knip": "^6.33.0",
+    "prettier": "^3.9.6",
+    "typescript-eslint": "^8.68.0"
   }
 }

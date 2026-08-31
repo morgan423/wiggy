@@ -1,0 +1,3 @@
+# Un commit ne passe que si la chaîne complète est au vert : format, lint,
+# types, code mort, tokens, schéma, cloisonnement, règles design, tests.
+npm run verify

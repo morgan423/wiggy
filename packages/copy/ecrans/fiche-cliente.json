@@ -1,0 +1,10 @@
+{
+  "$ecran": "Fiche cliente (B1/B2)",
+  "$source": "board phase 2, blocs 7a et 4b",
+  "$registre": "pro",
+  "notes": {
+    "titre": "Tes notes",
+    "exemple": "Formule couleur : 6.35 + 20 vol. Temps de pose 35 min. Café sans sucre.",
+    "$regle": "Les exemples éduquent l'usage : formule, dosage, temps de pose, préférences. Jamais d'invite vers des données de santé."
+  }
+}
