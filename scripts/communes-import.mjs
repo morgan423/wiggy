@@ -47,6 +47,24 @@ async function importer(essai) {
     return reponse
   }
 
+  // D6 : le référentiel se réimporte une fois par an, en janvier. Les communes
+  // fusionnent, se scindent et se renomment, et un code INSEE périmé fait
+  // échouer le filtrage géographique en silence. Le rappel s'affiche ici parce
+  // que c'est le seul endroit où quelqu'un le lira au bon moment.
+  // `rest` renvoie la réponse brute : c'est à l'appelant de la lire.
+  const [dernier] = await rest('communes_import?select=importe_le&limit=1')
+    .then((r) => r.json())
+    .catch(() => [])
+  if (dernier?.importe_le) {
+    const jours = Math.floor((Date.now() - Date.parse(dernier.importe_le)) / 86_400_000)
+    console.log(`Dernier import : il y a ${jours} jour(s).`)
+    if (jours > 365) {
+      console.warn('⚠ Plus d’un an. Le référentiel est à réimporter chaque janvier (D6).')
+    }
+  } else {
+    console.log('Aucun import précédent : le référentiel est vide.')
+  }
+
   console.log('Téléchargement du référentiel de l’État…')
   const reponse = await fetch(SOURCE, { signal: AbortSignal.timeout(60_000) })
   if (!reponse.ok) throw new Error(`geo.api.gouv.fr : HTTP ${reponse.status}`)

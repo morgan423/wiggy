@@ -16,7 +16,78 @@ question qui ne vit que dans le chat disparaît avec la session. Trois lignes : 
 qu'elle bloque, la date. À la clôture, la question et sa réponse basculent dans l'entrée de
 l'étape et cette section se vide.
 
-_Rien en attente._
+- **R2-7 : deux rendez-vous bord à bord.** Un enchaînement à la minute près a été observé en
+  recette. Deux explications possibles, qui appellent des corrections opposées : ① deux créneaux
+  simplement proposés comme alternatives dans la liste, auquel cas il n'y a pas de défaut ; ②
+  un rendez-vous précédent sans lieu géocodé, qui désactive silencieusement la logique de
+  tournée autour de lui. Bloque toute correction du moteur de créneaux. Posée le 2026-08-31,
+  réponse attendue de Morgan avant d'ouvrir le sujet.
+
+---
+
+## 2026-09-01 Étape : R2-6, et le lot D7 (deux environnements, production, purge)
+
+**Fait :**
+
+- **R2-6** : les trois champs d'adresse de l'étape « Vous serez sur place » s'ouvrent vides. Les
+  préremplir avec l'adresse qui venait d'être jugée hors zone invitait à valider sans relire, et
+  aurait envoyé le pro à l'adresse même que la cliente déclarait ne pas être le bon lieu. La
+  prestation reste conservée.
+- **D7, `supabase/ETAT.md`** suit deux environnements, une colonne par projet. Le développement
+  porte l'état du jour, la production reste « Projet inexistant » jusqu'au jalon J1.
+- **D7, `docs/production.md`** : la création du projet de production, pas à pas, suivable un jour
+  de bêta. Création du projet en région UE, rejeu de `0001` à la dernière migration en un lot,
+  vérification que la RLS est active partout, import des communes, pose des clés de déploiement,
+  vérification d'ouverture puis purge du compte de test. Le document porte aussi l'entretien
+  récurrent.
+- **D7, `CLAUDE.md`** : une migration s'applique toujours au développement d'abord, et la
+  production ne sert jamais à une recette.
+- **D7, `npm run purge:compte`** : purge des données de test d'un compte pro nommé. Supprime
+  rendez-vous, photos (lignes et fichiers), fiches clientes et leurs adresses, et les
+  inscriptions à la liste d'attente d'une adresse e-mail donnée. Conserve le paramétrage
+  (prestations, zone, horaires, congés, réglages, abonnement) : on purge pour rejouer une
+  recette, pas pour tout reconfigurer. Ne touche jamais la table des communes.
+- **D6, le réimport annuel** est tracé à trois endroits : `docs/production.md` (section
+  « Entretien récurrent », avec la raison), les notes de `supabase/ETAT.md`, et surtout
+  **le script lui-même**, qui affiche l'âge du dernier import à chaque lancement et avertit
+  au-delà d'un an. C'est le seul des trois qui tombe sous les yeux au bon moment.
+
+**Schéma :** aucun.
+
+**Décisions :** application de D6 et D7. Aucune nouvelle.
+
+**Écarts au brief :**
+
+- **La liste d'attente ne peut pas être bornée à un compte pro.** `city_waitlist` n'a pas de
+  `pro_id` : c'est une table de plateforme, indexée par e-mail et par ville. La purge la borne
+  donc à une **adresse e-mail**, passée par `--email`, et ne touche rien sans elle.
+- **Le compte pro lui-même n'est pas supprimé**, ni son paramétrage. Le brief demandait les
+  données de test ; effacer la zone et les prestations obligerait à tout reconfigurer avant
+  chaque recette. Si la suppression complète est voulue, c'est un second mode à ajouter.
+- **La purge refuse de tourner sur la production**, y compris pour la vérification d'ouverture
+  décrite dans `docs/production.md`. C'est le comportement voulu par D7, et le document dit quoi
+  faire à la place plutôt que de laisser la contradiction sans réponse.
+- **R2-5 (photos non agrandissables) n'est pas traité** : le document le rattache explicitement
+  à la trousse de composants.
+
+**Questions ouvertes :**
+
+- **R2-7** reste en attente, dans la section d'arbitrage en tête de ce journal. Non ouvert, sur
+  consigne.
+- **D8**, le test de bout en bout du tunnel, reste à faire.
+
+**À recetter par Morgan :**
+
+- **R2-6** : réserver depuis une adresse hors zone, prendre « Vous serez sur place », vérifier
+  que les trois champs d'adresse sont **vides** et que la prestation choisie est conservée.
+- **Purge** : `npm run purge:compte -- --pro morgan` doit afficher l'inventaire sans rien
+  supprimer. Puis, après avoir posé `WIGGY_ENV=developpement` dans `.env.local`, relancer avec
+  `--appliquer` : le script fait retaper le slug avant d'agir, et rend compte de ce qu'il a
+  supprimé. Vérifier ensuite que prestations, zone et horaires sont intacts.
+- **Rappel annuel** : `npm run communes:import -- --essai` doit annoncer l'âge du dernier import.
+
+**Statut à reporter dans la roadmap :** aucun changement. `A4`, `A6`, `B10` et `B11` sont passés
+en « Fait » par Morgan après la recette 2, onze passages sur onze.
 
 ---
 

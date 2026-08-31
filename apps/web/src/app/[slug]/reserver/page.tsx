@@ -437,12 +437,21 @@ async function EtapeSejour({
         <h2 className="text-sm font-bold tracking-widest text-texte-secondaire uppercase">
           {C.$aEcrire.sejourAdresseConnue}
         </h2>
+        {/*
+          Les trois champs d'adresse s'ouvrent VIDES, à dessein. Les préremplir
+          avec l'adresse de l'étape précédente, celle qui vient d'être jugée
+          hors zone, invite à valider sans relire : la cliente déclarerait comme
+          lieu de séjour l'adresse dont elle vient de dire que ce n'était pas le
+          bon lieu, et le pro se déplacerait au mauvais endroit (R2-6). Par
+          définition ce n'est pas le même lieu, sinon la question ne se poserait
+          pas. La prestation, elle, reste conservée.
+        */}
         <form method="get" className="mt-4">
           <input type="hidden" name="p" value={prestation.id} />
-          <ChampGet id="a" label="Adresse du séjour" defaultValue={recherche.a} />
+          <ChampGet id="a" label="Adresse du séjour" />
           <div className="grid gap-0 sm:grid-cols-2 sm:gap-5">
-            <ChampGet id="cp" label="Code postal" defaultValue={recherche.cp} inputMode="numeric" />
-            <ChampGet id="v" label="Ville" defaultValue={recherche.v} required={false} />
+            <ChampGet id="cp" label="Code postal" inputMode="numeric" />
+            <ChampGet id="v" label="Ville" required={false} />
           </div>
           <div className="grid gap-0 sm:grid-cols-2 sm:gap-5">
             <ChampGet id="du" label={C.$aEcrire.sejourDu} defaultValue={recherche.du} type="date" />

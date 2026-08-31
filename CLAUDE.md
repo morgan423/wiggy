@@ -110,6 +110,13 @@ Côté cliente finale, tout reste web : zéro installation pour réserver.
 
 - Migrations : `supabase/migrations/NNNN_nom.sql`, jamais éditées après application : on ajoute une
   migration.
+- **Deux environnements Supabase (D7)**, et `supabase/ETAT.md` suit les deux, une colonne par
+  projet. **Une migration s'applique toujours au développement d'abord, à la production ensuite,
+  jamais l'inverse.** **La production ne sert jamais à une recette** : elle porte les fiches de
+  vraies clientes, y créer et supprimer de la donnée de test est intenable pour un sous-traitant
+  RGPD. La création du projet de production se suit pas à pas dans `docs/production.md`, qui
+  porte aussi l'entretien récurrent, dont le **réimport annuel du référentiel des communes, en
+  janvier** (D6).
 - Montants **toujours en centimes** (`*_cents`, entiers). Aucun flottant sur de l'argent.
 - Durées en minutes (`*_min`).
 - Les libellés de prestation et le prix sont **figés sur le RDV** à la réservation : l'historique ne
