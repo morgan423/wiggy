@@ -20,6 +20,39 @@ _Rien en attente._
 
 ---
 
+## 2026-08-31 Étape : R2-2, le tunnel casse au choix du créneau
+
+Livrée seule et en urgence, pour que la recette 2 reprenne au passage 5. R2-1 et D8 suivent
+pendant la recette : ils ne touchent pas les écrans en cours de test.
+
+**Fait :**
+
+- **R2-2** : `FormPhotos` recevait une fonction (`lienSuivant`) depuis un composant serveur.
+  React refuse de faire traverser une fonction à cette frontière : la page cassait au rendu, au
+  choix du créneau, avant même l'écran des photos. Le composant reçoit désormais le chemin et
+  les paramètres courants, en chaînes, et compose l'adresse lui-même.
+- **Vérification des autres frontières** : une seule autre propriété de type fonction traverse
+  serveur vers client dans le dépôt, `action` de `FormRdv`. C'est une action serveur déclarée,
+  donc licite. Aucune autre.
+
+**Schéma :** aucun.
+
+**Décisions :** aucune. D8 est ratifiée mais n'est pas dans cette livraison.
+
+**Écarts au brief :** aucun.
+
+**Questions ouvertes :** aucune sur ce défaut.
+
+**À recetter par Morgan :** reprendre au passage 5, choisir un créneau. Les cinq écrans du
+tunnel ont été ouverts un par un sur le serveur de développement avant livraison, sur l'URL
+même du journal de la recette 1 : prestation, adresse, créneaux, photos, coordonnées répondent
+tous en 200 sans erreur React.
+
+**Statut à reporter dans la roadmap :** aucun changement. `A4` et `A3` restent en cours de
+recette.
+
+---
+
 ## 2026-08-31 Étape : correction des cinq bloquants de recette (B1 à B5), D5, D6, S6
 
 **Fait :**

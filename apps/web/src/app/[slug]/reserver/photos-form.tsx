@@ -21,12 +21,29 @@ const C = copy.reservationCliente
  */
 export function FormPhotos({
   prenomPro,
-  lienSuivant,
+  chemin,
+  parametres,
 }: {
   prenomPro: string
-  lienSuivant: (depot?: string) => string
+  /**
+   * Rien ne traverse la frontière serveur vers client qui ne soit
+   * sérialisable. Ce composant recevait auparavant une fonction de
+   * construction de lien, et React refusait de rendre la page : le tunnel
+   * cassait au choix du créneau, avant même les photos (bloquant R2-2).
+   * Il reçoit donc le chemin et les paramètres, et compose lui-même.
+   */
+  chemin: string
+  parametres: Record<string, string>
 }) {
   const router = useRouter()
+
+  const lienSuivant = (depot?: string) => {
+    const params = new URLSearchParams(parametres)
+    params.set('ph', '1')
+    if (depot) params.set('d', depot)
+    return `${chemin}?${params.toString()}`
+  }
+
   const [actuelles, setActuelles] = useState<File[]>([])
   const [inspirations, setInspirations] = useState<File[]>([])
   const [erreur, setErreur] = useState<string | undefined>()

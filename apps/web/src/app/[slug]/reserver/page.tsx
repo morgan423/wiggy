@@ -89,12 +89,17 @@ export default async function Reserver({
     .order('name')
 
   const prestation = prestations?.find((p) => p.id === q.p)
+  const chemin = `/${pro.slug}/reserver`
+  /** Les paramètres courants, en chaînes : sérialisables, donc traversables. */
+  const parametres: Record<string, string> = Object.fromEntries(
+    Object.entries(q).filter((entree): entree is [string, string] => Boolean(entree[1])),
+  )
   const lien = (ajouts: Recherche) => {
     const params = new URLSearchParams()
     for (const [cle, valeur] of Object.entries({ ...q, ...ajouts })) {
       if (valeur) params.set(cle, valeur)
     }
-    return `/${pro.slug}/reserver?${params.toString()}`
+    return `${chemin}?${params.toString()}`
   }
 
   return (
@@ -162,7 +167,7 @@ export default async function Reserver({
         />
       ) : !q.ph ? (
         /* Étape 4 : les photos, envoyées avant et non avec la réservation. */
-        <FormPhotos prenomPro={prenom} lienSuivant={(depot) => lien({ ph: '1', d: depot ?? '' })} />
+        <FormPhotos prenomPro={prenom} chemin={chemin} parametres={parametres} />
       ) : (
         /* Étape 5 : les coordonnées, puis la célébration. */
         <>
