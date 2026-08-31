@@ -10,6 +10,7 @@ export function Champ({
   required = true,
   defaultValue,
   aide,
+  fautif = false,
 }: {
   id: string
   label: string
@@ -18,6 +19,8 @@ export function Champ({
   required?: boolean
   defaultValue?: string
   aide?: string
+  /** Champ refusé par la validation : on y pose le curseur et on le signale. */
+  fautif?: boolean
 }) {
   return (
     <div className="mt-5">
@@ -31,8 +34,14 @@ export function Champ({
         required={required}
         autoComplete={autoComplete}
         defaultValue={defaultValue}
+        // Le curseur va sur le champ refusé : c'est une réponse à une action
+        // de la personne, pas un vol de focus à l'ouverture d'un écran.
+        autoFocus={fautif}
+        aria-invalid={fautif || undefined}
         aria-describedby={aide ? `${id}-aide` : undefined}
-        className="mt-2 w-full rounded-champ border-2 border-trait-discret px-5 py-4 text-lg"
+        className={`mt-2 w-full rounded-champ border-2 px-5 py-4 text-lg ${
+          fautif ? 'border-erreur' : 'border-trait-discret'
+        }`}
       />
       {aide ? (
         <p id={`${id}-aide`} className="mt-2 text-sm text-texte-secondaire">

@@ -46,7 +46,33 @@ const TYPES = {
 
 const nomEnum = (udt) => udt.replace(/(^|_)(\w)/g, (_, s, c) => (s ? '' : '') + c.toUpperCase())
 
+/**
+ * Types de base des éléments d'un tableau. Postgres nomme le type d'un
+ * `text[]` « _text » : le tiret bas initial est sa convention pour « tableau
+ * de ». `information_schema` ne dit que « ARRAY », d'où ce détour.
+ */
+const ELEMENTS = {
+  _text: 'string',
+  _varchar: 'string',
+  _int2: 'number',
+  _int4: 'number',
+  _int8: 'number',
+  _float4: 'number',
+  _float8: 'number',
+  _numeric: 'number',
+  _bool: 'boolean',
+  _uuid: 'string',
+  _date: 'string',
+  _timestamptz: 'string',
+}
+
 const typeDe = (c) => {
+  if (c.data_type === 'ARRAY') {
+    const element = ELEMENTS[c.udt_name]
+    if (!element)
+      throw new Error(`Tableau non couvert : ${c.udt_name} (${c.table_name}.${c.column_name})`)
+    return `${element}[]`
+  }
   if (c.data_type === 'USER-DEFINED') return nomEnum(c.udt_name)
   const base = TYPES[c.data_type]
   if (!base)

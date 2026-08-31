@@ -21,7 +21,7 @@ export function FormInscription() {
         id="nom"
         label="Ton nom professionnel"
         autoComplete="name"
-        aide="C’est le nom que verront tes clientes sur ta page de réservation."
+        aide="C’est le nom que verra ta clientèle sur ta page de réservation."
       />
       <Champ id="email" label="Ton e-mail" type="email" autoComplete="email" />
       <Champ

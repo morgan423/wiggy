@@ -8,6 +8,7 @@ import { supabaseConfigured } from '@/lib/supabase/admin'
 import { creneauxProposables } from '@/lib/creneaux'
 import { chercherHebergements } from '@/lib/lieux'
 import { FormCoordonnees } from './coordonnees-form'
+import { FormPhotos } from './photos-form'
 
 /**
  * A3 : le parcours de réservation. Un geste par écran, comme le veut le board.
@@ -41,6 +42,9 @@ type Recherche = {
   /** Sous-écran de saisie du séjour, et sa recherche d'hôtel. */
   etape?: string
   h?: string
+  /** A4 : étape des photos franchie, et jeton du dépôt s'il y en a un. */
+  ph?: string
+  d?: string
 }
 
 const jourFr = new Intl.DateTimeFormat('fr-FR', {
@@ -156,8 +160,11 @@ export default async function Reserver({
           recherche={q}
           lien={lien}
         />
+      ) : !q.ph ? (
+        /* Étape 4 : les photos, envoyées avant et non avec la réservation. */
+        <FormPhotos prenomPro={prenom} lienSuivant={(depot) => lien({ ph: '1', d: depot ?? '' })} />
       ) : (
-        /* Étape 4 : les coordonnées, puis la célébration. */
+        /* Étape 5 : les coordonnées, puis la célébration. */
         <>
           <h1 className="display mt-6 tracking-tight">{C.$aEcrire.coordonneesTitre}</h1>
           <p className="mt-3 text-texte-secondaire">{C.$aEcrire.coordonneesAide}</p>
@@ -173,6 +180,7 @@ export default async function Reserver({
               adresse={q.a}
               codePostal={q.cp}
               ville={q.v ?? ''}
+              depotPhotos={q.d ?? ''}
               horsZone={Boolean(q.sr)}
               sejourDu={q.du ?? ''}
               sejourAu={q.au ?? ''}

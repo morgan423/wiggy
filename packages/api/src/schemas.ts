@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { parseEuros } from '@wiggy/core'
+import { V } from './messages.ts'
 
 /**
  * Schémas de validation partagés par les trois surfaces.
@@ -10,6 +11,15 @@ import { parseEuros } from '@wiggy/core'
  */
 
 const HEURE = /^([01]\d|2[0-3]):([0-5]\d)$/
+
+/** Une date « AAAA-MM-JJ », ou rien. Un formulaire vide envoie la chaîne vide. */
+const DateSimple = z.preprocess(
+  (v) => (v === '' || v === undefined ? null : v),
+  z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, V.date)
+    .nullable(),
+)
 
 /**
  * Un formulaire HTML envoie une chaîne vide pour un champ non rempli, jamais
@@ -24,24 +34,37 @@ const facultatif = <T extends z.ZodType>(schema: T) =>
 export const PrixSaisi = z.string().transform((valeur, ctx) => {
   const cents = parseEuros(valeur)
   if (cents === null) {
-    ctx.addIssue({ code: 'custom', message: 'Indique un prix, par exemple 42,50.' })
+    ctx.addIssue({ code: 'custom', message: V.prixInvalide })
     return z.NEVER
   }
   return cents
 })
 
+/**
+ * B9 — acompte en pourcentage, facultatif.
+ *
+ * `0` vaut « pas d'acompte », exactement comme un champ vide. Sans ce repli,
+ * la valeur zéro traversait `facultatif` et heurtait le `min(1)` : la pro
+ * lisait « Too small: expected number to be >=1 » et devait vider le champ
+ * pour enregistrer (recette du 31/08, bloquant B3).
+ */
+const PourcentageFacultatif = z.preprocess(
+  (v) => (v === '' || v === undefined || v === null || v === 0 || v === '0' ? null : v),
+  z.coerce.number().int().min(1, V.acompte).max(100, V.acompte).nullable(),
+)
+
 /** B11 ① — une prestation. */
 export const PrestationInput = z.object({
-  name: z.string().trim().min(1, 'Donne un nom à ta prestation.').max(80),
+  name: z.string().trim().min(1, V.proPrestationNom).max(80),
   description: facultatif(z.string().trim().max(500).nullable()),
   price_cents: PrixSaisi,
   duration_min: z.coerce
     .number()
     .int()
-    .min(5, 'Une prestation dure au moins 5 minutes.')
-    .max(600, 'Au-delà de 10 heures, découpe la prestation.'),
+    .min(5, V.proPrestationDureeMin)
+    .max(600, V.proPrestationDureeMax),
   // B9 : acompte propre à la prestation, qui prime sur le réglage global.
-  deposit_percent: facultatif(z.coerce.number().int().min(1).max(100).nullable()),
+  deposit_percent: PourcentageFacultatif,
   active: z.boolean().default(true),
 })
 
@@ -50,12 +73,12 @@ export const CommuneInput = z.object({
   insee_code: z
     .string()
     .trim()
-    .regex(/^[0-9AB]{5}$/i, 'Code INSEE invalide.'),
+    .regex(/^[0-9AB]{5}$/i, V.commune),
   name: z.string().trim().min(1).max(120),
   postal_code: z
     .string()
     .trim()
-    .regex(/^\d{5}$/)
+    .regex(/^\d{5}$/, V.codePostal)
     .optional()
     .nullable(),
   lat: z.number().min(-90).max(90).optional().nullable(),
@@ -66,13 +89,10 @@ export const CommuneInput = z.object({
 export const HoraireInput = z
   .object({
     weekday: z.coerce.number().int().min(0).max(6),
-    starts_at: z.string().regex(HEURE, 'Format attendu : 09:00.'),
-    ends_at: z.string().regex(HEURE, 'Format attendu : 18:00.'),
+    starts_at: z.string().regex(HEURE, V.heure),
+    ends_at: z.string().regex(HEURE, V.heure),
   })
-  .refine((h) => h.ends_at > h.starts_at, {
-    message: 'La fin doit venir après le début.',
-    path: ['ends_at'],
-  })
+  .refine((h) => h.ends_at > h.starts_at, { message: V.finAvantDebut, path: ['ends_at'] })
 
 /** B11 ④ — congés. Distincts du blocage ponctuel B4. */
 export const CongeInput = z
@@ -81,10 +101,7 @@ export const CongeInput = z
     ends_at: z.coerce.date(),
     label: z.string().trim().max(120).optional().nullable(),
   })
-  .refine((c) => c.ends_at > c.starts_at, {
-    message: 'La fin doit venir après le début.',
-    path: ['ends_at'],
-  })
+  .refine((c) => c.ends_at > c.starts_at, { message: V.finAvantDebut, path: ['ends_at'] })
 
 /** Réglages d'activité (B9 paiement, A10 annulation, A11 confirmation, B7 SMS). */
 export const ReglagesInput = z.object({
@@ -99,11 +116,11 @@ export const ReglagesInput = z.object({
 
 /** Identité publique du pro (A1). Le slug porte l'URL partageable. */
 export const ProfilInput = z.object({
-  display_name: z.string().trim().min(1, 'Indique ton nom professionnel.').max(80),
+  display_name: z.string().trim().min(1, V.proNomProfessionnel).max(80),
   headline: facultatif(z.string().trim().max(120).nullable()),
   bio: facultatif(z.string().trim().max(1000).nullable()),
   city: facultatif(z.string().trim().max(120).nullable()),
-  instagram_url: facultatif(z.url('Adresse Instagram invalide.').nullable()),
+  instagram_url: facultatif(z.url(V.url).nullable()),
   phone: facultatif(z.string().trim().max(20).nullable()),
   years_experience: facultatif(z.coerce.number().int().min(0).max(70).nullable()),
   // Comment les clientes parlent du pro. Facultatif à dessein : sans réponse,
@@ -138,15 +155,11 @@ export const RdvInput = z
     client_tel: facultatif(z.string().trim().max(20).nullable()),
 
     service_id: facultatif(z.uuid().nullable()),
-    service_name: z.string().trim().min(1, 'Indique la prestation.').max(80),
+    service_name: z.string().trim().min(1, V.proRdvPrestation).max(80),
     price_cents: PrixSaisi,
 
-    debut: z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/, 'Choisis une date et une heure.'),
-    duration_min: z.coerce
-      .number()
-      .int()
-      .min(5, 'Un rendez-vous dure au moins 5 minutes.')
-      .max(600),
+    debut: z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/, V.dateHeure),
+    duration_min: z.coerce.number().int().min(5, V.proRdvDureeMin).max(600),
 
     address_line1: facultatif(z.string().trim().max(200).nullable()),
     postal_code: facultatif(z.string().trim().max(10).nullable()),
@@ -155,8 +168,43 @@ export const RdvInput = z
     note: facultatif(z.string().trim().max(1000).nullable()),
   })
   .refine((r) => Boolean(r.client_id) || Boolean(r.client_nom?.trim()), {
-    message: 'Choisis une cliente existante ou saisis son nom.',
+    message: V.proRdvCliente,
     path: ['client_nom'],
   })
 
 export type RdvInput = z.infer<typeof RdvInput>
+
+/**
+ * A3 — la demande de rendez-vous déposée par la cliente.
+ *
+ * Elle vit ici, avec les autres, et non dans l'action : c'est la seule saisie
+ * du produit faite par quelqu'un qui n'a pas de compte, donc la plus exposée,
+ * et elle doit bénéficier du même filet de messages français que le reste.
+ */
+export const ReservationInput = z.object({
+  proId: z.uuid(),
+  serviceId: z.uuid(),
+  debut: z.string().min(1),
+  prenom: z.string().trim().min(1, V.prenomRequis).max(80),
+  telephone: z
+    .string()
+    .trim()
+    .regex(/^(?:\+33|0)\s?[1-9](?:[\s.-]?\d{2}){4}$/, V.telephone),
+  email: facultatif(z.string().trim().toLowerCase().max(200).pipe(z.email(V.email)).nullable()),
+  adresse: z.string().trim().min(1),
+  codePostal: z
+    .string()
+    .trim()
+    .regex(/^\d{5}$/, V.codePostal),
+  ville: z.string().trim().min(1),
+  acces: facultatif(z.string().trim().max(300).nullable()),
+  // A6 : la cliente a vu l'avertissement hors zone et demande quand même.
+  horsZone: z.preprocess((v) => v === '1' || v === 'on' || v === true, z.boolean()),
+  // A5 : bornes du séjour, quand la cliente n'habite pas à cette adresse.
+  sejourDu: DateSimple,
+  sejourAu: DateSimple,
+  // A4 : jeton du dépôt temporaire des photos, rattaché après création.
+  depotPhotos: facultatif(z.uuid().nullable()),
+})
+
+export type ReservationInput = z.infer<typeof ReservationInput>

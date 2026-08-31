@@ -5,7 +5,7 @@ Ce fichier est lu automatiquement à chaque session. Il ne remplace pas la roadm
 travailler.
 
 **Cette roadmap est hors du dépôt et se lit en lecture seule.** Rien hors du dépôt ne se
-modifie : ni `../../Docs/`, ni `../../Code/`.
+modifie, à commencer par `../../Docs/`.
 
 ## Le projet en trois lignes
 
@@ -69,6 +69,15 @@ Côté cliente finale, tout reste web : zéro installation pour réserver.
 - **Aucun tiret cadratin** dans les textes destinés aux humains (UI, SMS, e-mails, site, documents
   du dépôt). Le code lui-même n'est pas concerné. Contrôlé par `design:check`.
 - **Le prénom est le héros** : confirmations, célébrations et fiches nomment la personne.
+- **Langage de recrutement (décision D4)** : « Wiggy sur ton téléphone », jamais « une app à
+  installer ». Le coût perçu d'une installation fait renoncer avant d'avoir essayé, et le produit
+  est d'abord une adresse web que l'on épingle.
+- **Accord en genre (S6, ratifié le 31/08)** : côté pro, l'accord vient du champ `pronoun` du
+  paramétrage, et son effet porte sur **toute l'interface pro**, pas seulement la page publique.
+  Côté cliente, on **supprime le nom commun plutôt que de le genrer** : « Nouvelle cliente »
+  devient « Nouvelle fiche », « Son nom » devient « Prénom », une section se titre par le prénom.
+  Un libellé structurel n'a pas besoin de genre. En communication, le doublet : « coiffeuses et
+  coiffeurs à domicile ».
 
 ## Design
 
@@ -153,6 +162,13 @@ de données entre comptes, et une lecture anonyme non justifiée est une fuite v
   décide pas.
 - **Toute question ouverte s'écrit dans le journal**, en plus d'être posée dans le chat. Une
   question qui ne vit que dans le chat disparaît avec la session.
+- **Section « En attente d'arbitrage »**, en tête de `docs/journal.md`, avant la première entrée.
+  Une question s'y écrit **dès qu'elle se pose**, en trois lignes : la question, ce qu'elle bloque,
+  la date. Elle n'attend pas la fin de l'étape, parce qu'une étape peut s'interrompre en son
+  milieu. À la clôture, la question et sa réponse basculent dans l'entrée de l'étape et la section
+  se vide.
+- **Pousser sur le dépôt distant** une fois l'entrée écrite. Une étape qui n'est pas poussée
+  n'existe que sur une machine.
 
 Format d'une entrée, figé :
 

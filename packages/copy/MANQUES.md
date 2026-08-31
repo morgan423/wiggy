@@ -97,3 +97,56 @@ dictés lors de la relecture. Le reste du parcours de séjour reste à relire.
 | `agenda-tournee.$aEcrire.aVenir`                    | À relire : le board donne « En cours » et « Terminé », pas le troisième état. |
 | `agenda-tournee.$aEcrire.photosCliente`             | À relire.                                                                     |
 | `agenda-tournee.$aEcrire.sansAdresse`               | À relire.                                                                     |
+
+### Corrections du 31/08 : étape photos, messages de validation
+
+Deux blocs entiers rédigés hors board, à relire ensemble plutôt qu'un par un.
+
+Les **messages de validation** (`validation.$aEcrire.*`) sont volontairement
+impersonnels : le même message sert au tutoiement côté pro et au vouvoiement
+côté cliente. Seules les clés préfixées « pro » n'apparaissent que sur des
+écrans pro et gardent le tutoiement. Aucun ne vient du board, qui ne traite pas
+les erreurs de saisie.
+
+L'**étape photos** (`reservation-cliente.$aEcrire.photos*`) est un écran neuf :
+le board montrait le dépôt de photos dans le formulaire de coordonnées, la
+correction du bloquant B1 en a fait une étape à part entière, avec son bouton
+de téléversement.
+
+| Clé                                            | Texte                                                                                                    |
+| ---------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| `reservation-cliente.$aEcrire.photosPerdues`   | « Votre rendez-vous est bien pris, mais une photo n’a pas pu être jointe. »                              |
+| `reservation-cliente.$aEcrire.photosEtape`     | « Des photos, si vous voulez »                                                                           |
+| `reservation-cliente.$aEcrire.photosBouton`    | « Ajouter mes photos »                                                                                   |
+| `reservation-cliente.$aEcrire.photosPasser`    | « Continuer sans photo »                                                                                 |
+| `reservation-cliente.$aEcrire.photosEnvoi`     | « Envoi en cours… »                                                                                      |
+| `reservation-cliente.$aEcrire.photosEchec`     | « L’envoi n’a pas abouti. Réessayez, ou continuez sans photo. »                                          |
+| `reservation-cliente.$aEcrire.photosAideEtape` | « Vos cheveux aujourd’hui et ce dont vous rêvez : {pro} prépare mieux, et prévoit le temps qu’il faut. » |
+| `reservation-cliente.$aEcrire.photosChoisies`  | « {n} photo(s) choisie(s). »                                                                             |
+| `validation.$aEcrire.requis`                   | « Ce champ est obligatoire. »                                                                            |
+| `validation.$aEcrire.nombreAttendu`            | « Un nombre est attendu ici. »                                                                           |
+| `validation.$aEcrire.formatInconnu`            | « Ce format n’est pas reconnu. »                                                                         |
+| `validation.$aEcrire.valeurNonProposee`        | « Cette valeur ne fait pas partie des choix proposés. »                                                  |
+| `validation.$aEcrire.email`                    | « Cette adresse e-mail semble incomplète. »                                                              |
+| `validation.$aEcrire.url`                      | « Cette adresse web n’est pas valide. »                                                                  |
+| `validation.$aEcrire.date`                     | « Cette date n’est pas valide. »                                                                         |
+| `validation.$aEcrire.tropCourt`                | « Trop court : {min} caractères au minimum. »                                                            |
+| `validation.$aEcrire.tropLong`                 | « Trop long : {max} caractères au maximum. »                                                             |
+| `validation.$aEcrire.tropPetit`                | « Le minimum est {min}. »                                                                                |
+| `validation.$aEcrire.tropGrand`                | « Le maximum est {max}. »                                                                                |
+| `validation.$aEcrire.prixInvalide`             | « Indiquer un prix, par exemple 42,50. »                                                                 |
+| `validation.$aEcrire.acompte`                  | « Un acompte va de 1 à 100 %. Laisser vide ou 0 pour ne pas en demander. »                               |
+| `validation.$aEcrire.telephone`                | « Ce numéro de téléphone semble incomplet. »                                                             |
+| `validation.$aEcrire.codePostal`               | « Un code postal compte cinq chiffres. »                                                                 |
+| `validation.$aEcrire.heure`                    | « Format attendu : 09:00. »                                                                              |
+| `validation.$aEcrire.finAvantDebut`            | « La fin doit venir après le début. »                                                                    |
+| `validation.$aEcrire.dateHeure`                | « Choisir une date et une heure. »                                                                       |
+| `validation.$aEcrire.commune`                  | « Commune non reconnue : choisir une commune de la liste. »                                              |
+| `validation.$aEcrire.prenomRequis`             | « Indiquer un prénom. »                                                                                  |
+| `validation.$aEcrire.proPrestationNom`         | « Donne un nom à ta prestation. »                                                                        |
+| `validation.$aEcrire.proPrestationDureeMin`    | « Une prestation dure au moins 5 minutes. »                                                              |
+| `validation.$aEcrire.proPrestationDureeMax`    | « Au-delà de 10 heures, découpe la prestation. »                                                         |
+| `validation.$aEcrire.proNomProfessionnel`      | « Indique ton nom professionnel. »                                                                       |
+| `validation.$aEcrire.proRdvPrestation`         | « Indique la prestation. »                                                                               |
+| `validation.$aEcrire.proRdvDureeMin`           | « Un rendez-vous dure au moins 5 minutes. »                                                              |
+| `validation.$aEcrire.proRdvCliente`            | « Choisis une fiche existante ou saisis un prénom. »                                                     |

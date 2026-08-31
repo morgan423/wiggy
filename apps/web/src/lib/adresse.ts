@@ -19,6 +19,20 @@ import { supabaseAdmin, supabaseConfigured } from '@/lib/supabase/admin'
  * ont simplement mal tapé leur rue.
  */
 
+/**
+ * Détail d'une erreur réseau, en une chaîne sûre.
+ *
+ * Le nom seul ne suffit pas à diagnostiquer : « TimeoutError » sans le message
+ * ni la cause a coûté une session entière sur le bloquant B2. Rien de
+ * personnel n'est journalisé ici : ni l'adresse saisie, ni le nom, ni le
+ * téléphone. Le refus lui-même est tracé en base, pas dans les journaux.
+ */
+function detailErreur(e: unknown): string {
+  if (!(e instanceof Error)) return 'inconnue'
+  const cause = e.cause instanceof Error ? ` (${e.cause.name}: ${e.cause.message})` : ''
+  return `${e.name}: ${e.message}${cause}`
+}
+
 const RACINE = 'https://api-adresse.data.gouv.fr/search/'
 const DELAI_MS = 5000
 
@@ -52,7 +66,7 @@ export async function geocoder(
       next: { revalidate: 60 * 60 * 24 },
     })
     if (!reponse.ok) {
-      console.error('ban_http', reponse.status)
+      console.error('ban_http', reponse.status, reponse.statusText)
       return { trouve: null, suggestions: [], injoignable: true }
     }
     const brut: unknown = await reponse.json()
@@ -60,7 +74,11 @@ export async function geocoder(
       typeof brut === 'object' && brut !== null ? (brut as Record<string, unknown>) : {}
     features = Array.isArray(enveloppe.features) ? enveloppe.features : []
   } catch (e) {
-    console.error('ban_injoignable', e instanceof Error ? e.name : 'inconnue')
+    // Le nom seul ne suffit pas à diagnostiquer : « TimeoutError » sans le
+    // message ni la cause a coûté une session entière sur le bloquant B2.
+    // Rien de personnel n'est journalisé : ni l'adresse saisie, ni le nom, ni
+    // le téléphone. Le refus lui-même est tracé en base, pas ici.
+    console.error('ban_injoignable', detailErreur(e))
     return { trouve: null, suggestions: [], injoignable: true }
   }
 

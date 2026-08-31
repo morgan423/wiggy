@@ -50,7 +50,7 @@ export default function Home() {
               href="/recherche"
               className="rounded-pilule border-2 border-trait-discret px-8 py-4 text-center text-lg font-semibold hover:border-prune"
             >
-              Trouver une coiffeuse
+              Trouver une coiffeuse ou un coiffeur
             </Link>
           </div>
         </section>
@@ -81,7 +81,7 @@ export default function Home() {
         <section className="mx-auto max-w-6xl px-6 py-20">
           <div className="rounded-carte bg-fond p-10 sm:p-16">
             <h2 className="display max-w-2xl tracking-tight">
-              Vous cherchez un coiffeur à domicile&nbsp;?
+              Vous cherchez une coiffeuse ou un coiffeur à domicile&nbsp;?
             </h2>
             <p className="mt-5 max-w-xl text-lg text-texte-secondaire">
               Dites-nous votre ville. Si un professionnel y intervient, vous réservez en deux

@@ -1,6 +1,14 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { distanceVolDOiseauKm, dureeEstimeeMin, moteurVolDOiseau, type Point } from './trajets.ts'
+import {
+  distanceVolDOiseauKm,
+  dureeEstimeeMin,
+  moteurVolDOiseau,
+  type Point,
+  avecMargeSecurite,
+  MARGE_FIXE_MIN,
+  SEUIL_MARGE_PROPORTIONNELLE_MIN,
+} from './trajets.ts'
 
 const PAU: Point = { lat: 43.3219, lng: -0.3435 }
 const LESCAR: Point = { lat: 43.3339, lng: -0.4306 } // ~7 km de Pau
@@ -78,5 +86,37 @@ test('le moteur de repli renvoie une matrice complète, sans réseau', async () 
       assert.equal(cellule.source, 'estimation', 'le repli doit s’annoncer comme une estimation')
       assert.ok(Number.isInteger(cellule.minutes) && cellule.minutes >= 0)
     }
+  }
+})
+
+/**
+ * D5, ratifié le 31/08 : le tampon de sécurité sur tout trajet.
+ *
+ * Un rendez-vous à 1 h 15 de route tombait « pile poil » pendant la recette.
+ * Le calcul était juste, mais un trajet sans marge devient un retard au
+ * premier feu rouge, et le retard se propage à toute la tournée.
+ */
+test('le tampon de sécurité n’est jamais nul, même pour la porte d’à côté', () => {
+  assert.equal(avecMargeSecurite(0), MARGE_FIXE_MIN)
+  assert.equal(avecMargeSecurite(1), MARGE_FIXE_MIN + 1)
+})
+
+test('en dessous de trente minutes, dix minutes fixes et rien de plus', () => {
+  assert.equal(avecMargeSecurite(12), 22)
+  assert.equal(avecMargeSecurite(SEUIL_MARGE_PROPORTIONNELLE_MIN), 40)
+})
+
+test('au-delà, dix pour cent s’ajoutent, et l’arrondi va vers le haut', () => {
+  // Le cas de la recette : 1 h 15 de route.
+  assert.equal(avecMargeSecurite(75), Math.ceil(75 + 10 + 7.5))
+  assert.equal(avecMargeSecurite(60), 76)
+})
+
+test('le tampon ne raccourcit jamais un trajet', () => {
+  for (const minutes of [0, 1, 5, 29, 30, 31, 60, 75, 120, 240]) {
+    assert.ok(
+      avecMargeSecurite(minutes) > minutes,
+      `${minutes} min : la marge doit être strictement positive`,
+    )
   }
 })

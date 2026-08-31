@@ -98,6 +98,27 @@ export function dureeEstimeeMin(a: Point, b: Point): Minutes {
 }
 
 /**
+ * D5 : le tampon de sécurité, ratifié le 31/08.
+ *
+ * Un rendez-vous validé à 1 h 15 de route tombait « pile poil » : le calcul
+ * était juste, mais un trajet sans marge devient un retard au premier feu
+ * rouge, et le retard se propage à toute la tournée.
+ *
+ * Dix minutes fixes, plus dix pour cent du temps de trajet au-delà de trente
+ * minutes. **Jamais nul** : même deux rues plus loin, il faut se garer,
+ * trouver la porte, monter. Réglable par le pro plus tard, jamais nul.
+ */
+export const MARGE_FIXE_MIN = 10
+export const SEUIL_MARGE_PROPORTIONNELLE_MIN = 30
+export const PART_MARGE_PROPORTIONNELLE = 0.1
+
+export function avecMargeSecurite(minutes: Minutes): Minutes {
+  const proportionnelle =
+    minutes > SEUIL_MARGE_PROPORTIONNELLE_MIN ? minutes * PART_MARGE_PROPORTIONNELLE : 0
+  return Math.ceil(minutes + MARGE_FIXE_MIN + proportionnelle)
+}
+
+/**
  * Moteur de repli. Sert de mode dégradé quand l'API ne répond pas, et de mode
  * hors-ligne (C8) : il ne fait aucun appel réseau.
  */

@@ -1,7 +1,7 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-# dependencies
-/node_modules
+# dependencies — motif NON ancré : un paquet du monorepo peut avoir le sien.
+node_modules/
 /.pnp
 .pnp.*
 .yarn/*

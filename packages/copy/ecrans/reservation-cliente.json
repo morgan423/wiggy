@@ -57,13 +57,19 @@
     "sejourDu": "Du",
     "sejourAu": "Au",
     "demandeRefusee": "{pro} ne peut pas se déplacer jusqu’à vous cette fois.",
-    "photosTitre": "Quelques photos, si vous voulez",
-    "photosAide": "Vos cheveux aujourd’hui et ce dont vous rêvez : {pro} prépare mieux, et prévoit le temps qu’il faut.",
     "photosActuelles": "Vos cheveux aujourd’hui",
     "photosInspirations": "Vos inspirations",
     "photosFormats": "Cinq photos au maximum, 5 Mo chacune.",
     "photosTropNombreuses": "Cinq photos au maximum.",
     "photosTropLourde": "Chaque photo doit peser moins de 5 Mo.",
-    "photosFormat": "Ce fichier n’est pas une photo."
+    "photosFormat": "Ce fichier n’est pas une photo.",
+    "photosPerdues": "Votre rendez-vous est bien pris, mais une photo n’a pas pu être jointe.",
+    "photosEtape": "Des photos, si vous voulez",
+    "photosBouton": "Ajouter mes photos",
+    "photosPasser": "Continuer sans photo",
+    "photosEnvoi": "Envoi en cours…",
+    "photosEchec": "L’envoi n’a pas abouti. Réessayez, ou continuez sans photo.",
+    "photosAideEtape": "Vos cheveux aujourd’hui et ce dont vous rêvez : {pro} prépare mieux, et prévoit le temps qu’il faut.",
+    "photosChoisies": "{n} photo(s) choisie(s)."
   }
 }

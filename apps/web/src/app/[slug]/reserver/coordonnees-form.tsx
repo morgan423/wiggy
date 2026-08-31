@@ -2,7 +2,7 @@
 
 import { useActionState } from 'react'
 import { copy, remplir } from '@wiggy/copy'
-import { ZONE, PHOTO_TYPES } from '@wiggy/core'
+import { ZONE } from '@wiggy/core'
 import { reserver, type EtatReservation } from './actions'
 import { Champ, Erreur, BoutonPrincipal } from '@/components/champs'
 
@@ -23,24 +23,6 @@ const quandFr = new Intl.DateTimeFormat('fr-FR', {
  * arrive en pop, le prénom se souligne, la ligne SMS apparaît. Le prénom est
  * le héros du moment, c'est un métier de relation.
  */
-function ChampPhotos({ id, label }: { id: string; label: string }) {
-  return (
-    <div className="mt-5">
-      <label htmlFor={id} className="block text-sm font-semibold">
-        {label}
-      </label>
-      <input
-        id={id}
-        name={id}
-        type="file"
-        multiple
-        accept={PHOTO_TYPES.join(',')}
-        className="mt-2 w-full rounded-champ border-2 border-trait-discret px-5 py-4"
-      />
-    </div>
-  )
-}
-
 export function FormCoordonnees({
   proId,
   serviceId,
@@ -48,6 +30,7 @@ export function FormCoordonnees({
   adresse,
   codePostal,
   ville,
+  depotPhotos,
   horsZone,
   sejourDu,
   sejourAu,
@@ -59,6 +42,7 @@ export function FormCoordonnees({
   adresse: string
   codePostal: string
   ville: string
+  depotPhotos: string
   horsZone: boolean
   sejourDu: string
   sejourAu: string
@@ -67,6 +51,13 @@ export function FormCoordonnees({
   const [etat, action, enCours] = useActionState<EtatReservation, FormData>(reserver, {
     statut: 'vide',
   })
+
+  // B5 : une erreur ne reprend jamais ce que la cliente a déjà tapé. React 19
+  // réinitialise un formulaire non contrôlé dès qu'une action se termine ;
+  // `key` force le remontage avec les valeurs renvoyées par le serveur.
+  const saisie = etat.statut === 'erreur' ? etat.saisie : undefined
+  const fautif = etat.statut === 'erreur' ? etat.champ : undefined
+  const repris = (champ: string) => saisie?.[champ] ?? ''
 
   if (etat.statut === 'confirme') {
     const quand = quandFr.format(new Date(etat.quand))
@@ -94,7 +85,7 @@ export function FormCoordonnees({
   }
 
   return (
-    <form action={action}>
+    <form action={action} key={etat.statut === 'erreur' ? (etat.champ ?? 'erreur') : 'vide'}>
       <input type="hidden" name="proId" value={proId} />
       <input type="hidden" name="serviceId" value={serviceId} />
       <input type="hidden" name="debut" value={debut} />
@@ -102,31 +93,43 @@ export function FormCoordonnees({
       <input type="hidden" name="codePostal" value={codePostal} />
       <input type="hidden" name="ville" value={ville} />
       <input type="hidden" name="horsZone" value={horsZone ? '1' : ''} />
+      <input type="hidden" name="depotPhotos" value={depotPhotos} />
       <input type="hidden" name="sejourDu" value={sejourDu} />
       <input type="hidden" name="sejourAu" value={sejourAu} />
 
-      <Champ id="prenom" label="Votre prénom" autoComplete="given-name" />
+      <Champ
+        id="prenom"
+        label="Votre prénom"
+        autoComplete="given-name"
+        defaultValue={repris('prenom')}
+        fautif={fautif === 'prenom'}
+      />
       <Champ
         id="telephone"
         label="Votre téléphone"
         type="tel"
         autoComplete="tel"
         aide="Pour vous prévenir en cas d’imprévu."
+        defaultValue={repris('telephone')}
+        fautif={fautif === 'telephone'}
       />
-      <Champ id="email" label="Votre e-mail" type="email" required={false} autoComplete="email" />
-      <Champ id="acces" label="Infos d’accès" required={false} aide="Bâtiment, étage, digicode…" />
-
-      {/* A4 : les photos qualifient la prestation ET sa durée. Facultatives,
-          mais posées ici plutôt que réclamées par message plus tard. */}
-      <fieldset className="mt-8 rounded-carte border-2 border-trait-discret p-5">
-        <legend className="px-2 font-bold">{C.$aEcrire.photosTitre}</legend>
-        <p className="text-texte-secondaire">
-          {remplir(C.$aEcrire.photosAide, { pro: prenomPro })}
-        </p>
-        <ChampPhotos id="photosActuelles" label={C.$aEcrire.photosActuelles} />
-        <ChampPhotos id="photosInspirations" label={C.$aEcrire.photosInspirations} />
-        <p className="mt-3 text-sm text-texte-attenue">{C.$aEcrire.photosFormats}</p>
-      </fieldset>
+      <Champ
+        id="email"
+        label="Votre e-mail"
+        type="email"
+        required={false}
+        autoComplete="email"
+        defaultValue={repris('email')}
+        fautif={fautif === 'email'}
+      />
+      <Champ
+        id="acces"
+        label="Infos d’accès"
+        required={false}
+        aide="Bâtiment, étage, digicode…"
+        defaultValue={repris('acces')}
+        fautif={fautif === 'acces'}
+      />
 
       <Erreur message={etat.statut === 'erreur' ? etat.message : undefined} />
       <BoutonPrincipal enCours={enCours}>

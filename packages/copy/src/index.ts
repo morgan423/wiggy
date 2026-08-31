@@ -4,6 +4,7 @@ import agendaTournee from '../ecrans/agenda-tournee.json' with { type: 'json' }
 import notificationCopilote from '../ecrans/notification-copilote.json' with { type: 'json' }
 import ficheCliente from '../ecrans/fiche-cliente.json' with { type: 'json' }
 import demandesPro from '../ecrans/demandes-pro.json' with { type: 'json' }
+import validation from '../ecrans/validation.json' with { type: 'json' }
 
 /**
  * Copy deck : la source de vérité du contenu, écran par écran.
@@ -25,6 +26,7 @@ export const copy = {
   notificationCopilote,
   ficheCliente,
   demandesPro,
+  validation,
 } as const
 
 export type CopyDeck = typeof copy

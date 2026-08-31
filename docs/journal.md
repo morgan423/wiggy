@@ -8,6 +8,105 @@ Un rappel qui vaut pour toutes les entrées : la ligne « Statut à reporter dan
 roadmap » est une proposition. C'est Morgan qui passe une ligne en « Fait », après
 avoir cliqué.
 
+## En attente d'arbitrage
+
+Section permanente, en tête et hors des entrées. Une question s'y écrit **dès qu'elle se
+pose**, sans attendre la fin de l'étape : une étape peut s'interrompre en son milieu, et une
+question qui ne vit que dans le chat disparaît avec la session. Trois lignes : la question, ce
+qu'elle bloque, la date. À la clôture, la question et sa réponse basculent dans l'entrée de
+l'étape et cette section se vide.
+
+_Rien en attente._
+
+---
+
+## 2026-08-31 Étape : correction des cinq bloquants de recette (B1 à B5), D5, D6, S6
+
+**Fait :**
+
+- **B1 photos** : les photos ne transitent plus par l'action serveur. Le navigateur contrôle
+  nombre, poids et format, obtient une URL de téléversement signée par fichier, et envoie les
+  octets directement au stockage. La réservation ne reçoit qu'un jeton de dépôt et rattache les
+  fichiers au rendez-vous une fois celui-ci créé. L'étape a désormais son propre écran, avec son
+  bouton de téléversement, franchissable sans rien envoyer.
+- **B2 communes** : le référentiel descend en base (migration 0008 + `npm run communes:import`).
+  La recherche devient locale, donc instantanée, et ne dépend plus d'un service tiers.
+- **B3 acompte** : `0` vaut « pas d'acompte », comme un champ vide. Et un filet global de
+  messages français couvre toute la validation, y compris les règles à venir.
+- **B4 pronom** : l'action relit la ligne qu'elle a écrite au lieu de supposer, et le formulaire
+  affiche ce que la base a renvoyé plutôt que le rendu précédent. Effet étendu à toute
+  l'interface (S6).
+- **B5 saisie effacée** : toute sortie en erreur du tunnel passe par une fabrique qui renvoie la
+  saisie et nomme le champ fautif ; le curseur s'y pose, le champ se signale.
+- **D5** : tampon de sécurité de dix minutes plus dix pour cent au-delà de trente, posé sur les
+  deux sources de trajet.
+- **S6** : « Nouvelle cliente » devient « Nouvelle fiche », « Son nom » devient « Prénom »,
+  « Sans cliente » devient « Sans fiche », « tes clientes » devient « ta clientèle », et le
+  doublet remplace le masculin générique sur le site.
+- **Hors document** : `.gitignore` (`node_modules` dépointé), `CLAUDE.md` (chemin de la roadmap,
+  dossier `Code/` retiré, push en fin d'étape, langage de recrutement D4, section d'arbitrage,
+  règle S6), commentaire `@aVenir` de `requireCapability()` corrigé.
+- **Outillage** : le générateur de types sait lire les colonnes tableau ; `npm run photos:purge`
+  efface les dépôts orphelins.
+
+**Schéma :** migration `0008_communes.sql`, **EN ATTENTE d'application par Morgan**, à suivre de
+`npm run communes:import`. Voir `supabase/ETAT.md`.
+
+**Décisions :** D5, D6, T19 à T22. Détail dans `docs/decisions.md`.
+
+**Écarts au brief :**
+
+- **La cause de B1 n'était pas celle qui était supposée.** Il existe deux limites de corps de
+  requête dans Next : `proxyClientMaxBodySize` (10 Mo, active dès qu'un `proxy.ts` existe)
+  tronque avant `serverActions.bodySizeLimit`. Le document a été corrigé en conséquence.
+- **La cause racine de B2 n'a pas été établie**, et n'a pas été inventée. Les deux pistes du
+  document sont éliminées avec preuve : le service répond en 150 ms à l'URL exacte que construit
+  le code, et le chemin complet rejoué hors de Next renvoie les douze communes. Le journal du
+  serveur porte un `TimeoutError` unique, non reproductible. D6 rend la question sans objet.
+- **L'hypothèse de B4 est éliminée, preuve à l'appui** : `authenticated` a bien `UPDATE` sur
+  `pronoun`, l'écriture passe et se relit dans le harnais. La cause retenue est que l'action
+  annonçait un succès sans jamais vérifier son effet, et que le formulaire se réaffichait
+  depuis le rendu précédent. La correction ferme les deux, et rendrait visible toute autre
+  cause qui subsisterait.
+- **La marge D5 s'ajoute aux cinq minutes déjà comprises dans l'estimation** à vol d'oiseau
+  (se garer, trouver la porte). Les deux se cumulent : c'est conforme à « toujours du côté sûr »,
+  mais un trajet estimé porte donc quinze minutes de battement, pas dix.
+- **Le statut de A1 n'a pas été touché.** Il porte « Fait, recette validée » depuis le 30/08,
+  alors que la section 3 du document liste des corrections ouvertes sur cette page. Le tableau
+  de synthèse du document ne mentionne pas A1 : la ligne est laissée telle quelle, et signalée.
+
+**Questions ouvertes, et leurs réponses :**
+
+- **Quel repli quand le service des communes ne répond pas ?** Bloquait B2, et derrière lui la
+  zone dont dépendent A3, A5, A6 et A8. **Répondu (D6)** : on supprime la dépendance plutôt que
+  de rattraper la panne.
+- **D5 et S6 sont-ils tranchés ?** Le document les donnait ratifiés, le message de pilotage les
+  donnait en attente. **Répondu** : le document fait foi, le message était périmé.
+- **Reste ouvert** : l'activation de la Places API pour A5 ②, et l'écran d'abonnement (G1) vers
+  lequel `requireCapability()` redirige sans qu'il existe.
+
+**À recetter par Morgan**, une fois `0008` collée et `npm run communes:import` lancé :
+
+- **B2** : paramétrage, zone, chercher « Pau », puis « st paul » sans accent ni tiret. Les
+  résultats doivent s'afficher, les homonymes classés par taille. Ajouter, retirer.
+- **B3** : une prestation avec un acompte à `0`, puis vide, puis `30`, puis `140`. Les trois
+  premiers passent, le dernier affiche une phrase française.
+- **B4** : profil, choisir « Elle », enregistrer, **recharger la page**. Le choix doit tenir.
+  Recommencer avec « Il », puis avec « Je préfère ne pas préciser ».
+- **B5** : réservation, dernière étape, saisir un téléphone incomplet. Le message s'affiche, les
+  champs déjà remplis restent, le curseur est dans le champ du téléphone.
+- **B1** : réservation, étape photos. Six photos, puis un PDF : un message français, aucune page
+  d'erreur. Cinq photos valides : elles partent, et se retrouvent sur la fiche du rendez-vous
+  côté pro. Passer l'étape sans photo doit marcher aussi.
+- **D5** : reprendre le rendez-vous à 1 h 15 de route et vérifier que le créneau proposé laisse
+  du battement.
+- **S6** : agenda, ajouter un rendez-vous, vérifier « Nouvelle fiche » et « Prénom ».
+
+**Statut à reporter dans la roadmap :** déjà reporté d'après le tableau de la section 8 du
+document. `A3` et `C0` passent en « Fait » sur décision de Morgan ; `A4`, `A6`, `B10` et `B11`
+restent « En cours », avec la mention « recette à rejouer » pour celles dont le bloquant est
+corrigé.
+
 ---
 
 ## 2026-08-31 Étape : outillage de pilotage (aucun ID roadmap)

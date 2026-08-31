@@ -54,6 +54,12 @@ const POURQUOI = {
   public_distance_fees:
     "Le supplément kilométrique fait partie du prix annoncé (A8). Le cacher jusqu'au paiement " +
     'serait une mauvaise surprise, et la roadmap exige des tarifs justes sur la page publique.',
+  communes_publiques:
+    "Référentiel public de l'État (code INSEE, nom, codes postaux, centroïde), importé en base " +
+    "par la décision D6 pour ne plus dépendre d'un service tiers à l'exécution. Aucune donnée " +
+    'personnelle : ce sont des communes, déjà librement consultables sur geo.api.gouv.fr. La ' +
+    'cliente en a besoin AVANT de réserver, pour savoir si elle est desservie, et la pro pour ' +
+    "composer sa zone. L'écriture reste au service_role : aucune politique ne l'ouvre.",
   public_booking_settings:
     "Pilote l'affichage des conditions de paiement côté cliente (S1) : mode de paiement, " +
     "pourcentage d'acompte, délai d'annulation, confirmation manuelle. Sans ces quatre " +

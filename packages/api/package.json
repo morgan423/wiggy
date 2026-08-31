@@ -14,7 +14,8 @@
   },
   "dependencies": {
     "@wiggy/core": "*",
-    "zod": "^4.5.4"
+    "zod": "^4.5.4",
+    "@wiggy/copy": "*"
   },
   "devDependencies": {
     "typescript": "^5"

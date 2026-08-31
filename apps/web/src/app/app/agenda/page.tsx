@@ -77,7 +77,7 @@ function clienteDe(relation: unknown): Cliente | undefined {
 }
 
 const nomDe = (cliente: Cliente | undefined) =>
-  cliente ? `${cliente.first_name} ${cliente.last_name ?? ''}`.trim() : 'Sans cliente'
+  cliente ? `${cliente.first_name} ${cliente.last_name ?? ''}`.trim() : 'Sans fiche'
 
 // Une seule chaîne littérale, sans concaténation : PostgREST déduit le type du
 // résultat de ce littéral, et une somme de deux morceaux le lui interdit.

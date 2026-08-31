@@ -22,6 +22,8 @@ Trois rôles interviennent :
 | `city_waitlist` | 🔒 RLS active, **aucune politique** | Verrouillée par conception : écriture via route serveur uniquement (service_role). |
 | `client_addresses` | `addr_via_client` : pro authentifié peut **lire/écrire/modifier/supprimer** | `(EXISTS ( SELECT 1 FROM clients c WHERE ((c.id = client_addresses.client_id) AND (c.pro_id = auth.uid()))))` |
 | `clients` | `pro_owns` : pro authentifié peut **lire/écrire/modifier/supprimer** | `(pro_id = auth.uid())` |
+| `communes` | `communes_publiques` : visiteuse anonyme, pro authentifié peut **lire** | `true` |
+| `communes_import` | 🔒 RLS active, **aucune politique** | Verrouillée par conception : écriture via route serveur uniquement (service_role). |
 | `distance_fees` | `pro_owns` : pro authentifié peut **lire/écrire/modifier/supprimer** | `(pro_id = auth.uid())` |
 | `distance_fees` | `public_distance_fees` : visiteuse anonyme peut **lire** | `(EXISTS ( SELECT 1 FROM pros p WHERE ((p.id = distance_fees.pro_id) AND p.published)))` |
 | `geocodage_refus` | 🔒 RLS active, **aucune politique** | Verrouillée par conception : écriture via route serveur uniquement (service_role). |
@@ -49,6 +51,7 @@ base, quelle qu'en soit la provenance.
 
 | Table | Colonnes exposées |
 |---|---|
+| `communes` | `insee_code`, `lat`, `lng`, `name`, `population`, `postal_codes`, `search_key`, `updated_at` |
 | `distance_fees` | `fee_cents`, `from_km`, `id`, `pro_id` |
 | `pro_settings` | `booking_confirmation_mode`, `default_deposit_percent`, `free_cancellation_hours`, `payment_mode`, `pro_id` |
 | `pros` | `bio`, `city`, `display_name`, `headline`, `id`, `instagram_url`, `photo_url`, `pronoun`, `published`, `slug`, `years_experience` |
@@ -61,6 +64,10 @@ base, quelle qu'en soit la provenance.
 Ce qui est ouvert à `anon` est ouvert au monde entier : la clé anonyme est publique.
 Chaque politique de lecture doit donc répondre à une seule question : **la cliente en a-t-elle
 besoin avant de réserver ?**
+
+### `communes_publiques` · `communes`
+
+Référentiel public de l'État (code INSEE, nom, codes postaux, centroïde), importé en base par la décision D6 pour ne plus dépendre d'un service tiers à l'exécution. Aucune donnée personnelle : ce sont des communes, déjà librement consultables sur geo.api.gouv.fr. La cliente en a besoin AVANT de réserver, pour savoir si elle est desservie, et la pro pour composer sa zone. L'écriture reste au service_role : aucune politique ne l'ouvre.
 
 ### `public_distance_fees` · `distance_fees`
 

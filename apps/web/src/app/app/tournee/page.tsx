@@ -250,9 +250,9 @@ function lienGps(lat: number, lng: number): string {
 
 function nomDe(relation: unknown): string {
   const brut: unknown = Array.isArray(relation) ? relation[0] : relation
-  if (typeof brut !== 'object' || brut === null) return 'Sans cliente'
+  if (typeof brut !== 'object' || brut === null) return 'Sans fiche'
   const c = brut as Record<string, unknown>
-  if (typeof c.first_name !== 'string') return 'Sans cliente'
+  if (typeof c.first_name !== 'string') return 'Sans fiche'
   const nom = typeof c.last_name === 'string' ? c.last_name : ''
   return `${c.first_name} ${nom}`.trim()
 }

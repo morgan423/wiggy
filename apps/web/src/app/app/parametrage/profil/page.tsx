@@ -33,7 +33,7 @@ export default async function Profil() {
         <p className="mt-2 text-lg font-bold break-all">{adresse}</p>
         <p className="mt-4 text-texte-secondaire">
           {profil.published
-            ? 'Ta page est en ligne et visible par tes clientes.'
+            ? 'Ta page est en ligne : tout le monde peut la voir.'
             : 'Ta page n’est pas encore en ligne. Personne ne peut la voir.'}
         </p>
         <div className="mt-6">
@@ -42,7 +42,7 @@ export default async function Profil() {
       </div>
 
       <section className="mt-12 border-t border-trait-discret pt-8">
-        <h2 className="text-xl font-bold tracking-tight">Ce que voit ta cliente</h2>
+        <h2 className="text-xl font-bold tracking-tight">Ce que voit ta clientèle</h2>
         <FormProfil profil={profil} />
       </section>
     </>

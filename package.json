@@ -26,7 +26,9 @@
     "check": "npm run format:check && npm run lint && npm run typecheck && npm run deadcode",
     "prepare": "husky",
     "copy:extract": "node scripts/copy-extract.mjs",
-    "copy:manques": "node scripts/copy-manques.mjs"
+    "copy:manques": "node scripts/copy-manques.mjs",
+    "communes:import": "node scripts/communes-import.mjs",
+    "photos:purge": "node scripts/photos-purge.mjs"
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.3.13",

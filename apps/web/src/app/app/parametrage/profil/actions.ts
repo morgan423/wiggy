@@ -21,21 +21,34 @@ export async function enregistrerProfil(precedent: EtatForm, donnees: FormData):
     years_experience: champ(donnees, 'years_experience'),
     pronoun: champ(donnees, 'pronoun'),
   })
-  if (!saisie.success) return erreur(precedent, saisie.error.issues[0].message, donnees)
+  if (!saisie.success) {
+    const faute = saisie.error.issues[0]
+    return erreur(precedent, faute.message, donnees, String(faute.path[0] ?? ''))
+  }
 
   await requirePro()
   const supabase = await supabaseServer()
   const { data: auth } = await supabase.auth.getUser()
   if (!auth.user) return erreur(precedent, 'Session expirée. Reconnecte-toi.', donnees)
 
-  const { error } = await supabase
+  // On relit la ligne écrite au lieu de supposer qu'elle l'a été. Une mise à
+  // jour qui ne touche aucune ligne n'est pas une erreur pour Postgres : sans
+  // cette relecture, l'écran annonçait « Profil enregistré. » sur un
+  // enregistrement qui n'avait rien enregistré.
+  const { data: enregistre, error } = await supabase
     .from('pros')
-    .update({ ...saisie.data, instagram_url: saisie.data.instagram_url })
+    .update(saisie.data)
     .eq('id', auth.user.id)
+    .select('display_name, headline, bio, city, instagram_url, phone, years_experience, pronoun')
+    .maybeSingle()
   if (error) return erreurBase(precedent, 'maj_profil_failed', error, donnees)
+  if (!enregistre) {
+    console.error('maj_profil_sans_effet')
+    return erreur(precedent, 'L’enregistrement n’a rien modifié. Réessaie.', donnees)
+  }
 
   revalidatePath(CHEMIN)
-  return ok(precedent, 'Profil enregistré.')
+  return ok(precedent, 'Profil enregistré.', enregistre)
 }
 
 /**

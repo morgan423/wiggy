@@ -276,6 +276,57 @@ export type Database = {
         }
         Relationships: []
       }
+      communes: {
+        Row: {
+        insee_code: string
+        name: string
+        postal_codes: string[]
+        lat: number | null
+        lng: number | null
+        population: number
+        search_key: string
+        updated_at: string
+        }
+        Insert: {
+        insee_code: string
+        name: string
+        postal_codes?: string[]
+        lat?: number | null
+        lng?: number | null
+        population?: number
+        search_key: string
+        updated_at?: string
+        }
+        Update: {
+        insee_code?: string
+        name?: string
+        postal_codes?: string[]
+        lat?: number | null
+        lng?: number | null
+        population?: number
+        search_key?: string
+        updated_at?: string
+        }
+        Relationships: []
+      }
+      communes_import: {
+        Row: {
+        id: boolean
+        importe_le: string
+        lignes: number
+        }
+        Insert: {
+        id?: boolean
+        importe_le?: string
+        lignes?: number
+        }
+        Update: {
+        id?: boolean
+        importe_le?: string
+        lignes?: number
+        }
+        Relationships: []
+      }
       distance_fees: {
         Row: {
         id: string

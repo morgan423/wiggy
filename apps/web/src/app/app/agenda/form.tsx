@@ -60,7 +60,7 @@ export function FormRdv({
       {valeurs.id ? <input type="hidden" name="id" value={valeurs.id} /> : null}
       <fieldset className="border-0 p-0">
         <legend className="text-sm font-bold tracking-widest text-texte-secondaire uppercase">
-          La cliente
+          La fiche
         </legend>
 
         {edition ? (
@@ -69,7 +69,7 @@ export function FormRdv({
             <p className="mt-4 text-texte-secondaire">
               {clienteDuRdv
                 ? `${clienteDuRdv.first_name} ${clienteDuRdv.last_name ?? ''}`.trim()
-                : 'Sans cliente'}
+                : 'Sans fiche'}
               . Pour la changer, annule ce rendez-vous et recrée-le.
             </p>
           </>
@@ -83,7 +83,7 @@ export function FormRdv({
               }}
               className="size-5"
             />
-            Nouvelle cliente
+            Nouvelle fiche
           </label>
         ) : null}
 
@@ -91,13 +91,13 @@ export function FormRdv({
           <>
             <Champ
               id="client_nom"
-              label="Son nom"
+              label="Prénom"
               autoComplete="off"
               defaultValue={repris('client_nom')}
             />
             <Champ
               id="client_tel"
-              label="Son téléphone"
+              label="Téléphone"
               type="tel"
               required={false}
               defaultValue={repris('client_tel')}
@@ -106,7 +106,7 @@ export function FormRdv({
         ) : (
           <Choix
             id="client_id"
-            label="Cliente"
+            label="Fiche"
             options={clientes.map((c) => ({
               valeur: c.id,
               texte: `${c.first_name} ${c.last_name ?? ''}`.trim(),

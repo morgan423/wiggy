@@ -19,36 +19,46 @@ type Profil = {
 export function FormProfil({ profil }: { profil: Profil }) {
   const [etat, action, enCours] = useActionState<EtatForm, FormData>(enregistrerProfil, VIDE)
 
+  // Ce qui s'affiche après un aller-retour vient de la réponse du serveur, pas
+  // du rendu précédent : en erreur c'est la saisie, en succès c'est la ligne
+  // relue en base. `key` force le remontage, sans quoi un champ non contrôlé
+  // ignore un changement de `defaultValue`.
+  const valeur = (champ: keyof Profil) => etat.saisie?.[champ] ?? profil[champ]?.toString() ?? ''
+
   return (
-    <form action={action}>
-      <Champ id="display_name" label="Ton nom professionnel" defaultValue={profil.display_name} />
+    <form action={action} key={etat.n}>
+      <Champ
+        id="display_name"
+        label="Ton nom professionnel"
+        defaultValue={valeur('display_name')}
+      />
       <Champ
         id="headline"
         label="Ta phrase d’accroche"
         required={false}
-        defaultValue={profil.headline ?? ''}
+        defaultValue={valeur('headline')}
         aide="Par exemple : Coiffure à domicile à Pau"
       />
       <Zone
         id="bio"
         label="Ta présentation"
-        defaultValue={profil.bio ?? ''}
-        aide="Quelques lignes, à la première personne. C’est ce que lira ta cliente."
+        defaultValue={valeur('bio')}
+        aide="Quelques lignes, à la première personne. C’est ce que lira ta clientèle."
       />
       <div className="grid gap-0 sm:grid-cols-2 sm:gap-5">
-        <Champ id="city" label="Ta ville" required={false} defaultValue={profil.city ?? ''} />
+        <Champ id="city" label="Ta ville" required={false} defaultValue={valeur('city')} />
         <Champ
           id="years_experience"
           label="Années d’expérience"
           type="number"
           required={false}
-          defaultValue={profil.years_experience?.toString() ?? ''}
+          defaultValue={valeur('years_experience')}
         />
       </div>
       <Choix
         id="pronoun"
-        label="Comment tes clientes parlent de toi"
-        defaultValue={profil.pronoun ?? ''}
+        label="Comment ta clientèle parle de toi"
+        defaultValue={valeur('pronoun')}
         options={[
           { valeur: '', texte: 'Je préfère ne pas préciser' },
           { valeur: 'elle', texte: 'Elle' },
@@ -61,7 +71,7 @@ export function FormProfil({ profil }: { profil: Profil }) {
         label="Ton Instagram"
         type="url"
         required={false}
-        defaultValue={profil.instagram_url ?? ''}
+        defaultValue={valeur('instagram_url')}
         aide="Facultatif. Adresse complète du profil."
       />
       <Champ
@@ -69,7 +79,7 @@ export function FormProfil({ profil }: { profil: Profil }) {
         label="Ton téléphone"
         type="tel"
         required={false}
-        defaultValue={profil.phone ?? ''}
+        defaultValue={valeur('phone')}
         aide="Pour te joindre. Il n’est jamais affiché sur ta page publique."
       />
       <Erreur message={etat.statut === 'erreur' ? etat.message : undefined} />

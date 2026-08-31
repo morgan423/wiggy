@@ -11,13 +11,16 @@ export type EtatForm = {
   message?: string
   n: number
   /**
-   * Ce que le pro venait de saisir, renvoyé tel quel en cas d'erreur.
+   * En erreur : ce que la personne venait de saisir, renvoyé tel quel.
+   * En succès : ce que la base a réellement enregistré, relu après écriture.
    *
    * React 19 réinitialise un formulaire non contrôlé dès qu'une action se
    * termine : sans ce renvoi, une simple faute de frappe effaçait tout un
    * rendez-vous et il fallait tout ressaisir.
    */
   saisie?: Record<string, string>
+  /** Champ fautif, pour y poser le curseur plutôt que de le faire chercher. */
+  champ?: string
 }
 
 export const VIDE: EtatForm = { statut: 'vide', n: 0 }
@@ -33,17 +36,48 @@ function saisieDe(donnees: FormData): Record<string, string> {
   return saisie
 }
 
-export function erreur(precedent: EtatForm, message: string, donnees?: FormData): EtatForm {
+export function erreur(
+  precedent: EtatForm,
+  message: string,
+  donnees?: FormData,
+  champ?: string,
+): EtatForm {
   return {
     statut: 'erreur',
     message,
     n: precedent.n + 1,
     saisie: donnees ? saisieDe(donnees) : undefined,
+    champ,
   }
 }
 
-export function ok(precedent: EtatForm, message?: string): EtatForm {
-  return { statut: 'ok', message, n: precedent.n + 1 }
+/**
+ * Succès, avec ce qui a réellement été enregistré.
+ *
+ * Le troisième argument n'est pas un confort : sans lui, un formulaire non
+ * contrôlé se réaffiche à partir des valeurs du rendu précédent, et un champ
+ * dont l'écriture n'a rien fait « retombe » sous les yeux du pro sans que rien
+ * ne le signale (recette du 31/08, bloquant B4). Ce qui s'affiche après un
+ * enregistrement doit venir de la base, pas de la mémoire de l'écran.
+ */
+export function ok(
+  precedent: EtatForm,
+  message?: string,
+  enregistre?: Record<string, string | number | boolean | null>,
+): EtatForm {
+  return {
+    statut: 'ok',
+    message,
+    n: precedent.n + 1,
+    saisie: enregistre
+      ? Object.fromEntries(
+          Object.entries(enregistre).map(([cle, valeur]) => [
+            cle,
+            valeur === null ? '' : String(valeur),
+          ]),
+        )
+      : undefined,
+  }
 }
 
 /**

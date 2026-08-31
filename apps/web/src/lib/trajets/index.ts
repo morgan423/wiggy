@@ -1,6 +1,7 @@
 import {
   dureeEstimeeMin,
   distanceEstimeeKm,
+  avecMargeSecurite,
   type MoteurTrajets,
   type Point,
   type ResultatTrajet,
@@ -19,6 +20,11 @@ import { moteurGoogle, MAX_ELEMENTS } from './google'
  *   ③ chaque résultat dit d'où il vient, pour que l'écran puisse le signaler.
  *
  * C'est aussi le mode hors-ligne (C8) : sans réseau, ② s'applique seul.
+ *
+ * ④ Tout ce qui sort d'ici porte le tampon de sécurité D5. Il s'applique au
+ *    point le plus bas du système, sur les deux sources : un trajet sans marge
+ *    ne doit exister nulle part, ni dans le calcul des créneaux, ni sur la
+ *    tournée affichée au pro.
  */
 
 /**
@@ -76,6 +82,12 @@ function estimation(departs: Point[], arrivees: Point[]): ResultatTrajet[][] {
   )
 }
 
+/** Applique le tampon D5 à toute une matrice. Aucun trajet n'y échappe. */
+const avecMarge = (matrice: ResultatTrajet[][]): ResultatTrajet[][] =>
+  matrice.map((ligne) =>
+    ligne.map((cellule) => ({ ...cellule, minutes: avecMargeSecurite(cellule.minutes) })),
+  )
+
 export const trajets: MoteurTrajets = {
   nom: 'wiggy',
 
@@ -87,43 +99,47 @@ export const trajets: MoteurTrajets = {
 
     if (!cle || trop) {
       if (trop) console.warn('trajets_matrice_trop_grande', departs.length * arrivees.length)
-      return estimation(departs, arrivees)
+      return avecMarge(estimation(departs, arrivees))
     }
 
     // Tout est-il déjà en cache ? Dans ce cas, aucun appel.
     const enCache = departs.map((d) => arrivees.map((a) => lireCache(d, a)))
+    // Le cache garde la valeur brute de l'API : la marge se pose à la sortie,
+    // pour qu'un changement de règle n'ait pas à attendre l'expiration.
     if (enCache.every((ligne) => ligne.every(Boolean))) {
-      return enCache as ResultatTrajet[][]
+      return avecMarge(enCache as ResultatTrajet[][])
     }
 
     if (!(await quotaGlobal('trajets', APPELS_PAR_JOUR, 86_400))) {
       console.warn('trajets_quota_journalier_atteint')
-      return estimation(departs, arrivees)
+      return avecMarge(estimation(departs, arrivees))
     }
 
     try {
       const resultat = await moteurGoogle(cle).matrice(departs, arrivees, quand)
-      return resultat.map((ligne, i) =>
-        ligne.map((cellule, j) => {
-          // -1 = Google n'a pas trouvé de route : on estime plutôt que
-          // d'afficher un trajet nul, qui ferait rater un rendez-vous.
-          const valeur: ResultatTrajet =
-            cellule.minutes < 0
-              ? {
-                  minutes: dureeEstimeeMin(departs[i], arrivees[j]),
-                  km: distanceEstimeeKm(departs[i], arrivees[j]),
-                  source: 'estimation',
-                }
-              : cellule
-          if (valeur.source === 'api') ecrireCache(departs[i], arrivees[j], valeur)
-          return valeur
-        }),
+      return avecMarge(
+        resultat.map((ligne, i) =>
+          ligne.map((cellule, j) => {
+            // -1 = Google n'a pas trouvé de route : on estime plutôt que
+            // d'afficher un trajet nul, qui ferait rater un rendez-vous.
+            const valeur: ResultatTrajet =
+              cellule.minutes < 0
+                ? {
+                    minutes: dureeEstimeeMin(departs[i], arrivees[j]),
+                    km: distanceEstimeeKm(departs[i], arrivees[j]),
+                    source: 'estimation',
+                  }
+                : cellule
+            if (valeur.source === 'api') ecrireCache(departs[i], arrivees[j], valeur)
+            return valeur
+          }),
+        ),
       )
     } catch (e) {
       // Indisponibilité, dépassement de quota Google, délai dépassé : on
       // dégrade sans bruit côté cliente, avec une trace côté serveur.
       console.error('trajets_api_indisponible', e instanceof Error ? e.message : 'inconnue')
-      return estimation(departs, arrivees)
+      return avecMarge(estimation(departs, arrivees))
     }
   },
 }

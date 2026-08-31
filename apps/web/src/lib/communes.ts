@@ -1,50 +1,65 @@
-import { citySearchTerm, normaliserCommune, type Commune } from '@wiggy/core'
+import { citySearchTerm, type Commune } from '@wiggy/core'
+import { supabaseServer } from '@/lib/supabase/server'
 
 /**
- * Référentiel des communes — API Découpage administratif de l'État
- * (geo.api.gouv.fr). Officielle, gratuite, sans clé, et tenue à jour par
- * l'administration : rien à importer ni à maintenir de notre côté.
+ * D6 : le référentiel des communes se lit en base, plus sur le réseau.
  *
- * C'est la source du code INSEE, qui sert de clé stable partout ailleurs
- * (zone d'intervention B11 ②, carte de chaleur A9).
+ * Il vient de l'API Découpage administratif de l'État, mais par un import
+ * périodique (`npm run communes:import`), jamais par un appel à l'exécution.
+ * Composer sa zone d'intervention ne dépend donc plus de la disponibilité d'un
+ * service tiers : un hoquet de cinq secondes laissait la pro sans aucun moyen
+ * de la renseigner, alors que A3, A5, A6 et A8 en dépendent tous.
+ *
+ * La lecture passe par le client soumis à la RLS : la table est publique en
+ * lecture, et c'est justifié par écrit dans `docs/matrice-acces.md`.
  */
 
-const RACINE = 'https://geo.api.gouv.fr/communes'
-const DELAI_MS = 5000
+/** Assez pour lever une ambiguïté, trop peu pour noyer. */
+const MAX_RESULTATS = 12
 
 /**
- * Renvoie null si le service est injoignable — à distinguer d'un tableau vide,
- * qui signifie « aucune commune de ce nom ». Le pro doit savoir lequel des deux
- * s'est produit.
+ * Renvoie null si la base elle-même n'a pas répondu, à distinguer d'un tableau
+ * vide, qui signifie « aucune commune de ce nom ». Le pro doit savoir lequel
+ * des deux s'est produit.
  */
 export async function chercherCommunes(saisie: string): Promise<Commune[] | null> {
   const terme = citySearchTerm(saisie)
   if (terme.length < 2) return []
 
-  const url = new URL(RACINE)
-  url.searchParams.set('nom', terme)
-  url.searchParams.set('fields', 'nom,code,codesPostaux,centre')
-  url.searchParams.set('boost', 'population')
-  url.searchParams.set('limit', '12')
+  const cle = terme
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '')
+  if (cle.length < 2) return []
 
-  try {
-    const reponse = await fetch(url, {
-      signal: AbortSignal.timeout(DELAI_MS),
-      // Les communes changent rarement : inutile de rappeler l'API à chaque
-      // frappe du même nom.
-      next: { revalidate: 60 * 60 * 24 },
-    })
-    if (!reponse.ok) {
-      console.error('geo_api_http', reponse.status)
-      return null
-    }
-    const brut: unknown = await reponse.json()
-    if (!Array.isArray(brut)) return null
-    return brut.map(normaliserCommune).filter((c): c is Commune => c !== null)
-  } catch (e) {
-    console.error('geo_api_injoignable', e instanceof Error ? e.name : 'inconnu')
+  const supabase = await supabaseServer()
+  const { data, error } = await supabase
+    .from('communes')
+    .select('insee_code, name, postal_codes, lat, lng')
+    // Recherche par préfixe, sur la clé normalisée : « st paul » trouve
+    // « Saint-Paul » sans dépendre d'une extension Postgres.
+    .like('search_key', `${cle}%`)
+    // Les homonymes se classent par importance : « Saint-Paul » propose la
+    // plus grande avant les six autres.
+    .order('population', { ascending: false })
+    .limit(MAX_RESULTATS)
+
+  if (error) {
+    // Le message et le code, pas seulement le nom : sans eux, un diagnostic
+    // coûte une session entière. Aucune donnée personnelle ici, une commune
+    // n'en est pas une.
+    console.error('communes_lecture_failed', error.code, error.message)
     return null
   }
+
+  return data.map((c) => ({
+    insee_code: c.insee_code,
+    name: c.name,
+    postal_code: c.postal_codes[0] ?? null,
+    lat: c.lat,
+    lng: c.lng,
+  }))
 }
 
 export type { Commune }

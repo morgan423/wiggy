@@ -16,9 +16,9 @@ import { WaitlistForm } from './waitlist-form'
  */
 
 export const metadata: Metadata = {
-  title: 'Trouver un coiffeur à domicile',
+  title: 'Trouver une coiffeuse ou un coiffeur à domicile',
   description:
-    'Cherchez un coiffeur ou une coiffeuse à domicile dans votre ville. ' +
+    'Cherchez une coiffeuse ou un coiffeur à domicile dans votre ville. ' +
     'Si personne n’intervient encore près de chez vous, nous vous prévenons dès l’ouverture.',
 }
 
@@ -90,7 +90,7 @@ export default async function Recherche({
       </Link>
 
       <h1 className="mt-8 text-4xl leading-tight font-extrabold tracking-tight sm:text-6xl">
-        Un coiffeur à domicile, chez vous.
+        Une coiffeuse ou un coiffeur à domicile, chez vous.
       </h1>
 
       <form method="get" className="mt-10 flex flex-col gap-3 sm:flex-row">
@@ -141,7 +141,7 @@ export default async function Recherche({
         ) : (
           <section className="mt-14 rounded-carte bg-fond p-8 sm:p-12">
             <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
-              Pas encore de coiffeur à {ville}.
+              Personne ne se déplace encore à {ville}.
             </h2>
             <p className="mt-4 text-lg text-texte-secondaire">
               Laissez-nous votre e-mail : nous vous prévenons dès qu’un professionnel s’installe

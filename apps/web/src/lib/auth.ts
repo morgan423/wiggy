@@ -63,11 +63,12 @@ export async function requirePro(): Promise<ComptePro> {
 /**
  * Exige un pro connecté ET le droit d'accès à la fonctionnalité (§2).
  *
- * @aVenir Aucun écran gaté n'existe encore : le premier sera A3, dont les
- * créneaux géo-filtrés appartiennent à l'offre 2.
- *
  * À appeler dans toute page ou action qui touche une capacité gatée. La
  * vérification côté client n'est qu'un confort d'affichage : celle-ci fait foi.
+ *
+ * ⚠️ La redirection pointe vers `/app/abonnement`, qui n'existe pas encore (G1) :
+ * un pro hors offre atteindrait un 404. Les liens de navigation sont masqués
+ * hors de l'offre qui les inclut, ce qui referme le cas courant.
  */
 export async function requireCapability(capability: Capability): Promise<ComptePro> {
   const compte = await requirePro()
