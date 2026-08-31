@@ -181,6 +181,31 @@ for (const doc of [
     })
 }
 
+// ⑩ Une seule fonction calcule la clé de recherche des communes.
+//
+// L'import remplit `communes.search_key`, l'écran de zone interroge dessus :
+// deux normalisations qui divergent laissent des trous que personne ne voit.
+// C'est arrivé (défaut R2-1), et le script d'import portait bien sa propre
+// copie. Cette règle empêche la copie de revenir.
+{
+  const importScript = readFileSync(join(racine, 'scripts/communes-import.mjs'), 'utf8')
+  if (!importScript.includes('cleRechercheCommune')) {
+    signaler(
+      join(racine, 'scripts/communes-import.mjs'),
+      0,
+      'cle-recherche-dupliquee',
+      'l’import doit utiliser `cleRechercheCommune` du domaine, jamais sa propre copie',
+    )
+  }
+  for (const chemin of [...fichiers, join(racine, 'scripts/communes-import.mjs')]) {
+    if (chemin.endsWith('city.ts')) continue
+    const contenu = readFileSync(chemin, 'utf8')
+    if (/function\s+cleRecherche\w*\s*\(/.test(contenu)) {
+      signaler(chemin, 0, 'cle-recherche-dupliquee', 'la clé de recherche se calcule dans city.ts')
+    }
+  }
+}
+
 // ⑧ La garde reduced-motion doit exister, sans exception.
 const globals = readFileSync(join(racine, 'apps/web/src/app/globals.css'), 'utf8')
 if (!globals.includes('prefers-reduced-motion')) {

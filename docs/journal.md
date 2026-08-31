@@ -20,6 +20,61 @@ _Rien en attente._
 
 ---
 
+## 2026-09-01 Étape : R2-1 abréviations de communes, R2-4 gardes des scripts
+
+**Fait :**
+
+- **R2-1** : « st paul » ne trouvait pas « Saint-Paul ». La clé de recherche ne normalisait
+  qu'accents, tirets et casse : « saint » et « st » sont une abréviation, pas une variante
+  typographique. L'expansion se fait maintenant **avant** le retrait des séparateurs, sans quoi
+  il n'y aurait plus de frontière de mot pour la déclencher.
+- **Une seule fonction**, `cleRechercheCommune` dans `packages/core/src/city.ts`, partagée par
+  l'import (qui remplit `communes.search_key`) et par la requête. Le script d'import portait
+  jusqu'ici sa propre copie : c'est le genre de divergence qui laisse des trous que personne ne
+  voit. Une règle de `design:check` interdit désormais une seconde implémentation, et cette
+  règle a été vérifiée à l'envers, en la faisant échouer exprès.
+- **Des tests sur les cas réels** : « st paul », « ste marie », « st-jean-de-luz », l'abréviation
+  au milieu du nom, et les deux pièges, **Strasbourg et Stains**, qui restent intacts.
+- **R2-4** : règle inscrite dans `CLAUDE.md`, et appliquée aux deux scripts qui existent déjà.
+  `scripts/garde.mjs` porte les trois gardes : rien ne s'exécute au chargement, mode d'essai,
+  refus hors développement. `photos:purge` est destructeur, il les a toutes les trois, et son
+  mode d'essai est le défaut. `communes:import` n'est pas destructeur : il garde l'écriture par
+  défaut et reçoit un `--essai`, pour ne pas contredire la conséquence ③ de D7 qui prescrit
+  `npm run communes:import` tel quel à la création de la production.
+
+**Schéma :** aucun.
+
+**Décisions :** aucune nouvelle. Application de D7 (garde d'environnement) et de la règle R2-4.
+
+**Écarts au brief :**
+
+- **Le mode d'essai n'est pas le défaut de `communes:import`.** La règle R2-4 dit « écrire ou
+  supprimer demande un indicateur explicite », mais elle réserve le mode d'essai par défaut aux
+  scripts destructeurs. Faire de l'import un essai par défaut casserait la procédure écrite dans
+  D7 ③. L'arbitrage est signalé plutôt que pris en silence.
+- **La garde d'environnement demande une variable qui n'existe pas encore** dans le `.env.local`
+  de Morgan : `WIGGY_ENV=developpement`. Tant qu'elle n'y est pas, `photos:purge --appliquer`
+  refuse de tourner. C'est le comportement voulu, mais il faut le savoir avant d'en avoir besoin.
+- **L'abréviation « st. » avec un point n'est pas traitée.** La correction attendue nommait
+  l'espace, le tiret et l'apostrophe : le point n'y figure pas, et la forme « St. Paul » est
+  anglophone plutôt que française. Non ajouté, signalé.
+
+**Questions ouvertes :** aucune. D8 reste à faire, dans la livraison suivante.
+
+**À recetter par Morgan :** paramétrage, zone, chercher « st paul », « ste marie »,
+« st-jean-de-luz ». Puis les deux pièges : « Strasbourg » et « Stains » doivent toujours se
+trouver. L'affichage au fil de la frappe n'est pas dans ce lot, il vient avec la trousse de
+composants.
+
+**Incident, pour mémoire :** la veille, une vérification censée s'assurer que le script d'import
+se chargeait l'a exécuté contre la base réelle, écrivant 34 969 communes. Sans gravité, données
+publiques et opération idempotente, mais c'est l'origine de la règle R2-4 ci-dessus. Signalé
+spontanément le jour même.
+
+**Statut à reporter dans la roadmap :** aucun changement. `B11` reste en cours de recette.
+
+---
+
 ## 2026-08-31 Étape : R2-2, le tunnel casse au choix du créneau
 
 Livrée seule et en urgence, pour que la recette 2 reprenne au passage 5. R2-1 et D8 suivent

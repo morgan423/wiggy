@@ -117,6 +117,28 @@ Côté cliente finale, tout reste web : zéro installation pour réserver.
 - Écriture cliente (réservation, annulation) : jamais d'insertion directe depuis le navigateur.
   Toujours une route serveur qui revalide disponibilité, zone et tarif.
 
+## Scripts qui écrivent : une vérification ne modifie jamais rien
+
+Écrit après incident (R2-4) : une vérification censée s'assurer qu'un script « se chargeait »
+l'a en réalité exécuté contre la base réelle, et trente-cinq mille lignes ont été écrites. Sans
+gravité cette fois, les données étant publiques et l'opération idempotente. Le script suivant au
+programme supprime des rendez-vous, des fiches clientes et des photos.
+
+Pour **tout script qui écrit ou supprime** :
+
+- **Rien ne s'exécute au simple chargement du fichier.** Le corps ne tourne que si le script est
+  lancé explicitement. Importer un script ne doit jamais rien déclencher.
+- **Un mode d'essai** qui affiche ce qui serait fait sans le faire. Il est le **mode par défaut**
+  d'un script destructeur : supprimer demande un indicateur explicite (`--appliquer`).
+- **Vérifier qu'un script se charge** se fait par le typage ou le mode d'essai, **jamais** en
+  l'exécutant contre une base réelle.
+- **Un script destructeur refuse de tourner** si l'environnement visé n'est pas le développement
+  (D7 : le projet de production ne sert jamais à une recette).
+
+Et la partie qui compte autant que la règle : **une erreur se signale.** Une erreur annoncée coûte
+une ligne de journal, la même erreur tue quand elle est tue. On préfère toujours l'aveu au silence,
+y compris quand personne n'aurait rien vu.
+
 ## Décisions verrouillées : ne pas « réparer »
 
 **`city_waitlist`, `rate_limits` et `geocodage_refus` ont la RLS active et AUCUNE politique.** Ce

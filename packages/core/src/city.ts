@@ -29,6 +29,40 @@ export function cityKey(name: string, inseeCode?: string | null): string {
 }
 
 /**
+ * Clé de recherche d'une commune : la seule fonction qui la calcule.
+ *
+ * Elle sert des deux côtés, et c'est tout l'enjeu : `npm run communes:import`
+ * la calcule pour remplir `communes.search_key`, l'écran de zone la calcule
+ * pour interroger. Deux normalisations qui divergent laissent des trous
+ * silencieux, dont personne ne sait qu'ils existent.
+ *
+ * Trois passes, dans cet ordre, et l'ordre compte :
+ *   ① accents et casse ;
+ *   ② abréviations, TANT QU'IL RESTE des frontières de mot. « st » et « ste »
+ *      suivis d'un espace, d'un tiret ou d'une apostrophe deviennent « saint »
+ *      et « sainte ». Un « st » collé au reste du nom n'est pas touché, sans
+ *      quoi Strasbourg et Stains deviendraient des Saint ;
+ *   ③ retrait de tout le reste.
+ *
+ * Faire ② après ③ ne marcherait pas : il n'y aurait plus de frontière de mot
+ * pour le déclencher. Le défaut R2-1 venait précisément de l'absence de cette
+ * passe : « st paul » donnait `stpaul` et ne pouvait rencontrer `saintpaul`.
+ */
+export function cleRechercheCommune(nom: string): string {
+  const sansAccent = nom
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+
+  const SEPARATEUR = "[\\s\\-'’]"
+  const developpe = sansAccent
+    .replace(new RegExp(`(^|${SEPARATEUR})ste(?=${SEPARATEUR})`, 'g'), '$1sainte')
+    .replace(new RegExp(`(^|${SEPARATEUR})st(?=${SEPARATEUR})`, 'g'), '$1saint')
+
+  return developpe.replace(/[^a-z0-9]+/g, '')
+}
+
+/**
  * Prépare un nom de ville saisi par une visiteuse pour une recherche « ilike ».
  *
  * La saisie vient de l'URL : elle ne doit jamais atteindre un filtre PostgREST

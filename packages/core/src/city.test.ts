@@ -1,6 +1,12 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { cityKey, citySearchTerm, normalizeCityName, normaliserCommune } from './city.ts'
+import {
+  cityKey,
+  citySearchTerm,
+  normalizeCityName,
+  normaliserCommune,
+  cleRechercheCommune,
+} from './city.ts'
 
 test('accents, casse et tirets tombent sur la même clé', () => {
   const attendu = cityKey('Saint-Étienne')
@@ -108,4 +114,50 @@ test('normaliserCommune garde le premier code postal des communes multiples', ()
     codesPostaux: ['97411', '97422'],
   })
   assert.equal(c?.postal_code, '97411')
+})
+
+/**
+ * R2-1 : les abréviations dans la recherche de communes.
+ *
+ * « st paul » ne trouvait pas « Saint-Paul ». Le commentaire du code affirmait
+ * pourtant le contraire, et cette affirmation a traversé le code, le rapport
+ * d'étape et la recette sans que personne ne l'exécute. Ces tests existent
+ * pour que l'affirmation soit vérifiée et non plus proclamée.
+ */
+test('« st » et « ste » s’ouvrent en « saint » et « sainte »', () => {
+  assert.equal(cleRechercheCommune('st paul'), cleRechercheCommune('Saint-Paul'))
+  assert.equal(cleRechercheCommune('ste marie'), cleRechercheCommune('Sainte-Marie'))
+  assert.equal(cleRechercheCommune('st-jean-de-luz'), cleRechercheCommune('Saint-Jean-de-Luz'))
+  // L'abréviation au milieu du nom compte aussi.
+  assert.equal(
+    cleRechercheCommune('neuville st vaast'),
+    cleRechercheCommune('Neuville-Saint-Vaast'),
+  )
+})
+
+test('les deux pièges restent intacts : Strasbourg et Stains', () => {
+  // Un « st » collé au reste du nom n'est pas une abréviation. Les développer
+  // donnerait « saintrasbourg » et « saintains », et ces deux communes
+  // disparaîtraient purement et simplement de la recherche.
+  assert.equal(cleRechercheCommune('Strasbourg'), 'strasbourg')
+  assert.equal(cleRechercheCommune('Stains'), 'stains')
+  assert.equal(cleRechercheCommune('Sainte'), 'sainte')
+  assert.equal(cleRechercheCommune('Stenay'), 'stenay')
+  // Et une saisie qui commence par « st » sans séparateur reste elle-même.
+  assert.equal(cleRechercheCommune('stras'), 'stras')
+})
+
+test('la clé absorbe accents, casse, tirets et apostrophes', () => {
+  const attendu = cleRechercheCommune('Saint-Étienne')
+  for (const forme of ['SAINT-ÉTIENNE', 'saint etienne', 'St-Étienne', 'st  etienne']) {
+    assert.equal(cleRechercheCommune(forme), attendu, forme)
+  }
+  assert.equal(cleRechercheCommune("L'Haÿ-les-Roses"), 'lhaylesroses')
+})
+
+test('la recherche par préfixe fonctionne sur la clé développée', () => {
+  // C'est ce que fait la requête : `like 'cle%'`. Le test vaut contrat.
+  const enBase = cleRechercheCommune('Saint-Paul-lès-Dax')
+  assert.ok(enBase.startsWith(cleRechercheCommune('st paul')))
+  assert.ok(enBase.startsWith(cleRechercheCommune('saint-paul')))
 })

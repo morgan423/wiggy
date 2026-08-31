@@ -1,4 +1,4 @@
-import { citySearchTerm, type Commune } from '@wiggy/core'
+import { citySearchTerm, cleRechercheCommune, type Commune } from '@wiggy/core'
 import { supabaseServer } from '@/lib/supabase/server'
 
 /**
@@ -26,22 +26,21 @@ export async function chercherCommunes(saisie: string): Promise<Commune[] | null
   const terme = citySearchTerm(saisie)
   if (terme.length < 2) return []
 
-  const cle = terme
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '')
+  // La MÊME fonction que celle qui a rempli la colonne à l'import : deux
+  // normalisations qui divergent laissent des trous que personne ne voit.
+  const cle = cleRechercheCommune(terme)
   if (cle.length < 2) return []
 
   const supabase = await supabaseServer()
   const { data, error } = await supabase
     .from('communes')
     .select('insee_code, name, postal_codes, lat, lng')
-    // Recherche par préfixe, sur la clé normalisée : « st paul » trouve
-    // « Saint-Paul » sans dépendre d'une extension Postgres.
+    // Recherche par préfixe sur la clé normalisée, sans extension Postgres.
+    // Ce que la clé sait rapprocher est décrit et testé dans
+    // `packages/core/src/city.test.ts`, pas affirmé ici.
     .like('search_key', `${cle}%`)
-    // Les homonymes se classent par importance : « Saint-Paul » propose la
-    // plus grande avant les six autres.
+    // Les homonymes se classent par population décroissante : sur un nom que
+    // plusieurs communes portent, la plus grande vient en tête.
     .order('population', { ascending: false })
     .limit(MAX_RESULTATS)
 
