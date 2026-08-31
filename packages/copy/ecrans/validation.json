@@ -31,6 +31,9 @@
     "proNomProfessionnel": "Indique ton nom professionnel.",
     "proRdvPrestation": "Indique la prestation.",
     "proRdvDureeMin": "Un rendez-vous dure au moins 5 minutes.",
-    "proRdvCliente": "Choisis une fiche existante ou saisis un prénom."
+    "proRdvCliente": "Choisis une fiche existante ou saisis un prénom.",
+    "proAdresseRequise": "Indique où se passe le rendez-vous : un rendez-vous sans lieu ne compte pas dans ta tournée.",
+    "proCodePostalRequis": "Indique le code postal : c'est lui qui situe la commune.",
+    "proVilleRequise": "Indique la ville."
   }
 }

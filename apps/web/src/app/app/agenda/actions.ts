@@ -7,6 +7,7 @@ import { heureLocaleVersInstant, finRendezVous } from '@wiggy/core'
 import { requirePro } from '@/lib/auth'
 import { supabaseServer } from '@/lib/supabase/server'
 import { geocoder } from '@/lib/adresse'
+import { centreDeCommune } from '@/lib/lieu-approche'
 import { erreur, erreurBase, type EtatForm, champTexte } from '@/lib/forms'
 
 /**
@@ -21,8 +22,10 @@ import { erreur, erreurBase, type EtatForm, champTexte } from '@/lib/forms'
  * rendez-vous devient invisible au calcul des trajets : il ne bloquerait plus
  * les créneaux qu'il devrait bloquer.
  *
- * Un géocodage qui échoue **ne bloque pas** le pro : le rendez-vous est
- * enregistré sans coordonnées, et le pro en est averti.
+ * R2-7 bis : l'adresse est OBLIGATOIRE, mais jamais impossible. Une adresse
+ * que le référentiel ignore est conservée telle quelle et rattachée au centre
+ * de sa commune : le trajet devient approché, il ne disparaît plus. Le pro en
+ * est averti, rien ne bloque.
  */
 
 export async function creerRdv(precedent: EtatForm, donnees: FormData): Promise<EtatForm> {
@@ -35,7 +38,7 @@ export async function creerRdv(precedent: EtatForm, donnees: FormData): Promise<
 
   const { pro } = await requirePro()
   const supabase = await supabaseServer()
-  const lieu = await localiser(saisie.data)
+  const { point, precision } = await localiser(saisie.data)
 
   // Nouvelle cliente saisie à la volée : on crée sa fiche au passage, elle
   // servira aux rendez-vous suivants comme à l'historique.
@@ -69,18 +72,20 @@ export async function creerRdv(precedent: EtatForm, donnees: FormData): Promise<
     address_line1: saisie.data.address_line1,
     postal_code: saisie.data.postal_code,
     city: saisie.data.city,
-    lat: lieu?.lat ?? null,
-    lng: lieu?.lng ?? null,
+    lat: point?.lat ?? null,
+    lng: point?.lng ?? null,
     access_notes: saisie.data.access_notes,
     note: saisie.data.note,
   })
   if (error) return erreurBase(precedent, 'creation_rdv_failed', error, donnees)
 
   revalidatePath('/app/agenda')
-  // Sans coordonnées, ce rendez-vous ne pèsera pas sur le calcul des trajets :
-  // le pro doit le savoir plutôt que de le découvrir par un créneau mal placé.
-  redirect(lieu ? '/app/agenda' : '/app/agenda?adresse=imprecise')
+  redirect(retour(precision))
 }
+
+/** Le pro doit savoir ce que l'app a su faire de son adresse, sans le chercher. */
+const retour = (precision: Precision) =>
+  precision === 'exacte' ? '/app/agenda' : `/app/agenda?adresse=${precision}`
 
 export async function annulerRdv(donnees: FormData) {
   const id = champTexte(donnees, 'id')
@@ -113,7 +118,7 @@ export async function modifierRdv(precedent: EtatForm, donnees: FormData): Promi
 
   await requirePro()
   const supabase = await supabaseServer()
-  const lieu = await localiser(saisie.data)
+  const { point, precision } = await localiser(saisie.data)
 
   // On ne touche ni à `source` ni à `client_id` : un rendez-vous pris en ligne
   // reste un rendez-vous pris en ligne, et on ne réattribue pas une cliente
@@ -129,8 +134,8 @@ export async function modifierRdv(precedent: EtatForm, donnees: FormData): Promi
       address_line1: saisie.data.address_line1,
       postal_code: saisie.data.postal_code,
       city: saisie.data.city,
-      lat: lieu?.lat ?? null,
-      lng: lieu?.lng ?? null,
+      lat: point?.lat ?? null,
+      lng: point?.lng ?? null,
       access_notes: saisie.data.access_notes,
       note: saisie.data.note,
     })
@@ -138,25 +143,38 @@ export async function modifierRdv(precedent: EtatForm, donnees: FormData): Promi
   if (error) return erreurBase(precedent, 'modification_rdv_failed', error, donnees)
 
   revalidatePath('/app/agenda')
-  redirect(lieu ? '/app/agenda' : '/app/agenda?adresse=imprecise')
+  redirect(retour(precision))
 }
 
+/** Ce qu'on a su faire de l'adresse saisie. */
+type Precision = 'exacte' | 'commune' | 'inconnue'
+
 /**
- * Coordonnées d'un rendez-vous manuel, ou null si l'adresse n'est pas
- * reconnue de façon fiable. Le refus est journalisé dans le moniteur, ce qui
- * permet de voir si la validation est trop stricte côté pro comme côté cliente.
+ * Situe un rendez-vous manuel, avec le degré de certitude atteint.
+ *
+ * Trois issues, dans l'ordre de préférence :
+ *   `exacte`   le référentiel d'adresses a reconnu la saisie ;
+ *   `commune`  il ne l'a pas reconnue, on retient le centre de la commune ;
+ *   `inconnue` même la commune est introuvable. Rare, et jamais bloquant.
+ *
+ * Le refus de géocodage est journalisé dans le moniteur, ce qui permet de voir
+ * si la validation est trop stricte côté pro comme côté cliente.
  */
 async function localiser(saisie: {
-  address_line1?: string | null
-  postal_code?: string | null
-  city?: string | null
-}): Promise<{ lat: number; lng: number } | null> {
-  if (!saisie.address_line1) return null
+  address_line1: string
+  postal_code: string
+  city: string
+}): Promise<{ point: { lat: number; lng: number } | null; precision: Precision }> {
   const resultat = await geocoder(
     { ligne1: saisie.address_line1, codePostal: saisie.postal_code, ville: saisie.city },
     'rdv_manuel',
   )
-  return resultat.trouve?.point ?? null
+  if (resultat.trouve) return { point: resultat.trouve.point, precision: 'exacte' }
+
+  const approche = await centreDeCommune(saisie.postal_code, saisie.city)
+  if (approche) return { point: approche.point, precision: 'commune' }
+
+  return { point: null, precision: 'inconnue' }
 }
 
 /**

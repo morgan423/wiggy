@@ -112,8 +112,39 @@ npm run purge:compte -- --pro <slug>
 
 Le mode d'essai est le défaut : il affiche ce qui partirait. La suppression réelle demande
 `--appliquer`, et refuse de tourner tant que `WIGGY_ENV` ne vaut pas `developpement`. **Sur la
-production, ce refus est voulu** : la vérification d'ouverture se supprime à la main, une fois,
-depuis l'éditeur SQL, ou mieux, se fait sur le développement.
+production, ce refus est voulu** : la suppression du compte de vérification s'y fait à la main,
+une fois, depuis l'éditeur SQL.
+
+## 6. Vérifier que la production est vierge, avant d'ouvrir
+
+Dernière étape. La suppression manuelle du compte de vérification **se vérifie, elle ne se coche
+pas** : une case cochée par soi-même ne prouve rien.
+
+```bash
+npm run verifier:vide
+```
+
+La commande interroge le projet **avec la clé anonyme**, jamais avec la clé service role. C'est
+la seule qui réponde à la vraie question, « que voit le monde » : la clé serveur contourne la
+RLS, elle dirait ce que contient la base, pas ce qui en sort. Et elle évite de faire manipuler la
+clé serveur de production sur un poste de développement, ce que D7 cherche précisément à
+empêcher.
+
+Elle affiche, et **échoue si l'un n'est pas à zéro** : comptes pros publiés, rendez-vous, fiches
+clientes, inscriptions à la liste d'attente visibles. En cas d'échec, elle nomme ce qui subsiste
+et ce que cela veut dire, plutôt que de dire « échec ».
+
+Elle **ne supprime rien** : c'est une vérification, elle a donc le droit de tourner en
+production, contrairement à la purge.
+
+Pour l'exécuter sur la production, poser temporairement l'URL et la **clé anonyme** de production
+dans `.env.local`, puis remettre celles du développement.
+
+Attendu, avant d'ouvrir :
+
+```
+Rien de visible. Le projet est vierge aux yeux du monde.
+```
 
 ---
 
@@ -147,6 +178,18 @@ npm run photos:purge -- --appliquer   # supprime
 ```
 
 À planifier, quotidiennement, une fois la production ouverte.
+
+### Contrôler qu'aucune donnée de test n'a reparu
+
+```bash
+npm run verifier:vide
+```
+
+La même commande qu'à l'étape 6, utile à tout moment : entre deux mises en production, après une
+intervention manuelle, ou au moindre doute. Elle ne modifie rien et se lance sans précaution.
+
+Sur le développement, elle échouera normalement : le compte de test y est publié, c'est sa
+vocation. C'est sur la **production** que sa réponse compte.
 
 ### Les refus de géocodage
 

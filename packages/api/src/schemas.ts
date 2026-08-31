@@ -161,9 +161,22 @@ export const RdvInput = z
     debut: z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/, V.dateHeure),
     duration_min: z.coerce.number().int().min(5, V.proRdvDureeMin).max(600),
 
-    address_line1: facultatif(z.string().trim().max(200).nullable()),
-    postal_code: facultatif(z.string().trim().max(10).nullable()),
-    city: facultatif(z.string().trim().max(120).nullable()),
+    // R2-7 bis : l'adresse est OBLIGATOIRE. Un rendez-vous sans lieu n'a pas de
+    // coordonnées, donc pas de trajet : le moteur de créneaux le traverse sans
+    // aucune contrainte, et la tournée se calcule sur une journée incomplète.
+    // La roadmap promet que les rendez-vous manuels alimentent le moteur géo
+    // « exactement comme » les rendez-vous en ligne : cette contrainte est la
+    // condition de vérité de cette phrase, pas un durcissement gratuit.
+    //
+    // Obligatoire ne veut pas dire reconnue : une adresse que le référentiel
+    // ignore (hameau, lieu-dit, construction récente) est conservée telle
+    // quelle et rattachée au point connu le plus proche. Voir `localiser()`.
+    address_line1: z.string().trim().min(1, V.proAdresseRequise).max(200),
+    postal_code: z
+      .string()
+      .trim()
+      .regex(/^\d{5}$/, V.proCodePostalRequis),
+    city: z.string().trim().min(1, V.proVilleRequise).max(120),
     access_notes: facultatif(z.string().trim().max(300).nullable()),
     note: facultatif(z.string().trim().max(1000).nullable()),
   })

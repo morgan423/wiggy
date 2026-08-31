@@ -5,7 +5,13 @@ import { Champ, Zone, Choix, Erreur, BoutonPrincipal } from '@/components/champs
 import { VIDE, type EtatForm } from '@/lib/forms'
 
 type Prestation = { id: string; name: string; price_cents: number; duration_min: number }
-type Cliente = { id: string; first_name: string; last_name: string | null }
+type Cliente = {
+  id: string
+  first_name: string
+  last_name: string | null
+  /** Dernière adresse connue, reprise de son dernier rendez-vous. */
+  adresse?: { address_line1: string | null; postal_code: string | null; city: string | null }
+}
 
 /** Valeurs de départ, vides à la création, celles du rendez-vous à l'édition. */
 export type ValeursRdv = {
@@ -47,6 +53,10 @@ export function FormRdv({
 }) {
   const [etat, action, enCours] = useActionState<EtatForm, FormData>(actionServeur, VIDE)
   const [prestation, setPrestation] = useState<Prestation | null>(null)
+  // R2-7 bis ② : l'adresse est obligatoire, mais pour une cliente déjà connue
+  // elle ne doit rien coûter. Choisir sa fiche remplit les trois champs avec
+  // sa dernière adresse connue, et le pro reste libre de les corriger.
+  const [adresse, setAdresse] = useState<{ ligne: string; cp: string; ville: string } | null>(null)
   const [nouvelleCliente, setNouvelleCliente] = useState(!edition && clientes.length === 0)
 
   // En cas d'erreur, on repart de ce que le pro venait de saisir plutôt que
@@ -111,6 +121,18 @@ export function FormRdv({
               valeur: c.id,
               texte: `${c.first_name} ${c.last_name ?? ''}`.trim(),
             }))}
+            onChange={(id) => {
+              const choisie = clientes.find((c) => c.id === id)
+              setAdresse(
+                choisie?.adresse
+                  ? {
+                      ligne: choisie.adresse.address_line1 ?? '',
+                      cp: choisie.adresse.postal_code ?? '',
+                      ville: choisie.adresse.city ?? '',
+                    }
+                  : null,
+              )
+            }}
           />
         )}
       </fieldset>
@@ -187,25 +209,34 @@ export function FormRdv({
           type="datetime-local"
           defaultValue={repris('debut', valeurs.debut)}
         />
+        {/*
+          R2-7 bis : l'adresse est obligatoire. Un rendez-vous sans lieu n'a pas
+          de coordonnées, donc pas de trajet : le moteur de créneaux le traverse
+          sans contrainte et la tournée se calcule sur une journée incomplète.
+          Une adresse que le référentiel ne reconnaît pas est conservée telle
+          quelle et rattachée au centre de sa commune : rien ne bloque.
+        */}
         <Champ
           id="address_line1"
+          key={`a-${adresse?.ligne ?? ''}`}
           label="Adresse"
-          required={false}
           autoComplete="off"
-          defaultValue={repris('address_line1', valeurs.address_line1)}
+          defaultValue={adresse?.ligne ?? repris('address_line1', valeurs.address_line1)}
+          aide="Où tu te déplaces. C’est ce qui fait entrer ce rendez-vous dans ta tournée."
         />
         <div className="grid gap-0 sm:grid-cols-2 sm:gap-5">
           <Champ
             id="postal_code"
+            key={`cp-${adresse?.cp ?? ''}`}
             label="Code postal"
-            required={false}
-            defaultValue={repris('postal_code', valeurs.postal_code)}
+            inputMode="numeric"
+            defaultValue={adresse?.cp ?? repris('postal_code', valeurs.postal_code)}
           />
           <Champ
             id="city"
+            key={`v-${adresse?.ville ?? ''}`}
             label="Ville"
-            required={false}
-            defaultValue={repris('city', valeurs.city)}
+            defaultValue={adresse?.ville ?? repris('city', valeurs.city)}
           />
         </div>
         <Champ

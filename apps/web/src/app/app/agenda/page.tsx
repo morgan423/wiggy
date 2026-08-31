@@ -143,11 +143,9 @@ export default async function Agenda({
         </Link>
       </div>
 
-      {adresse === 'imprecise' ? (
+      {adresse === 'commune' || adresse === 'inconnue' ? (
         <p role="status" className="mt-6 rounded-carte bg-attente/25 px-5 py-4">
-          Rendez-vous enregistré, mais l’adresse n’a pas été reconnue. Les temps de trajet ne seront
-          pas calculés pour celui-ci : corrige-la depuis la fiche si tu veux qu’il compte dans ta
-          tournée.
+          {adresse === 'commune' ? D.$aEcrire.adresseApprochee : D.$aEcrire.adresseInconnue}
         </p>
       ) : null}
 

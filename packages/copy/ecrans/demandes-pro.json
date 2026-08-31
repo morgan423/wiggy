@@ -16,6 +16,9 @@
     "titre": "À décider",
     "horsZoneRepere": "Hors zone : {km} de {repere}.",
     "sejour": "En séjour du {du} au {au}.",
-    "prevenir": "Préviens ta cliente : elle ne reçoit pas encore de SMS automatique."
+    "prevenir": "Préviens ta cliente : elle ne reçoit pas encore de SMS automatique.",
+    "adresseApprochee": "Rendez-vous enregistré. L’adresse n’est pas reconnue par le référentiel : le trajet est calculé depuis le centre de la commune, donc approché. Corrige-la depuis la fiche si tu veux un trajet juste.",
+    "adresseInconnue": "Rendez-vous enregistré, mais ni l’adresse ni la commune n’ont été reconnues : aucun trajet ne sera calculé pour celui-ci. Vérifie le code postal depuis la fiche.",
+    "adresseAComplete": "Ce rendez-vous a été créé sans adresse, avant qu’elle ne devienne obligatoire. Renseigne-la pour qu’il compte dans ta tournée."
   }
 }

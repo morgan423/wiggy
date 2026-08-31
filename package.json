@@ -12,7 +12,7 @@
     "lint": "eslint .",
     "web": "npm run dev --workspace @wiggy/web",
     "pro": "npm run start --workspace @wiggy/pro",
-    "verify": "npm run tokens:build && npm run db:types && npm run db:check && npm run db:test && npm run db:matrice && npm run design:check && npm run copy:manques && npm run check && npm test",
+    "verify": "npm run tokens:build && npm run db:types && npm run db:check && npm run db:test && npm run db:matrice && npm run design:check && npm run copy:manques && npm run check && npm test && npm run e2e",
     "db:test": "node --test scripts/db-test.mjs",
     "db:bundle": "node scripts/db-bundle.mjs",
     "db:matrice": "node scripts/db-matrice.mjs",
@@ -29,7 +29,9 @@
     "copy:manques": "node scripts/copy-manques.mjs",
     "communes:import": "node scripts/communes-import.mjs",
     "photos:purge": "node scripts/photos-purge.mjs",
-    "purge:compte": "node scripts/purge-compte.mjs"
+    "purge:compte": "node scripts/purge-compte.mjs",
+    "e2e": "node scripts/e2e-tunnel.mjs",
+    "verifier:vide": "node scripts/verifier-vide.mjs"
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.3.13",
@@ -38,6 +40,7 @@
     "eslint-config-prettier": "^10.1.8",
     "husky": "^9.1.7",
     "knip": "^6.33.0",
+    "playwright-core": "^1.62.1",
     "prettier": "^3.9.6",
     "typescript-eslint": "^8.68.0"
   }

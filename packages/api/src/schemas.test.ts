@@ -95,9 +95,11 @@ test('les champs facultatifs acceptent la chaîne vide des formulaires HTML', ()
     price_cents: '48,50',
     debut: '2026-09-15T14:00',
     duration_min: '60',
-    address_line1: '',
-    postal_code: '',
-    city: '',
+    // L'adresse, elle, n'est plus facultative (R2-7 bis) : elle est ici parce
+    // qu'un rendez-vous sans lieu ne peut pas exister.
+    address_line1: '4 rue Racine',
+    postal_code: '64000',
+    city: 'Pau',
     access_notes: '',
     note: '',
   })
@@ -124,6 +126,9 @@ test('il faut une cliente, existante ou nouvelle', () => {
     price_cents: '10',
     debut: '2026-09-15T14:00',
     duration_min: '60',
+    address_line1: '4 rue Racine',
+    postal_code: '64000',
+    city: 'Pau',
   }
   assert.equal(RdvInput.safeParse({ ...base, client_id: '', client_nom: '' }).success, false)
   assert.equal(RdvInput.safeParse({ ...base, client_nom: 'Mme Martin' }).success, true)
@@ -205,4 +210,40 @@ test('aucun message de validation n’échappe au français', () => {
     }
   }
   assert.deepEqual(anglais, [], 'ces messages ne viennent pas du copy deck')
+})
+
+/**
+ * R2-7 bis : un rendez-vous sans lieu n'existe pas dans Wiggy.
+ *
+ * Le lieu est ce qui fait la tournée, et la tournée est le produit. Sans
+ * adresse, un rendez-vous manuel n'a pas de coordonnées, donc pas de trajet :
+ * le moteur de créneaux le traverse sans aucune contrainte, et la tournée se
+ * calcule en silence sur une journée incomplète. La roadmap promet que les
+ * rendez-vous manuels alimentent le moteur géo « exactement comme » ceux pris
+ * en ligne : ce test est la condition de vérité de cette phrase.
+ */
+test('un rendez-vous manuel sans adresse est refusé', () => {
+  const base = {
+    client_nom: 'Mme Martin',
+    service_name: 'Coupe',
+    price_cents: '42',
+    debut: '2026-09-15T14:00',
+    duration_min: '60',
+    address_line1: '4 rue Racine',
+    postal_code: '64000',
+    city: 'Pau',
+  }
+  assert.ok(RdvInput.safeParse(base).success)
+
+  for (const manquant of ['address_line1', 'postal_code', 'city']) {
+    const r = RdvInput.safeParse({ ...base, [manquant]: '' })
+    assert.equal(r.success, false, `${manquant} vide devrait être refusé`)
+  }
+
+  // Le code postal doit être un vrai code postal : c'est lui qui rattache le
+  // rendez-vous à une commune quand l'adresse n'est pas reconnue.
+  assert.equal(RdvInput.safeParse({ ...base, postal_code: '640' }).success, false)
+  const r = RdvInput.safeParse({ ...base, postal_code: '640' })
+  assert.ok(!r.success)
+  assert.equal(r.error.issues[0].message, V.proCodePostalRequis)
 })

@@ -47,8 +47,8 @@ export function exigerDeveloppement(valeurs) {
   const cible = valeurs.WIGGY_ENV ?? process.env.WIGGY_ENV
   if (cible === 'developpement') return
   console.error(
-    'Refus : ce script supprime des données et ne tourne qu’en développement.\n' +
-      'Pose WIGGY_ENV=developpement dans apps/web/.env.local pour le projet de développement (D7).',
+    'Refus : ce script écrit ou supprime des données, il ne tourne qu’en développement.\n' +
+      'Pose WIGGY_ENV=developpement dans apps/web/.env.local (projet de développement, D7).',
   )
   process.exit(1)
 }

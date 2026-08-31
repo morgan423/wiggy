@@ -150,3 +150,19 @@ de téléversement.
 | `validation.$aEcrire.proRdvPrestation`         | « Indique la prestation. »                                                                               |
 | `validation.$aEcrire.proRdvDureeMin`           | « Un rendez-vous dure au moins 5 minutes. »                                                              |
 | `validation.$aEcrire.proRdvCliente`            | « Choisis une fiche existante ou saisis un prénom. »                                                     |
+
+### R2-7 bis : l'adresse obligatoire sur un rendez-vous manuel
+
+Trois messages de refus, et trois bandeaux. Les bandeaux disent au pro ce que l'app
+a su faire de son adresse : reconnue, rattachée au centre de la commune, ou pas
+située du tout. Ils comptent autant que la règle, parce qu'une contrainte qu'on
+subit sans comprendre se contourne.
+
+| Clé                                       | Texte                                                                                            |
+| ----------------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `validation.$aEcrire.proAdresseRequise`   | « Indique où se passe le rendez-vous : un rendez-vous sans lieu ne compte pas dans ta tournée. » |
+| `validation.$aEcrire.proCodePostalRequis` | « Indique le code postal : c'est lui qui situe la commune. »                                     |
+| `validation.$aEcrire.proVilleRequise`     | « Indique la ville. »                                                                            |
+| `demandes-pro.$aEcrire.adresseApprochee`  | Adresse non reconnue, trajet calculé depuis le centre de la commune                              |
+| `demandes-pro.$aEcrire.adresseInconnue`   | Ni l'adresse ni la commune reconnues, aucun trajet calculé                                       |
+| `demandes-pro.$aEcrire.adresseAComplete`  | Reprise d'un rendez-vous créé avant que l'adresse ne devienne obligatoire                        |

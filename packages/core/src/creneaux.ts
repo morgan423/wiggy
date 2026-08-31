@@ -91,6 +91,12 @@ export function creneauxDuJour(demande: DemandeCreneaux, trajet: LookupTrajet): 
       // Trajet depuis le rendez-vous précédent. Sans lieu connu, on ne peut
       // rien affirmer : on laisse passer plutôt que de masquer un créneau
       // valable à cause d'une adresse mal saisie.
+      //
+      // Le cas « aucune adresse » n'existe plus (R2-7 bis) : l'adresse est
+      // obligatoire à la création d'un rendez-vous manuel, et une adresse que
+      // le référentiel ne reconnaît pas est rattachée au centre de sa commune.
+      // Ne reste donc ici que le cas résiduel où même la commune est
+      // introuvable, où laisser passer reste le bon choix.
       let trajetAvant: Minutes | undefined
       if (precedent?.lieu) {
         trajetAvant = trajet(precedent.lieu, demande.lieuCliente)

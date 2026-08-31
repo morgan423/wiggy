@@ -103,6 +103,19 @@ Côté cliente finale, tout reste web : zéro installation pour réserver.
   « adresse non trouvée » plutôt qu'un mauvais lieu. Chemin gracieux côté cliente (suggestions,
   jamais un mur), refus journalisés en base sans données personnelles.
 - Les RDV manuels alimentent le moteur géo **exactement comme** les RDV en ligne.
+- **Un rendez-vous sans lieu n'existe pas dans Wiggy** (R2-7 bis) : le lieu est ce qui fait la
+  tournée, et la tournée est le produit. L'adresse est donc **obligatoire** à la création comme à
+  la modification d'un rendez-vous manuel. C'est la condition de vérité de la ligne au-dessus :
+  sans elle, un rendez-vous sans coordonnées traverse le calcul des créneaux sans aucune
+  contrainte, et la tournée se calcule en silence sur une journée incomplète.
+  **Obligatoire ne veut jamais dire impossible.** En rural, un hameau, un lieu-dit ou une
+  construction récente peuvent n'être reconnus par aucun référentiel. L'adresse est alors
+  conservée telle qu'elle a été écrite et rattachée au **point connu le plus proche**, le centre
+  de sa commune ; un avertissement dit que la précision du trajet s'en ressent. **Rien ne
+  bloque.** Exiger une adresse _validée_ rendrait impossible l'enregistrement d'un rendez-vous
+  que la pro sait parfaitement situer, et retournerait la règle contre la cible du produit.
+  Cette exigence n'est pas un automatisme au sens du principe n°1 : refuser d'enregistrer un
+  rendez-vous qu'on ne sait pas situer, ce n'est pas agir à la place de la pro.
 - Une adresse hors zone n'est jamais un refus : séjour sur place (A5) ou demande sous réserve de
   validation (A6).
 

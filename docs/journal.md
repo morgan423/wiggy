@@ -16,12 +16,93 @@ question qui ne vit que dans le chat disparaît avec la session. Trois lignes : 
 qu'elle bloque, la date. À la clôture, la question et sa réponse basculent dans l'entrée de
 l'étape et cette section se vide.
 
-- **R2-7 : deux rendez-vous bord à bord.** Un enchaînement à la minute près a été observé en
-  recette. Deux explications possibles, qui appellent des corrections opposées : ① deux créneaux
-  simplement proposés comme alternatives dans la liste, auquel cas il n'y a pas de défaut ; ②
-  un rendez-vous précédent sans lieu géocodé, qui désactive silencieusement la logique de
-  tournée autour de lui. Bloque toute correction du moteur de créneaux. Posée le 2026-08-31,
-  réponse attendue de Morgan avant d'ouvrir le sujet.
+_Rien en attente._
+
+---
+
+## 2026-09-01 Étape : D8 le test de bout en bout, R2-7 bis l'adresse obligatoire
+
+**Fait :**
+
+- **D8** : `npm run e2e` ouvre un vrai navigateur et joue un parcours nominal, de la page
+  publique à la confirmation. Branché dans `npm run verify` : un échec arrête la livraison.
+  Il pilote le Chrome déjà installé via `playwright-core`, sans télécharger de navigateur.
+- **D8, condition ① :** compte pro dédié et déterministe, slug `zzz-tunnel-e2e`, semé avant et
+  **effacé après, même quand le parcours échoue** (le nettoyage est dans un `finally`). Il
+  efface aussi avant de semer : une exécution interrompue laisse un compte derrière elle, et
+  repartir d'un état sale ne prouverait rien.
+- **D8, condition ② :** les repères de chaque écran sont rassemblés dans une seule constante,
+  `ETAPES`. Quand un écran change de mot, c'est là et nulle part ailleurs qu'on le suit. Un test
+  qui échoue pour rien est ignoré au bout de trois fois.
+- **D8, preuve que le filet mord** : la panne R2-2 a été réintroduite volontairement, le test
+  a échoué à l'écran exact où elle se produisait, avec l'URL et le repère manquant, et a quand
+  même nettoyé derrière lui. Puis la panne a été retirée et le test repasse.
+- **R2-7 bis** : `address_line1`, `postal_code` et `city` deviennent obligatoires à la création
+  comme à la modification d'un rendez-vous manuel, avec des refus rédigés en français.
+- **La réserve rurale**, qui conditionne tout le reste : une adresse que le référentiel ignore
+  est conservée telle quelle et rattachée au **centre de sa commune**, que D6 nous donne
+  désormais en base. Le trajet devient approché au lieu de disparaître. Trois issues nommées :
+  `exacte`, `commune`, `inconnue`, chacune avec son bandeau. **Rien ne bloque jamais.**
+- **L'adresse d'une cliente déjà connue est proposée d'emblée**, reprise de son rendez-vous le
+  plus récent, et modifiable. Le cas courant ne coûte aucune saisie.
+- **Reprise des anciens rendez-vous** créés sans adresse : un bandeau sur la fiche dit pourquoi
+  le champ est maintenant exigé, plutôt que de laisser un champ rouge sans explication.
+- **`npm run verifier:vide`** : vérification en lecture seule, avec la **clé anonyme**, de ce
+  que voit le monde. Dernière étape de `docs/production.md` avant l'ouverture, et citée dans
+  l'entretien récurrent.
+- **`CLAUDE.md`** : la règle « un rendez-vous sans lieu n'existe pas dans Wiggy » est inscrite
+  juste sous « les RDV manuels alimentent le moteur géo exactement comme les RDV en ligne »,
+  dont elle est la condition de vérité.
+
+**Schéma :** aucun.
+
+**Décisions :** application de D6, D7 et D8. Aucune nouvelle.
+
+**Écarts au brief :**
+
+- **`npm run verify` exige désormais `WIGGY_ENV=developpement` dans `apps/web/.env.local`.**
+  Sans cette ligne, le test de bout en bout refuse de tourner et `verify` échoue. C'est la garde
+  R2-4 qui fait son travail, mais elle bloque la commande la plus courante du projet : à poser
+  avant tout. Le fichier `.env.local` n'a pas été modifié, c'est celui de Morgan.
+- **Le test ne dépose pas de photo.** Il traverse l'étape par « Continuer sans photo ». Le dépôt
+  par URL signée a son propre chemin, et l'ajouter ferait de ce parcours une suite plutôt qu'un
+  parcours nominal. D8 dit que le test ne grossit pas sans décision : c'est une décision à
+  prendre, pas à glisser.
+- **Le test réutilise le serveur de développement s'il tourne**, et en démarre un sinon. Next
+  refuse un second serveur de développement : ce n'est pas un raccourci, c'est le seul chemin
+  qui fonctionne dans les deux cas.
+- **`verifier:vide` échoue normalement sur le développement**, où le compte de test est publié.
+  C'est sur la production que sa réponse compte, et le document le dit.
+- **Deux tests existants encodaient l'ancien contrat** (adresse facultative) et sont tombés à la
+  première exécution. Ils ont été mis à jour, pas contournés.
+
+**Questions ouvertes, et leurs réponses :**
+
+- **R2-7 : deux rendez-vous bord à bord.** **Répondu** : c'est le cas ②, capture à l'appui. Un
+  rendez-vous sans lieu géocodé désactivait silencieusement la logique de tournée autour de lui.
+  Traité par R2-7 bis. La proposition initiale, marquer ces rendez-vous, a été écartée par
+  Morgan : elle aurait créé un agenda à deux vitesses, à charge pour une utilisatrice non
+  technique de comprendre la différence et de la gérer en permanence.
+- **Reste ouvert** : R2-5 (photos non agrandissables, rattaché à la trousse de composants), la
+  section 3 du premier document (page publique peu vendeuse, dont R2-3 l'appel à l'action), et
+  l'activation de la Places API pour A5 ②.
+
+**À recetter par Morgan :**
+
+- **Avant tout** : poser `WIGGY_ENV=developpement` dans `apps/web/.env.local`, sinon
+  `npm run verify` échoue.
+- **D8** : `npm run e2e` doit dérouler sept écrans et finir par « Nettoyé ». Vérifier qu'aucun
+  compte `zzz-tunnel-e2e` ne subsiste dans l'agenda ni sur la page publique.
+- **R2-7 bis** : agenda, ajouter un rendez-vous sans adresse : refusé, en français. Avec une
+  adresse réelle : enregistré, sans bandeau. Avec une adresse inventée mais un code postal
+  valide : enregistré, avec le bandeau « trajet approché ». Choisir une cliente déjà venue :
+  les trois champs d'adresse doivent se remplir seuls.
+- **Ancien rendez-vous** : en ouvrir un créé avant aujourd'hui sans adresse, vérifier le bandeau
+  de reprise et qu'on ne peut pas enregistrer sans compléter.
+- **`npm run verifier:vide`** : sur le développement, il doit signaler le compte pro publié.
+
+**Statut à reporter dans la roadmap :** aucun changement d'identifiant. D8 est mise en œuvre,
+D7 complétée par la vérification en lecture seule.
 
 ---
 

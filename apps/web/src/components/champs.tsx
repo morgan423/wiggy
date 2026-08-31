@@ -10,6 +10,7 @@ export function Champ({
   required = true,
   defaultValue,
   aide,
+  inputMode,
   fautif = false,
 }: {
   id: string
@@ -19,6 +20,7 @@ export function Champ({
   required?: boolean
   defaultValue?: string
   aide?: string
+  inputMode?: 'numeric' | 'tel'
   /** Champ refusé par la validation : on y pose le curseur et on le signale. */
   fautif?: boolean
 }) {
@@ -34,6 +36,7 @@ export function Champ({
         required={required}
         autoComplete={autoComplete}
         defaultValue={defaultValue}
+        inputMode={inputMode}
         // Le curseur va sur le champ refusé : c'est une réponse à une action
         // de la personne, pas un vol de focus à l'ouverture d'un écran.
         autoFocus={fautif}
@@ -115,12 +118,14 @@ export function Choix({
   options,
   defaultValue,
   aide,
+  onChange,
 }: {
   id: string
   label: string
   options: { valeur: string; texte: string }[]
   defaultValue?: string
   aide?: string
+  onChange?: (valeur: string) => void
 }) {
   return (
     <div className="mt-5">
@@ -131,6 +136,7 @@ export function Choix({
         id={id}
         name={id}
         defaultValue={defaultValue}
+        onChange={(e) => onChange?.(e.target.value)}
         className="mt-2 w-full rounded-champ border-2 border-trait-discret px-5 py-4 text-lg"
       >
         {options.map((o) => (
