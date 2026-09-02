@@ -5,18 +5,22 @@ import { NavPrincipale } from '@/components/nav-principale'
 export const metadata: Metadata = { robots: { index: false } }
 
 /**
- * Le cadre de l'espace pro. Décision D12 : **une seule anatomie**, à toutes les
- * largeurs.
+ * Le cadre de l'espace pro. Planche 14a, « lu une fois, valable pour tous les
+ * écrans », et décision D12 : **une seule anatomie**, à toutes les largeurs.
  *
- * Bandeau prune en tête d'écran, corps sur la crème, cartes sur la surface,
- * barre prune en navigation. La barre du haut et la colonne latérale du
- * paramétrage ont disparu : elles étaient un reliquat que personne n'avait
- * dessiné, et deux passages de la recette 6 ont été marqués cassés sur un rendu
- * grand écran qui n'existait sur aucune planche.
+ * De haut en bas : bandeau prune, corps sur la crème avec ses cartes sur la
+ * surface, barre prune de navigation. Le corps est en `flex-1` pour que les
+ * états vides des planches 14d et 14f se centrent dans la hauteur restante, et
+ * la barre est en bas de cette colonne, à toutes les largeurs.
  *
- * Sur grand écran, la même anatomie respire : la barre se redresse en colonne à
- * gauche, le contenu se centre dans une colonne lisible. Le bureau reste
- * pleinement utilisable, il cesse d'être une conception séparée.
+ * Sur grand écran, c'est la COLONNE qui respire, bornée à une largeur lisible
+ * et centrée. Rien ne change de place : ni la navigation, ni le bandeau. La
+ * colonne latérale, que personne n'avait dessinée, a fait marquer deux passages
+ * cassés à la recette 6 ; elle est retirée.
+ *
+ * La gouttière de 16 px et le retrait de 14 px viennent des planches. Le
+ * bandeau les déborde par marges négatives : sur la planche, le prune touche
+ * les bords de l'écran.
  *
  * `requirePro()` est appelé ici ET dans chaque page : le layout ne suffit pas,
  * une page peut être rendue sans son layout parent.
@@ -25,10 +29,8 @@ export default async function LayoutApp({ children }: { children: React.ReactNod
   await requirePro()
 
   return (
-    <div className="min-h-screen sm:pl-52">
-      {/* La marge basse laisse la place à la barre fixe, en mobile seulement :
-          sur grand écran elle est à gauche et ne recouvre rien. */}
-      <main className="mx-auto max-w-2xl px-6 py-10 pb-28 sm:pb-10">{children}</main>
+    <div className="mx-auto flex min-h-screen w-full max-w-lg flex-col">
+      <main className="flex flex-1 flex-col px-4 pt-3.5">{children}</main>
       <NavPrincipale />
     </div>
   )

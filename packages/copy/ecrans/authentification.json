@@ -46,7 +46,9 @@
     "invitePartielle": "Il te reste {reste} à vérifier pour mettre ta page en ligne.",
     "telephoneChamp": "Ton numéro de téléphone",
     "telephoneBouton": "Recevoir le code",
-    "plusCeNumero": "Je n’ai plus ce numéro"
+    "plusCeNumero": "Je n’ai plus ce numéro",
+    "pasDeCompte": "Pas encore de compte ?",
+    "essai": "Essaie 30 jours"
   },
   "gabarits": {
     "codeEnvoye": "C’est lui qui reçoit tes demandes de rendez-vous. Code envoyé au {numero}.",

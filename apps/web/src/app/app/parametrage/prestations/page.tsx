@@ -1,7 +1,7 @@
 import { formatEuros } from '@wiggy/core'
 import { requirePro } from '@/lib/auth'
 import { supabaseServer } from '@/lib/supabase/server'
-import { EnteteEcran, CarteEcran, EtatVide } from '@/components/composition'
+import { EnteteEcran, CorpsEcran, EtatVide, RANGEE } from '@/components/composition'
 import { FormPrestation } from './form'
 import { basculerPrestation, supprimerPrestation } from './actions'
 
@@ -19,52 +19,54 @@ export default async function Prestations() {
   return (
     <>
       <EnteteEcran retour="/app/parametrage" statement="Ce que tu proposes." />
-
-      {liste.length === 0 ? (
-        <EtatVide
-          titre="Ta liste est vide."
-          invitation="Ajoute ta première prestation : deux minutes suffisent, tu pourras tout retoucher."
-        >
-          <FormPrestation premiere />
-        </EtatVide>
-      ) : (
-        <ul className="mt-4">
-          {liste.map((p) => (
-            <li key={p.id}>
-              {/* Le prix est hors du bloc de texte : il ne descend jamais à la
-                  ligne, même sur un libellé de deux lignes (planche 14d). */}
-              <CarteEcran
-                principal={p.name}
-                secondaire={meta(p)}
-                valeur={formatEuros(p.price_cents)}
-                attenue={!p.active}
-              >
-                <span className="mt-2 flex gap-4 text-sm font-semibold">
-                  <form action={basculerPrestation}>
-                    <input type="hidden" name="id" value={p.id} />
-                    <input type="hidden" name="active" value={String(p.active)} />
-                    <button type="submit" className="text-texte-secondaire hover:text-prune">
-                      {p.active ? 'Masquer' : 'Réafficher'}
-                    </button>
-                  </form>
-                  <form action={supprimerPrestation}>
-                    <input type="hidden" name="id" value={p.id} />
-                    <button type="submit" className="text-texte-secondaire hover:text-erreur">
-                      Supprimer
-                    </button>
-                  </form>
-                </span>
-              </CarteEcran>
-            </li>
-          ))}
-        </ul>
-      )}
-
-      {liste.length > 0 ? (
-        <section className="mt-4">
-          <FormPrestation />
-        </section>
-      ) : null}
+      <CorpsEcran serre>
+        {liste.length === 0 ? (
+          <EtatVide
+            titre="Ta liste est vide."
+            invitation="Ajoute ta première prestation : deux minutes suffisent, tu pourras tout retoucher."
+          >
+            <FormPrestation premiere />
+          </EtatVide>
+        ) : (
+          <>
+            <ul className="flex flex-col gap-2">
+              {liste.map((p) => (
+                <li key={p.id} className={`${RANGEE} items-start ${p.active ? '' : 'opacity-55'}`}>
+                  <span className="flex min-w-0 flex-col gap-px">
+                    <span className="text-[13.5px] leading-[1.35] font-bold">{p.name}</span>
+                    <span className="text-[11.5px] text-texte-attenue">{meta(p)}</span>
+                    {/*
+                      Écart signalé : la planche 14d fait passer l'édition par
+                      une feuille montante, qui n'est pas construite. Masquer et
+                      supprimer restent donc dans la rangée, en petit, sous le
+                      détail. Rien d'inventé ailleurs.
+                    */}
+                    <span className="mt-1.5 flex gap-3 text-[11.5px] font-bold">
+                      <form action={basculerPrestation}>
+                        <input type="hidden" name="id" value={p.id} />
+                        <input type="hidden" name="active" value={String(p.active)} />
+                        <button type="submit" className="text-texte-attenue hover:text-prune">
+                          {p.active ? 'Masquer' : 'Réafficher'}
+                        </button>
+                      </form>
+                      <form action={supprimerPrestation}>
+                        <input type="hidden" name="id" value={p.id} />
+                        <button type="submit" className="text-texte-attenue hover:text-erreur">
+                          Supprimer
+                        </button>
+                      </form>
+                    </span>
+                  </span>
+                  {/* Le prix est hors du bloc de texte : il ne descend jamais à
+                      la ligne, même sur un libellé de deux lignes. */}
+                  <span className="prix shrink-0">{formatEuros(p.price_cents)}</span>
+                </li>
+              ))}
+            </ul>
+            <FormPrestation />
+          </>
+        )}
+      </CorpsEcran>
     </>
   )
 }

@@ -16,6 +16,16 @@ question qui ne vit que dans le chat disparaît avec la session. Trois lignes : 
 qu'elle bloque, la date. À la clôture, la question et sa réponse basculent dans l'entrée de
 l'étape et cette section se vide.
 
+- **Le plancher Fraunces de 20 px contre les prix des planches 14d et 14e.** `CLAUDE.md` interdit
+  Fraunces sous 20 px ; les planches posent le prix d'une prestation à 17 px et le forfait à
+  16 px. J'ai gardé le plancher (classe `.prix`, 20 px) : c'est une règle de lisibilité ratifiée,
+  et une taille de planche est un détail de rendu. Bloque la conformité au pixel de la colonne de
+  droite des listes. À confirmer avec Design, ou à inscrire comme exception. Posée le 2026-09-03.
+- **Le texte secondaire des planches passe sous le niveau AA.** L'encre prune à 55 %, valeur de
+  Design pour tout détail de rangée, mesure 3,58:1 sur la surface et 3,46:1 sur la crème, à des
+  corps de 11 à 12 px. 53 occurrences relevées par le contrôle de contraste, non bloquantes mais
+  réelles. La planche 14a écarte pourtant l'abricot pour exactement ce motif. Bloque une réponse
+  claire sur le niveau d'accessibilité visé. Posée le 2026-09-03.
 - **La liste d'attente promet de prendre un numéro et demande une adresse e-mail.** Le texte
   ratifié par Design écrit « Laissez votre numéro, on vous prévient dès qu'une arrive », alors que
   le formulaire A9 collecte un e-mail, et que `city_waitlist` ne porte que ça. Bloque la
@@ -24,6 +34,112 @@ l'étape et cette section se vide.
   non corrigée.
 
 ---
+
+## 2026-09-03 Étape : les sept écrans du paramétrage repris contre leurs planches (14a à 14g)
+
+**Fait :**
+
+- **Nouvelle règle inscrite dans `CLAUDE.md`** : la source de vérité pour la composition est le
+  fichier `../../Design/planches/XX.html`, jamais une description en prose. La planche gagne
+  contre une consigne qui diverge, la divergence s'écrit ici, et une consigne sans numéro de
+  planche pour un écran spécifié est incomplète : on la demande. S'y ajoutent deux règles de
+  méthode : ce qu'une planche ne dit pas se tranche puis se journalise, et on rend planche et
+  écran côte à côte avant de dire qu'un écran est fait.
+- **14a, le cadre** : le corps d'écran passe à la gouttière des planches (16 px de côté, 14 px de
+  retrait), le bandeau prune la déborde et touche les bords, les cartes reviennent sur la
+  surface. Nouvelle trousse dans `composition.tsx` : `EnteteEcran`, `CorpsEcran`, `RangeeEcran`,
+  `EtiquetteSection`, `PastilleEtat`, `ActionPrincipale`, `BoutonPointille`, `EtatVide`,
+  `RangeeSquelette`, `PanneauAuth`.
+- **La colonne latérale de grand écran est supprimée.** La navigation est en bas à toutes les
+  largeurs, comme la planche. Ce qui respire en grand est la colonne de contenu, bornée et
+  centrée. Plus aucune classe `sm:` de mise en page ne subsiste dans l'espace pro.
+- **14b, authentification** : plein prune sur toute la hauteur, statement Fraunces 30 px à l'axe
+  WONK, champs blancs sans bordure au repos, bascules collées au pied. Les statements ratifiés du
+  copy deck remplacent les anciens : « Te revoilà. » et « Bienvenue chez Wiggy. » L'erreur sur
+  prune passe en abricot, cas unique déclaré par la planche et tenu dans `globals.css`.
+- **14c, le hub** : deux compositions distinctes, celles de la planche. Jour un, aucune étiquette
+  de section et trois rangées qui invitent avec leur pastille framboise ; rempli, une étiquette
+  par section et un résumé **à droite, sur la même ligne**. « En ligne » devient une pastille
+  miel. Le troisième état de la planche, le chargement, existe : `parametrage/loading.tsx` porte
+  le squelette transverse de 14a.
+- **14d, prestations** : rangées compactes, prix en Fraunces hors du bloc de texte, prestation
+  masquée à 55 %, ajout en pointillés, état vide centré avec son action principale.
+- **14e, zone** : les communes redeviennent des puces prune pleines, et la puce en pointillés
+  « + Commune » vit dans le même flux qu'elles. Le forfait de base devient une rangée avec son
+  montant à droite, l'édition s'ouvre au clic.
+- **14f, journées et congés** : les sept pastilles de 38 px ouvrent la semaine. Congés vides :
+  invitation centrée et action principale ; remplis : rangées d'une ligne et ajout en pointillés.
+- **14g, Ma Page** : l'écran s'ouvre sur l'identité (avatar, nom, adresse publique, « Copier le
+  lien »). La mise en ligne se calcule sur les trois étapes réellement posées et reste en
+  framboise à 35 % tant qu'elles manquent, avec la phrase qui dit ce qui manque.
+- **Les champs suivent enfin la planche** : surface, rayon 12, 12 px sur 13 px de gouttière,
+  **aucune bordure visible au repos**. La bordure ne sert plus qu'à dire l'erreur ou l'ouverture.
+  Ce trait est partagé : il change aussi les écrans du tunnel cliente.
+- **Un prix rond s'écrit rond** : `formatEuros` n'affiche plus « 45,00 € » mais « 45 € ». Toutes
+  les planches écrivent les prix ainsi, et c'est ce qu'écrit une pro sur sa carte.
+- **Vérifié en regardant** : 22 vues capturées à 390 px, comparées une à une aux planches, et deux
+  écarts corrigés à cette lecture seulement (la puce d'ajout de commune qui prenait toute la
+  largeur au lieu de suivre les communes, et deux actions principales framboise côte à côte sur
+  Ma Page). Le contrôle de contraste a bloqué une fois, à raison : le bouton en cours d'envoi
+  passait à 35 % d'opacité et devenait illisible. « En cours » n'est pas « indisponible ».
+
+**Schéma :** aucun. La migration 0009 reste EN ATTENTE d'application par Morgan.
+
+**Décisions :** D12 (une seule anatomie) appliquée jusqu'au bout, avec le retrait de la colonne
+latérale. Aucune décision nouvelle : le détail des arbitrages de composition est ci-dessous.
+
+**Écarts au brief :**
+
+- **La consigne décrivait le hub 14c comme des rangées jointives en un seul bloc arrondi séparé
+  par des filets.** La planche montre des rangées **séparées**, rayon 16, écart 10 px, chacune sur
+  la surface. La nouvelle règle donne la planche gagnante : c'est elle qui est construite.
+- **Le prix en Fraunces est à 20 px, pas aux 17 px de la planche** (plancher de `CLAUDE.md`).
+  Question portée en attente d'arbitrage.
+- **14d fait passer l'édition d'une prestation par une feuille montante.** Elle n'existe pas.
+  « Masquer » et « Supprimer » restent donc dans la rangée, en 11,5 px sous le détail : la rangée
+  est plus haute que sur la planche.
+- **14e met un interrupteur sur « Au-delà de ta zone ».** Il n'y a rien à commuter : le hors zone
+  sous réserve est le comportement du produit (A6), pas une option. La rangée est gardée sans sa
+  commande plutôt que de simuler un réglage.
+- **14f fait toucher les pastilles pour régler un jour seul.** Ce geste demande une édition par
+  jour qui n'existe pas ; les pastilles sont la lecture de la semaine, et le réglage reste sous
+  elles. La carte abricot de conflit de congés n'est pas construite non plus : la détection de
+  conflit n'existe pas, et une carte qui ne se déclenche jamais est un décor.
+- **14g montre un bouton « Partager » et un choix d'avatar ou de photo.** Le partage natif et le
+  système d'avatars dessinés ne sont pas construits ; ils ne sont pas simulés. La limite de 300
+  caractères sur la bio, avec son compteur dès 250, n'est pas posée non plus.
+- **Le panneau d'authentification pousse son PIED en bas, pas son formulaire.** La planche pose
+  `margin-top: auto` sur un panneau de 380 px, ce qui y crée un intervalle. Porté à la hauteur
+  d'un téléphone, le même auto ouvrait un vide de prune de 600 px entre le statement et le premier
+  champ. Écart assumé, visible sur les captures.
+- **La navigation garde trois entrées et non quatre** : « Clientes » mène à la fiche cliente,
+  spécifiée en 16c, livraison 3. Écart déjà ratifié à la recette 6.
+- **Deux textes non ratifiés ajoutés** au pied de la connexion, « Pas encore de compte ? » et
+  « Essaie 30 jours » : la planche ne montre pas de chemin vers l'inscription depuis la connexion.
+  Déclarés dans `MANQUES.md`.
+
+**Questions ouvertes :** les deux nouvelles lignes de la section « En attente d'arbitrage », plus
+celle de la liste d'attente qui reste ouverte.
+
+**À recetter par Morgan :**
+
+1. Ouvre `/connexion` et `/inscription` : plein prune, statement en Fraunces, champs blancs sans
+   bordure, bascules collées en bas. Trompe-toi de mot de passe : le message est en abricot, pas
+   en brique, et ta saisie n'est pas effacée.
+2. Crée un compte neuf et va sur `/app/parametrage` : pas d'étiquettes de section, trois rangées
+   avec leur pastille framboise « + », « Ma Page » en gris à 55 %.
+3. Pose une prestation, une commune, une journée. Le hub bascule : étiquettes de section, résumé
+   à droite sur la même ligne, congés apparus.
+4. Vérifie la zone : la puce « + Commune » suit tes communes, elle ne fait pas une ligne à elle.
+5. Passe sur ordinateur, fenêtre large : la navigation reste EN BAS. Aucune colonne à gauche. La
+   colonne de contenu se centre et s'élargit un peu, rien ne se déplace.
+6. Regarde un prix : « 45 € », plus « 45,00 € ». Un prix à centimes s'écrit toujours « 42,50 € ».
+7. Mets ta page en ligne quand les trois étapes sont posées, puis regarde le hub : la pastille
+   miel « En ligne » remplace le chevron.
+
+**Statut à reporter dans la roadmap :** aucun. Cette étape ne livre pas de fonctionnalité, elle
+remet sept écrans en conformité avec leurs planches. Les lignes B11, A6, A8 et D9 restent à leur
+statut actuel.
 
 ## 2026-09-02 Étape : les six variantes de la promesse de rappel
 

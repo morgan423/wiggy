@@ -96,6 +96,21 @@ Côté cliente finale, tout reste web : zéro installation pour réserver.
 - Zone tactile 44 px minimum. Zéro animation ambiante. `prefers-reduced-motion` respecté sans
   exception. Deux célébrations seulement (confirmation cliente, journée bouclée), aux timings des
   tokens.
+- **La source de vérité pour la composition est le fichier `../../Design/planches/XX.html`, jamais
+  une description en prose reçue dans une consigne.** Une planche porte des proportions, une
+  densité, un rythme et des alignements ; une phrase n'en porte aucun, et ce qui se perd dans la
+  traduction ne se retrouve pas au jugé. Avant de construire un écran spécifié, on ouvre sa
+  planche et on lit ses valeurs. **Si une consigne et une planche divergent, la planche gagne**,
+  et la divergence s'écrit dans `docs/journal.md` plutôt que de se résoudre en silence.
+  **Une consigne qui ne donne pas de numéro de planche pour un écran spécifié est incomplète :
+  on la demande, on ne devine pas.** Les planches sont hors du dépôt, en lecture seule, au même
+  titre que `../../Docs/`.
+- **Ce qu'une planche ne dit pas se tranche, puis se journalise.** Un trou de spécification se
+  comble avec Design, il ne s'invente pas en silence. La décision prise faute de mieux part dans
+  « Écarts au brief » ou dans « En attente d'arbitrage », avec ce qu'elle engage.
+- **On se relit avant de livrer un écran** : rendre la planche et l'écran, les comparer côte à
+  côte, corriger les écarts, et ne livrer que ce qui se ressemble. « J'ai suivi la description »
+  n'est pas une vérification.
 - **Le board fait foi pour la composition.** On ne recopie pas son HTML, on en respecte la
   structure, les proportions et le ratio. Il n'est pas une inspiration dont on retiendrait
   l'esprit : quand une planche montre un bloc pleine couleur qui contient sa carte, on construit

@@ -1,11 +1,23 @@
 import { requirePro } from '@/lib/auth'
 import { supabaseServer } from '@/lib/supabase/server'
-import { EnteteEcran } from '@/components/composition'
+import { EnteteEcran, CorpsEcran, EtatVide, RANGEE } from '@/components/composition'
 import { FormConge } from './form'
 import { supprimerConge } from './actions'
 
-const jour = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+const jour = new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long' })
 
+/**
+ * Les congés, planche 14f, statement révisé : « Bientôt en vacances ? »
+ *
+ * Vide, l'écran ne constate rien : il invite, au centre, avec l'action
+ * principale sous la phrase. Rempli, chaque congé est une rangée d'une seule
+ * ligne, et l'ajout redevient un bouton en pointillés.
+ *
+ * ⚠️ Écart signalé : la planche montre en plus une carte abricot de conflit
+ * (« 2 rendez-vous tombent dans ces dates »), avec ses deux choix. La détection
+ * de conflit n'existe pas encore, et aucun SMS ne part sans validation : cette
+ * carte se construira avec la fonctionnalité, pas avant elle.
+ */
 export default async function Conges() {
   await requirePro()
   const supabase = await supabaseServer()
@@ -14,59 +26,45 @@ export default async function Conges() {
     .select('id, starts_at, ends_at, label')
     .order('starts_at')
 
-  // Jours réellement bloqués, bornes comprises : c'est ce que la cliente ne
-  // pourra pas réserver, pas un nombre d'entrées dans une liste.
-  const joursPoses = (conges ?? []).reduce((total, c) => {
-    const jours = Math.round(
-      (new Date(c.ends_at).getTime() - new Date(c.starts_at).getTime()) / 86_400_000,
-    )
-    return total + Math.max(1, jours)
-  }, 0)
+  const liste = conges ?? []
 
   return (
     <>
-      <EnteteEcran
-        retour="/app/parametrage"
-        statement="Bientôt en vacances ?"
-        sousTitre={
-          joursPoses > 0
-            ? `${String(joursPoses)} jour${joursPoses > 1 ? 's' : ''} posés. Aucune cliente ne peut réserver dessus.`
-            : 'Pose-les tôt : tes clientes réservent autour, personne n’annule.'
-        }
-      />
-      {conges && conges.length > 0 ? (
-        <ul className="mt-8 space-y-3">
-          {conges.map((c) => (
-            <li
-              key={c.id}
-              className="flex items-center gap-5 rounded-carte border-2 border-trait-discret p-5"
-            >
-              <div>
-                <p className="text-lg font-bold">
-                  Du {jour.format(new Date(c.starts_at))} au {jour.format(new Date(c.ends_at))}
-                </p>
-                {c.label ? <p className="text-texte-secondaire">{c.label}</p> : null}
-              </div>
-              <form action={supprimerConge} className="ml-auto">
-                <input type="hidden" name="id" value={c.id} />
-                <button
-                  type="submit"
-                  className="text-sm font-semibold text-texte-secondaire hover:text-erreur"
-                >
-                  Supprimer
-                </button>
-              </form>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="mt-8 rounded-carte bg-fond p-6 text-texte-secondaire">Aucun congé posé.</p>
-      )}
-
-      <section className="mt-12 border-t border-trait-discret pt-8">
-        <h2 className="text-xl font-bold tracking-tight">Poser un congé</h2>
-        <FormConge />
-      </section>
+      <EnteteEcran retour="/app/parametrage" statement="Bientôt en vacances ?" />
+      <CorpsEcran>
+        {liste.length === 0 ? (
+          <EtatVide invitation="Aucun congé posé. Pose-les tôt : tes clientes réservent autour, personne n’annule.">
+            <FormConge premier />
+          </EtatVide>
+        ) : (
+          <>
+            <ul className="flex flex-col gap-2">
+              {liste.map((c) => (
+                <li key={c.id} className={`${RANGEE} ${c.label ? 'items-start' : ''}`}>
+                  <span className="flex min-w-0 flex-col gap-px">
+                    <span className="text-[13px] font-bold">
+                      Du {jour.format(new Date(c.starts_at))} au {jour.format(new Date(c.ends_at))}
+                    </span>
+                    {c.label ? (
+                      <span className="text-[11.5px] text-texte-attenue">{c.label}</span>
+                    ) : null}
+                  </span>
+                  <form action={supprimerConge} className="shrink-0">
+                    <input type="hidden" name="id" value={c.id} />
+                    <button
+                      type="submit"
+                      className="text-[12px] font-bold text-action hover:text-action-survol"
+                    >
+                      Supprimer
+                    </button>
+                  </form>
+                </li>
+              ))}
+            </ul>
+            <FormConge />
+          </>
+        )}
+      </CorpsEcran>
     </>
   )
 }

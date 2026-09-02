@@ -4,6 +4,7 @@ import { useActionState, useEffect, useState } from 'react'
 import type { Commune } from '@wiggy/core'
 import { SaisieAssistee } from '@/components/trousse'
 import { Succes } from '@/components/champs'
+import { BoutonPointille } from '@/components/composition'
 import { VIDE, type EtatForm } from '@/lib/forms'
 import { chercherCommunesAssistee, ajouterCommune } from './actions'
 
@@ -19,8 +20,21 @@ import { chercherCommunesAssistee, ajouterCommune } from './actions'
  * dans le composant, pas ici : ils serviront tels quels à la source distante
  * des adresses, aux lots suivants.
  */
-export function RechercheCommune({ dejaChoisies }: { dejaChoisies: string[] }) {
+export function RechercheCommune({
+  dejaChoisies,
+  replie = false,
+}: {
+  dejaChoisies: string[]
+  /**
+   * Planche 14e : une fois la zone posée, l'ajout redevient une puce en
+   * pointillés « + Commune », et le champ ne s'ouvre qu'au clic. Un champ
+   * ouvert en permanence à côté d'une puce d'ajout ferait deux affordances
+   * concurrentes, défaut déjà relevé à la recette 6.
+   */
+  replie?: boolean
+}) {
   const [commune, setCommune] = useState<Commune | null>(null)
+  const [ouvert, setOuvert] = useState(false)
   const [etat, action] = useActionState<EtatForm, FormData>(ajouterCommune, VIDE)
 
   // Une commune ajoutée quitte le champ : elle est désormais dans la liste
@@ -29,8 +43,21 @@ export function RechercheCommune({ dejaChoisies }: { dejaChoisies: string[] }) {
     if (etat.statut === 'ok') setCommune(null)
   }, [etat.statut, etat.n])
 
+  if (replie && !ouvert) {
+    return (
+      <BoutonPointille
+        compact
+        onClick={() => {
+          setOuvert(true)
+        }}
+      >
+        + Commune
+      </BoutonPointille>
+    )
+  }
+
   return (
-    <form action={action}>
+    <form action={action} className="w-full">
       <SaisieAssistee<Commune>
         key={etat.n}
         id="commune"
@@ -44,7 +71,7 @@ export function RechercheCommune({ dejaChoisies }: { dejaChoisies: string[] }) {
             <span className="font-semibold">{c.name}</span>
             {c.postal_code ? <span className="text-texte-secondaire">{c.postal_code}</span> : null}
             {dejaChoisies.includes(c.insee_code) ? (
-              <span className="ml-auto text-sm font-semibold text-texte-secondaire">
+              <span className="ml-auto text-[11.5px] font-bold text-texte-attenue">
                 Déjà dans ta zone
               </span>
             ) : null}
@@ -73,7 +100,7 @@ export function RechercheCommune({ dejaChoisies }: { dejaChoisies: string[] }) {
           <button
             type="submit"
             disabled={dejaChoisies.includes(commune.insee_code)}
-            className="tactile mt-6 w-full rounded-pilule bg-action px-8 text-lg font-bold text-texte-sur-plein hover:bg-action-survol active:bg-action-pressee disabled:opacity-60"
+            className="tactile mt-3 w-full rounded-pilule bg-action py-[13px] text-center text-[14px] font-bold text-texte-sur-plein hover:bg-action-survol active:bg-action-pressee disabled:bg-action/35"
           >
             {dejaChoisies.includes(commune.insee_code)
               ? 'Déjà dans ta zone'

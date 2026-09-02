@@ -1,6 +1,7 @@
 'use client'
 
 import { useActionState, useState } from 'react'
+import Link from 'next/link'
 import { enregistrerProfil, basculerPublication } from './actions'
 import { Champ, Zone, Erreur, Succes, BoutonPrincipal } from '@/components/champs'
 import { ListeDeroulante } from '@/components/trousse'
@@ -50,7 +51,7 @@ export function FormProfil({ profil }: { profil: Profil }) {
         defaultValue={valeur('bio')}
         aide="Quelques lignes, à la première personne. C’est ce que lira ta clientèle."
       />
-      <div className="grid gap-0 sm:grid-cols-2 sm:gap-5">
+      <div className="grid grid-cols-2 gap-3">
         <Champ id="city" label="Ta ville" required={false} defaultValue={valeur('city')} />
         <Champ
           id="years_experience"
@@ -95,23 +96,99 @@ export function FormProfil({ profil }: { profil: Profil }) {
   )
 }
 
-export function BoutonPublication({ publiee }: { publiee: boolean }) {
-  const [etat, action, enCours] = useActionState<EtatForm, FormData>(basculerPublication, VIDE)
+/**
+ * L'adresse publique, et de quoi la copier. Planche 14g : « wiggy.fr/sophie ·
+ * Copier le lien », sur une seule ligne, sous le nom.
+ */
+export function LienPage({ adresse }: { adresse: string }) {
+  const [copie, setCopie] = useState(false)
 
   return (
-    <form action={action}>
-      <input type="hidden" name="publier" value={String(!publiee)} />
+    <span className="flex flex-wrap items-baseline gap-x-1.5 text-[12px] text-texte-attenue">
+      <span className="break-all">{adresse}</span>
+      <span aria-hidden>·</span>
+      <button
+        type="button"
+        onClick={() => {
+          void navigator.clipboard.writeText(`https://${adresse}`).then(() => {
+            setCopie(true)
+          })
+        }}
+        className="font-extrabold text-action hover:text-action-survol"
+      >
+        {copie ? 'Lien copié' : 'Copier le lien'}
+      </button>
+    </span>
+  )
+}
+
+/**
+ * La mise en ligne, planche 14g.
+ *
+ * Désactivée, elle reste framboise à 35 % : elle ne devient pas grise, elle dit
+ * seulement qu'il manque quelque chose, et la phrase sous elle nomme quoi.
+ * Une fois la page en ligne, l'action principale devient « Voir ma page » et le
+ * retrait passe en second plan : retirer sa page n'est pas ce qu'on vient faire
+ * ici tous les jours.
+ */
+export function BoutonPublication({
+  publiee,
+  pret,
+  slug,
+}: {
+  publiee: boolean
+  pret: boolean
+  slug: string
+}) {
+  const [etat, action, enCours] = useActionState<EtatForm, FormData>(basculerPublication, VIDE)
+
+  if (publiee) {
+    return (
+      <form action={action} className="mt-auto flex flex-col gap-2 pt-4 pb-3.5">
+        <input type="hidden" name="publier" value="false" />
+        {/*
+          Planche 14a : une seule action principale par écran. Ici, c'est
+          « Enregistrer » du formulaire au-dessus. Voir et retirer sa page sont
+          donc en second plan, côte à côte comme le duo de la planche 14g.
+        */}
+        <span className="flex gap-1.5">
+          <Link
+            href={`/${slug}`}
+            className="tactile flex-1 rounded-pilule border-[1.5px] border-texte-principal/25 py-[13px] text-center text-[13px] font-bold hover:border-prune"
+          >
+            Voir ma page
+          </Link>
+          <button
+            type="submit"
+            disabled={enCours}
+            className="tactile flex-1 rounded-pilule border-[1.5px] border-texte-principal/25 py-[13px] text-center text-[13px] font-bold hover:border-erreur disabled:opacity-60"
+          >
+            {enCours ? 'Un instant…' : 'Retirer ma page'}
+          </button>
+        </span>
+        <Erreur message={etat.statut === 'erreur' ? etat.message : undefined} />
+        <Succes message={etat.statut === 'ok' ? etat.message : undefined} />
+      </form>
+    )
+  }
+
+  return (
+    <form action={action} className="mt-auto flex flex-col gap-2 pt-4 pb-3.5">
+      <input type="hidden" name="publier" value="true" />
       <button
         type="submit"
-        disabled={enCours}
-        className={`rounded-pilule px-8 py-4 text-lg font-bold disabled:opacity-60 ${
-          publiee
-            ? 'border-2 border-trait-discret hover:border-prune'
-            : 'bg-action text-texte-sur-plein hover:bg-action-survol'
+        disabled={enCours || !pret}
+        className={`tactile w-full rounded-pilule py-[13px] text-center text-[14px] font-bold text-texte-sur-plein ${
+          pret ? 'bg-action hover:bg-action-survol' : 'bg-action/35'
         }`}
       >
-        {enCours ? 'Un instant…' : publiee ? 'Retirer ma page' : 'Publier ma page'}
+        {enCours ? 'Un instant…' : 'Mettre ma page en ligne'}
       </button>
+      {pret ? null : (
+        <p className="text-center text-[11.5px] text-texte-attenue">
+          S’active quand prestations, zone et journées sont posées.
+        </p>
+      )}
       <Erreur message={etat.statut === 'erreur' ? etat.message : undefined} />
       <Succes message={etat.statut === 'ok' ? etat.message : undefined} />
     </form>

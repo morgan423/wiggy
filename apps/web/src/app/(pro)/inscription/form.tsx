@@ -9,7 +9,7 @@ export function FormInscription() {
 
   if (etat.statut === 'verifie_tes_mails') {
     return (
-      <p className="rounded-carte bg-celebration/25 p-6 text-lg font-semibold">
+      <p className="rounded-carte bg-celebration px-3.5 py-3 text-[13px] font-bold text-texte-sur-miel">
         Compte créé. Ouvre ta boîte mail pour confirmer ton adresse, puis reviens te connecter.
       </p>
     )

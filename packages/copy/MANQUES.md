@@ -208,6 +208,8 @@ sans les nommer.
 | `authentification.$aEcrire.telephoneChamp`     | « Ton numéro de téléphone »                                              |
 | `authentification.$aEcrire.telephoneBouton`    | « Recevoir le code »                                                     |
 | `authentification.$aEcrire.plusCeNumero`       | « Je n’ai plus ce numéro »                                               |
+| `authentification.$aEcrire.pasDeCompte`        | « Pas encore de compte ? »                                               |
+| `authentification.$aEcrire.essai`              | « Essaie 30 jours »                                                      |
 | `reservation-cliente.$aEcrire.forfaitTitre`    | « Au-delà de ta zone »                                                   |
 | `validation.$aEcrire.proMotDePasseCourt`       | « 8 caractères minimum. »                                                |
 | `validation.$aEcrire.proCodeFaux`              | « Ce code ne correspond pas. Vérifie les cinq chiffres. »                |

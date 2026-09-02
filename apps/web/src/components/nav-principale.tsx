@@ -4,17 +4,23 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
 /**
- * La navigation du produit, décision D12 : une seule anatomie, qui s'élargit.
+ * La navigation du produit : barre prune, EN BAS, à toutes les largeurs.
  *
- * Barre prune en bas sur mobile, comme la planche 14a. Sur grand écran, la
- * MÊME barre se redresse en colonne à gauche : c'est la même anatomie qui
- * respire, pas une seconde conception. Deux mises en page coûtent deux
- * recettes et divergent toujours, et c'est celle qu'on regarde le moins qui
- * pourrit.
+ * Planche 14a : `space-around`, `padding: 11px 8px`, libellés de 10 px en
+ * extra-gras, doux sur le prune, miel pour l'entrée active. Décision D12 : une
+ * seule anatomie à toutes les largeurs, « plus aucune planche bureau ».
+ *
+ * La colonne latérale de grand écran a été retirée le 03/09 : elle n'existait
+ * sur aucune planche. Ce qui respire en grand, c'est la colonne de contenu, pas
+ * la navigation qui se déplace. Une navigation qui change de place change aussi
+ * de geste, et c'est deux mises en page à recetter au lieu d'une.
+ *
+ * La barre prune du bas et le bandeau prune du haut forment ensemble le ratio
+ * de la planche 8a : la crème est la respiration entre deux masses pleines.
  *
  * ⚠️ La planche montre quatre entrées, dont « Clientes ». La fiche cliente est
- * spécifiée en 16c, livraison 3 : une entrée qui ne mène nulle part serait
- * pire que son absence. Écart ratifié par Morgan à la recette 6.
+ * spécifiée en 16c, livraison 3 : une entrée qui ne mène nulle part serait pire
+ * que son absence. Écart ratifié par Morgan à la recette 6.
  */
 
 const ENTREES = [
@@ -32,9 +38,8 @@ export function NavPrincipale() {
       // `data-nav-fixe` : `npm run vues` la repose en flux le temps de la
       // capture, sinon elle s'imprime au milieu de l'image de page entière.
       data-nav-fixe
-      className="sur-plein fixed inset-x-0 bottom-0 z-30 flex bg-prune text-texte-sur-plein sm:inset-y-0 sm:right-auto sm:w-52 sm:flex-col sm:justify-start sm:gap-1 sm:px-3 sm:py-8"
+      className="sur-plein sticky bottom-0 z-30 flex justify-around bg-prune px-2 py-[11px] text-texte-sur-plein"
     >
-      <span className="hidden px-3 pb-6 text-lg font-extrabold tracking-tight sm:block">Wiggy</span>
       {ENTREES.map((entree) => {
         const actif = chemin === entree.href || chemin.startsWith(`${entree.href}/`)
         return (
@@ -42,10 +47,8 @@ export function NavPrincipale() {
             key={entree.href}
             href={entree.href}
             aria-current={actif ? 'page' : undefined}
-            className={`tactile flex-1 flex-col py-3 text-sm font-bold sm:w-full sm:flex-none sm:justify-start sm:rounded-champ sm:px-3 sm:text-base ${
-              actif
-                ? 'text-celebration sm:bg-prune-survol'
-                : 'text-texte-sur-plein-doux hover:text-texte-sur-plein'
+            className={`tactile flex-1 text-[10px] font-extrabold ${
+              actif ? 'text-celebration' : 'text-texte-sur-plein-doux hover:text-texte-sur-plein'
             }`}
           >
             {entree.texte}

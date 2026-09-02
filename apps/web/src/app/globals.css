@@ -73,6 +73,50 @@ body {
   font-weight: var(--font-weight-titre);
 }
 
+/* Le statement d'un écran d'authentification (planche 14b) : Fraunces 30 px,
+   interligne serré, axe WONK. Il ouvre l'écran sur un plein prune, il n'est
+   pas un titre de page. */
+.statement-auth {
+  font-family: var(--font-display);
+  font-size: 30px;
+  line-height: 1.05;
+  font-weight: 700;
+  font-variation-settings: var(--wonk);
+}
+
+/* Sur un bloc pleine couleur, les champs gardent leur surface, mais tout ce
+   qui les entoure prend les teintes du plein (planche 14b). */
+.sur-plein label {
+  color: var(--color-texte-sur-plein);
+}
+.sur-plein .aide-champ {
+  color: var(--color-texte-sur-plein-doux);
+}
+
+/* Le message d'erreur sur prune passe en abricot : la brique ne contraste pas
+   sur ce fond. Cas unique, déclaré par la planche 14b. Le bandeau brique
+   transverse de 14a reste la règle partout ailleurs. */
+.sur-plein .bandeau-erreur {
+  background: transparent;
+  color: var(--color-attente);
+  padding: 0;
+  font-weight: 700;
+}
+
+/* Le prix, en Fraunces, à droite d'une rangée (planches 14d et 14e).
+   Un accent, pas un chiffre héros : ni WONK, ni la taille du display.
+
+   ⚠️ Écart assumé : les planches posent ce prix à 17 px (14d) et 16 px (14e),
+   sous le plancher de 20 px inscrit dans CLAUDE.md pour Fraunces. Le plancher
+   est une règle de lisibilité ratifiée, la taille de la planche est un détail
+   de rendu : on garde le plancher et on signale l'écart à Design. */
+.prix {
+  font-family: var(--font-display);
+  font-size: 20px;
+  line-height: 1.1;
+  font-weight: 700;
+}
+
 /* Le chiffre héros : la seule place de l'axe WONK dans l'application.
    Le board (8a) réserve WONK aux statements ET aux chiffres héros ; la planche
    11d le montre à l'œuvre dans l'app, en miel sur un bloc prune. Jamais en

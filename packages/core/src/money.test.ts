@@ -29,6 +29,10 @@ test('formatEuros produit un affichage français', () => {
   // L'espace avant € est insécable : on compare sans en dépendre.
   assert.match(formatEuros(4250).replace(/\s/g, ' '), /^42,50 €$/)
   assert.match(formatEuros(2990).replace(/\s/g, ' '), /^29,90 €$/)
+  // Un compte rond n'affiche pas de centimes : c'est ce qu'écrivent les
+  // planches, et ce qu'écrit une pro sur sa carte.
+  assert.match(formatEuros(4500).replace(/\s/g, ' '), /^45 €$/)
+  assert.match(formatEuros(0).replace(/\s/g, ' '), /^0 €$/)
 })
 
 test('l’acompte s’arrondit vers le haut et ne dépasse jamais le prix', () => {

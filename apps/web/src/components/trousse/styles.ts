@@ -7,9 +7,17 @@
  * dupliquées finissent toujours par diverger, et la divergence se voit.
  */
 
-/** Le rectangle de saisie : champ, bouton de liste, bouton de date. */
+/**
+ * Le rectangle de saisie : champ, bouton de liste, bouton de date.
+ *
+ * Valeurs des planches 14b et 14d : surface, rayon de champ, 12 px sur 13 px de
+ * gouttière, corps de 13,5 px en demi-gras. **Aucune bordure visible au
+ * repos** : c'est la surface qui détache le champ de la crème, la bordure ne
+ * sert qu'à dire l'erreur ou l'ouverture. Elle reste déclarée transparente
+ * pour que son apparition ne décale rien.
+ */
 export const SURFACE_CHAMP =
-  'mt-2 w-full rounded-champ border-2 bg-surface px-5 py-4 text-left text-lg transition-colors'
+  'mt-1.5 w-full rounded-champ border-2 bg-surface px-3.5 py-3 text-left text-[13.5px] font-semibold transition-colors placeholder:font-normal placeholder:text-texte-attenue'
 
 /**
  * L'état désactivé.
@@ -21,12 +29,12 @@ export const SURFACE_CHAMP =
 export const DESACTIVE =
   'disabled:cursor-not-allowed disabled:border-trait-discret disabled:bg-fond disabled:text-texte-attenue disabled:opacity-100 disabled:hover:border-trait-discret'
 
-const BORDURE_NORMALE = 'border-trait-discret'
+const BORDURE_NORMALE = 'border-transparent'
 const BORDURE_FAUTIVE = 'border-erreur'
 const BORDURE_ACTIVE = 'border-prune'
 
-export const LIBELLE = 'block text-sm font-semibold'
-export const AIDE = 'mt-2 text-sm text-texte-secondaire'
+export const LIBELLE = 'block text-[12px] font-bold'
+export const AIDE = 'aide-champ mt-1 text-[11px] text-texte-attenue'
 
 /**
  * Le panneau qui s'ouvre sous un champ : liste, calendrier, suggestions.
@@ -35,11 +43,11 @@ export const AIDE = 'mt-2 text-sm text-texte-secondaire'
  * à la page. Sans lui, faire défiler les heures emportait l'écran entier.
  */
 export const PANNEAU =
-  'absolute z-20 mt-2 w-full overflow-hidden overscroll-contain rounded-carte border-2 border-trait-discret bg-surface shadow-lg'
+  'absolute z-20 mt-1.5 w-full overflow-hidden overscroll-contain rounded-carte border-2 border-trait-discret bg-surface shadow-lg'
 
 /** Une ligne cliquable dans un panneau. 44 px de haut, comme tout le reste. */
 export const LIGNE_PANNEAU =
-  'flex min-h-11 w-full cursor-pointer items-center px-5 py-3 text-left transition-colors'
+  'flex min-h-11 w-full cursor-pointer items-center px-3.5 py-2.5 text-left text-[13.5px] transition-colors'
 export const LIGNE_SURVOLEE = 'bg-fond'
 export const LIGNE_RETENUE = 'font-bold'
 

@@ -4,7 +4,7 @@ import { useActionState, useState } from 'react'
 import { creerPrestation } from './actions'
 import { Champ, Erreur, Succes, BoutonPrincipal } from '@/components/champs'
 import { CaseACocher } from '@/components/trousse'
-import { BoutonPointille } from '@/components/composition'
+import { ActionPrincipale, BoutonPointille } from '@/components/composition'
 import { VIDE, type EtatForm } from '@/lib/forms'
 
 /**
@@ -26,15 +26,13 @@ export function FormPrestation({ premiere = false }: { premiere?: boolean }) {
 
   if (!ouvert) {
     return premiere ? (
-      <button
-        type="button"
+      <ActionPrincipale
         onClick={() => {
           setOuvert(true)
         }}
-        className="tactile mt-2 w-full justify-center rounded-pilule bg-action px-8 text-lg font-bold text-texte-sur-plein hover:bg-action-survol active:bg-action-pressee"
       >
         Ajouter une prestation
-      </button>
+      </ActionPrincipale>
     ) : (
       <BoutonPointille
         onClick={() => {
@@ -49,15 +47,19 @@ export function FormPrestation({ premiere = false }: { premiere?: boolean }) {
   return (
     // `key` remet le formulaire à blanc après un ajout réussi : on enchaîne
     // les prestations sans avoir à tout effacer à la main.
-    <form action={action} key={etat.n}>
-      <h2 className="text-xl font-bold tracking-tight">Nouvelle prestation</h2>
+    // La feuille de la planche 14d : poignée centrée, titre en Fraunces, champs
+    // sur la surface. Elle s'ouvre en place plutôt qu'en surimpression, faute
+    // d'une feuille montante spécifiée ailleurs qu'en 14d.
+    <form action={action} key={etat.n} className="rounded-carte bg-fond">
+      <span aria-hidden className="mx-auto block h-1 w-10 rounded-pilule bg-trait-discret" />
+      <h2 className="titre mt-2.5 font-bold tracking-tight">Nouvelle prestation</h2>
       <Champ
         id="name"
         label="Nom de la prestation"
         defaultValue={repris('name')}
         aide="Par exemple : Coupe + brushing"
       />
-      <div className="grid gap-0 sm:grid-cols-2 sm:gap-5">
+      <div className="grid grid-cols-2 gap-3">
         <Champ
           id="price_cents"
           label="Prix"
@@ -94,7 +96,7 @@ export function FormPrestation({ premiere = false }: { premiere?: boolean }) {
         onClick={() => {
           setOuvert(false)
         }}
-        className="tactile mt-3 w-full justify-center font-semibold text-texte-secondaire hover:text-prune"
+        className="tactile mt-1 w-full text-[12.5px] font-bold text-texte-attenue hover:text-prune"
       >
         Annuler
       </button>

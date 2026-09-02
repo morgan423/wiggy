@@ -1,20 +1,34 @@
+import Link from 'next/link'
 import { formatEuros, ZONE } from '@wiggy/core'
 import { copy, remplir } from '@wiggy/copy'
 import { requirePro } from '@/lib/auth'
 import { supabaseServer } from '@/lib/supabase/server'
-import { EnteteEcran, CarteEcran, EtiquetteSection } from '@/components/composition'
+import {
+  EnteteEcran,
+  CorpsEcran,
+  RangeeEcran,
+  EtiquetteSection,
+  PastilleEtat,
+  RANGEE,
+} from '@/components/composition'
 import { seDeconnecter } from '@/app/(pro)/actions'
 
 /**
- * Le hub « Ton activité », planche 10c du board.
+ * Le hub « Ton activité », planche 14c.
  *
- * Le board montre une carte unique qui regroupe prestations, zone, horaires et
- * congés, chacune en section, avec l'état courant lisible d'un coup d'œil. Les
- * écrans d'édition subsistent derrière chaque section : ils ne sont pas
- * supprimés, ils cessent d'être le point d'entrée.
+ * Deux compositions, et la planche les distingue nettement.
  *
- * Tous les chiffres viennent de la base. Aucun n'est inventé, et un réglage
- * vide affiche l'état vide de la planche 7b plutôt qu'un zéro sans contexte.
+ * ① JOUR UN : aucune étiquette de section, trois rangées qui invitent, chacune
+ * avec sa pastille framboise « + » à droite, et « Ma Page » atténuée à 55 %
+ * parce qu'elle s'ouvre après les trois autres. L'état vide invite, il
+ * n'affiche aucun zéro. Les congés sont absents du jour un.
+ *
+ * ② REMPLI : une étiquette par section, et une rangée d'une seule ligne dont le
+ * RÉSUMÉ EST À DROITE, sur la même ligne. C'est ce qui fait la densité de la
+ * planche. Chaque rangée résume et ouvre sa section : le hub ne permet aucune
+ * édition directe.
+ *
+ * Tous les chiffres viennent de la base. Aucun n'est inventé.
  */
 
 const A = copy.authentification
@@ -84,111 +98,166 @@ export default async function Parametrage() {
             : `${String(3 - etapesFaites)} étapes et ta page prend ses premières réservations.`
         }
       />
+      <CorpsEcran>
+        {/*
+          D9 : tant qu'une vérification manque, l'invite reste en tête du hub.
+          La planche 14b la prescrit (« rangée d'invite dans le hub 14c ») sans
+          la dessiner : rangée ordinaire, en tête, jamais un bandeau d'alerte.
+        */}
+        {aVerifier.length > 0 ? (
+          <RangeeEcran
+            principal={
+              aVerifier.length === 2
+                ? A.$aEcrire.inviteVerification
+                : remplir(A.$aEcrire.invitePartielle, { reste: aVerifier[0] })
+            }
+            chevron
+            href={verifs?.phone_verified_at ? '/verification/email' : '/verification/telephone'}
+          />
+        ) : null}
 
-      {aVerifier.length > 0 ? (
-        <CarteEcran
-          principal={
-            aVerifier.length === 2
-              ? A.$aEcrire.inviteVerification
-              : remplir(A.$aEcrire.invitePartielle, { reste: aVerifier[0] })
-          }
-          chevron
-          href={verifs?.phone_verified_at ? '/verification/email' : '/verification/telephone'}
-        />
-      ) : null}
+        {pret ? (
+          <>
+            <EtiquetteSection>Prestations</EtiquetteSection>
+            <RangeeEcran
+              principal={`${String(listePrestations.length)} prestation${listePrestations.length > 1 ? 's' : ''}`}
+              resume={fourchette(listePrestations)}
+              chevron
+              href="/app/parametrage/prestations"
+            />
 
-      {/*
-        Une rangée par section : elle RÉSUME et ouvre, le hub ne permet aucune
-        édition directe (planche 14c). L'état vide invite et n'affiche aucun
-        zéro : « Ajoute ta première prestation », jamais « 0 prestation ».
-      */}
-      <EtiquetteSection>Prestations</EtiquetteSection>
-      <CarteEcran
-        principal={
-          listePrestations.length > 0
-            ? `${String(listePrestations.length)} prestation${listePrestations.length > 1 ? 's' : ''}`
-            : 'Ce que tu proposes'
-        }
-        secondaire={
-          listePrestations.length > 0
-            ? fourchette(listePrestations)
-            : 'Ajoute ta première prestation'
-        }
-        chevron
-        href="/app/parametrage/prestations"
-      />
+            <EtiquetteSection>Zone d’intervention</EtiquetteSection>
+            <RangeeEcran
+              principal={nomsDeCommunes(listeCommunes)}
+              resume={forfait ? `hors zone : base ${formatEuros(forfait.fee_cents)}` : undefined}
+              chevron
+              href="/app/parametrage/zone"
+            />
 
-      <EtiquetteSection>Zone d’intervention</EtiquetteSection>
-      <CarteEcran
-        principal={listeCommunes.length > 0 ? nomsDeCommunes(listeCommunes) : 'Où tu te déplaces'}
-        secondaire={
-          listeCommunes.length > 0
-            ? forfait
-              ? `hors zone : base ${formatEuros(forfait.fee_cents)}`
-              : 'hors zone : demande sous réserve'
-            : '2-3 communes, ta tournée reste logique'
-        }
-        chevron
-        href="/app/parametrage/zone"
-      />
+            <EtiquetteSection>Journées &amp; congés</EtiquetteSection>
+            <RangeeEcran
+              principal={`${joursTravailles(listeHoraires)} · ${plageCommune(listeHoraires)}`}
+              chevron
+              href="/app/parametrage/horaires"
+            />
+            <RangeeEcran
+              principal={
+                listeConges.length > 0
+                  ? `Congés : ${jourCourt.format(new Date(listeConges[0].starts_at))} au ${jourCourt.format(new Date(listeConges[0].ends_at))}`
+                  : 'Aucun congé posé'
+              }
+              resume={
+                listeConges.length > 1 ? `+ ${String(listeConges.length - 1)} autres` : undefined
+              }
+              chevron
+              href="/app/parametrage/conges"
+            />
 
-      <EtiquetteSection>Journées & congés</EtiquetteSection>
-      <CarteEcran
-        principal={
-          listeHoraires.length > 0 ? joursTravailles(listeHoraires) : 'Tes journées de travail'
-        }
-        secondaire={
-          listeHoraires.length > 0 ? plageCommune(listeHoraires) : 'Choisis tes jours et tes heures'
-        }
-        chevron
-        href="/app/parametrage/horaires"
-      />
-      {/* Les congés n'apparaissent qu'une fois les horaires posés : au jour un,
-          ils n'ont aucun sens (planche 14c). */}
-      {listeHoraires.length > 0 ? (
-        <CarteEcran
-          principal={
-            listeConges.length > 0
-              ? `Congés : ${jourCourt.format(new Date(listeConges[0].starts_at))} au ${jourCourt.format(new Date(listeConges[0].ends_at))}`
-              : 'Aucun congé posé'
-          }
-          secondaire={
-            listeConges.length > 1 ? `+ ${String(listeConges.length - 1)} autre(s)` : undefined
-          }
-          chevron
-          href="/app/parametrage/conges"
-        />
-      ) : null}
+            <EtiquetteSection>Ma Page</EtiquetteSection>
+            <RangeeEcran
+              principal={pro.published ? `wiggy.fr/${pro.slug}` : 'Ma Page'}
+              href="/app/parametrage/profil"
+              chevron={!pro.published}
+              resume={pro.published ? undefined : 'prête à être mise en ligne'}
+            >
+              {pro.published ? <PastilleEtat>En ligne</PastilleEtat> : null}
+            </RangeeEcran>
+          </>
+        ) : (
+          <>
+            <RangeeInvite
+              titre="Ce que tu proposes"
+              invitation="Ajoute ta première prestation"
+              href="/app/parametrage/prestations"
+              fait={listePrestations.length > 0}
+              resume={
+                listePrestations.length > 0
+                  ? `${String(listePrestations.length)} prestation${listePrestations.length > 1 ? 's' : ''}`
+                  : undefined
+              }
+            />
+            <RangeeInvite
+              titre="Où tu te déplaces"
+              invitation="2-3 communes, ta tournée reste logique"
+              href="/app/parametrage/zone"
+              fait={listeCommunes.length > 0}
+              resume={listeCommunes.length > 0 ? nomsDeCommunes(listeCommunes) : undefined}
+            />
+            <RangeeInvite
+              titre="Tes journées de travail"
+              invitation="Choisis tes jours et tes heures"
+              href="/app/parametrage/horaires"
+              fait={listeHoraires.length > 0}
+              resume={listeHoraires.length > 0 ? joursTravailles(listeHoraires) : undefined}
+            />
+            {/* Ma Page reste atténuée tant que les trois étapes ne sont pas
+                posées : la planche la montre à 55 %, sans chevron. */}
+            <div className={`${RANGEE} items-start opacity-55`}>
+              <span className="flex flex-col gap-0.5">
+                <span className="text-[14px] font-bold">Ma Page</span>
+                <span className="text-[12px] text-texte-attenue">
+                  S’ouvre après tes 3 premières étapes
+                </span>
+              </span>
+            </div>
+          </>
+        )}
 
-      <EtiquetteSection>Ma Page</EtiquetteSection>
-      <CarteEcran
-        principal={pro.published ? `wiggy.fr/${pro.slug}` : 'Ma Page'}
-        secondaire={
-          pro.published
-            ? 'En ligne'
-            : pret
-              ? 'Prête à être mise en ligne'
-              : 'S’ouvre après tes 3 premières étapes'
-        }
-        chevron={pret || pro.published}
-        href={pret || pro.published ? '/app/parametrage/profil' : undefined}
-      />
-
-      {/*
-        La déconnexion vivait dans la barre du haut, supprimée par D12. Sa place
-        est ici : le hub est l'écran du compte, et la planche 14c n'en montre
-        aucune autre. Discrète, en fin de page, jamais à côté d'une action de
-        réglage.
-      */}
-      <form action={seDeconnecter} className="mt-10 border-t border-trait-discret pt-6">
-        <button
-          type="submit"
-          className="tactile font-semibold text-texte-secondaire hover:text-erreur"
-        >
-          Se déconnecter
-        </button>
-      </form>
+        {/*
+          La déconnexion vivait dans la barre du haut, supprimée par D12. Sa
+          place est ici : le hub est l'écran du compte, et la planche 14c n'en
+          montre aucune autre. Discrète, en fin de colonne.
+        */}
+        <form action={seDeconnecter} className="mt-auto pt-8 pb-3.5">
+          <button
+            type="submit"
+            className="tactile text-[12px] font-bold text-texte-attenue hover:text-erreur"
+          >
+            Se déconnecter
+          </button>
+        </form>
+      </CorpsEcran>
     </>
+  )
+}
+
+/**
+ * La rangée du jour un : le libellé, ce qu'elle attend, et la pastille
+ * framboise « + » de 26 px à droite (planche 14c). Une fois l'étape faite, la
+ * pastille cède la place au résumé : c'est la même rangée qui se remplit.
+ */
+function RangeeInvite({
+  titre,
+  invitation,
+  href,
+  fait,
+  resume,
+}: {
+  titre: string
+  invitation: string
+  href: string
+  fait: boolean
+  resume?: string
+}) {
+  return (
+    <Link href={href} className={`${RANGEE} items-start hover:bg-fond`}>
+      <span className="flex min-w-0 flex-col gap-0.5">
+        <span className="text-[14px] font-bold">{titre}</span>
+        <span className="text-[12px] text-texte-attenue">{fait ? resume : invitation}</span>
+      </span>
+      {fait ? (
+        <span aria-hidden className="shrink-0 text-[12px] text-texte-attenue">
+          ›
+        </span>
+      ) : (
+        <span
+          aria-hidden
+          className="flex size-[26px] shrink-0 items-center justify-center rounded-pilule bg-action font-extrabold text-texte-sur-plein"
+        >
+          +
+        </span>
+      )}
+    </Link>
   )
 }
 

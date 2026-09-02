@@ -29,7 +29,7 @@ export function Champ({
   desactive?: boolean
 }) {
   return (
-    <div className="mt-5">
+    <div className="mt-3">
       <label htmlFor={id} className={LIBELLE}>
         {label}
       </label>
@@ -65,7 +65,7 @@ export function Erreur({ message }: { message?: string }) {
   return (
     <p
       role="alert"
-      className="mt-5 rounded-carte border-2 border-erreur bg-surface px-5 py-4 font-semibold text-erreur"
+      className="bandeau-erreur mt-3 rounded-champ bg-erreur px-3.5 py-2.5 text-[12px] font-semibold text-texte-sur-plein"
     >
       {message}
     </p>
@@ -83,7 +83,7 @@ export function BoutonPrincipal({
     <button
       type="submit"
       disabled={enCours}
-      className="mt-8 w-full rounded-pilule bg-action px-8 py-4 text-lg font-bold text-texte-sur-plein hover:bg-action-survol active:bg-action-pressee disabled:opacity-60"
+      className="tactile mt-4 w-full rounded-pilule bg-action py-[13px] text-center text-[14px] font-bold text-texte-sur-plein hover:bg-action-survol active:bg-action-pressee disabled:bg-action-pressee"
     >
       {enCours ? 'Un instant…' : children}
     </button>
@@ -104,8 +104,8 @@ export function Zone({
   aide?: string
 }) {
   return (
-    <div className="mt-5">
-      <label htmlFor={id} className="block text-sm font-semibold">
+    <div className="mt-3">
+      <label htmlFor={id} className={LIBELLE}>
         {label}
       </label>
       <textarea
@@ -113,9 +113,9 @@ export function Zone({
         name={id}
         rows={rows}
         defaultValue={defaultValue}
-        className="mt-2 w-full rounded-champ border-2 border-trait-discret px-5 py-4 text-lg"
+        className={`${SURFACE_CHAMP} border-transparent`}
       />
-      {aide ? <p className="mt-2 text-sm text-texte-secondaire">{aide}</p> : null}
+      {aide ? <p className={AIDE}>{aide}</p> : null}
     </div>
   )
 }
@@ -136,8 +136,8 @@ export function Choix({
   onChange?: (valeur: string) => void
 }) {
   return (
-    <div className="mt-5">
-      <label htmlFor={id} className="block text-sm font-semibold">
+    <div className="mt-3">
+      <label htmlFor={id} className={LIBELLE}>
         {label}
       </label>
       <select
@@ -145,7 +145,7 @@ export function Choix({
         name={id}
         defaultValue={defaultValue}
         onChange={(e) => onChange?.(e.target.value)}
-        className="mt-2 w-full rounded-champ border-2 border-trait-discret px-5 py-4 text-lg"
+        className={`${SURFACE_CHAMP} border-transparent`}
       >
         {options.map((o) => (
           <option key={o.valeur} value={o.valeur}>
@@ -153,7 +153,7 @@ export function Choix({
           </option>
         ))}
       </select>
-      {aide ? <p className="mt-2 text-sm text-texte-secondaire">{aide}</p> : null}
+      {aide ? <p className={AIDE}>{aide}</p> : null}
     </div>
   )
 }
@@ -170,7 +170,7 @@ export function Succes({ message }: { message?: string }) {
   return (
     <p
       role="status"
-      className="mt-5 rounded-carte bg-celebration px-5 py-4 text-lg font-bold text-texte-sur-miel"
+      className="mt-3 rounded-champ bg-celebration px-3.5 py-2.5 text-[13px] font-bold text-texte-sur-miel"
     >
       {message}
     </p>

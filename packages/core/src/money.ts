@@ -29,9 +29,14 @@ export function parseEuros(saisie: string): number | null {
 
 /** Formate pour l'affichage : 4250 → « 42,50 € ». */
 export function formatEuros(cents: number): string {
+  // Un compte rond s'écrit rond : « 45 € », pas « 45,00 € ». Toutes les
+  // planches de Design écrivent les prix ainsi, et c'est aussi ce qu'écrit une
+  // coiffeuse sur sa carte. Les centimes ne s'affichent que s'il y en a.
+  const rond = cents % CENTS_PAR_EURO === 0
   return new Intl.NumberFormat('fr-FR', {
     style: 'currency',
     currency: 'EUR',
+    minimumFractionDigits: rond ? 0 : 2,
   }).format(cents / CENTS_PAR_EURO)
 }
 

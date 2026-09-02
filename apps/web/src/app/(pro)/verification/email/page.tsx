@@ -4,7 +4,7 @@ import type { Metadata } from 'next'
 import { copy } from '@wiggy/copy'
 import { requirePro } from '@/lib/auth'
 import { supabaseServer } from '@/lib/supabase/server'
-import { PanneauPlein } from '@/components/composition'
+import { PanneauAuth } from '@/components/composition'
 import { renvoyerEmail } from '../actions'
 
 export const metadata: Metadata = { robots: { index: false } }
@@ -25,32 +25,30 @@ export default async function VerifierEmail() {
   if (data.user?.email_confirmed_at) redirect('/app/parametrage')
 
   return (
-    <main className="mx-auto max-w-md px-6 py-10">
-      <PanneauPlein
-        statement={A.email.titre}
-        legende={`On vient d’écrire à ${data.user?.email ?? ''} : ouvre le lien pour vérifier ton adresse.`}
-      >
-        <p className="mt-2 rounded-carte bg-celebration px-5 py-4 font-bold text-texte-sur-miel">
-          {A.email.telephoneFait}
-        </p>
+    <PanneauAuth
+      statement={A.email.titre}
+      sousTitre={`On vient d’écrire à ${data.user?.email ?? ''} : ouvre le lien pour vérifier ton adresse.`}
+    >
+      {/* Planche 14b : l'encart de progression est un bloc à 12 % sur le prune,
+          pas un plein miel. Il rassure, il ne célèbre pas. */}
+      <p className="mt-auto rounded-champ bg-texte-sur-plein/12 px-3.5 py-3 text-[12px] leading-[1.5]">
+        {A.email.telephoneFait}
+      </p>
 
-        <div className="mt-6 flex flex-col gap-3">
-          <Link
-            href="/app/parametrage"
-            className="tactile w-full justify-center rounded-pilule bg-action px-8 text-lg font-bold text-texte-sur-plein hover:bg-action-survol"
-          >
-            J’ai cliqué, continuer
-          </Link>
-          <form action={renvoyerEmail}>
-            <button
-              type="submit"
-              className="tactile w-full justify-center rounded-pilule border-2 border-texte-sur-plein px-8 font-bold"
-            >
-              {A.email.renvoyer}
-            </button>
-          </form>
-        </div>
-      </PanneauPlein>
-    </main>
+      <Link
+        href="/app/parametrage"
+        className="tactile w-full rounded-pilule bg-action py-[13px] text-center text-[14px] font-bold text-texte-sur-plein hover:bg-action-survol"
+      >
+        J’ai cliqué, continuer
+      </Link>
+      <form action={renvoyerEmail}>
+        <button
+          type="submit"
+          className="tactile w-full text-[12px] font-extrabold text-texte-sur-plein-doux underline hover:text-texte-sur-plein"
+        >
+          {A.email.renvoyer}
+        </button>
+      </form>
+    </PanneauAuth>
   )
 }
