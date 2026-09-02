@@ -30,7 +30,22 @@ export type Capability =
   | 'clients' //                B1-B3 fiches, annotations techniques, notes RDV
   | 'manual_blocking' //        B4 + B5
   | 'completion_learning' //    B6 bouton Terminé + apprentissage des durées
-  | 'sms_reminders' //          B7 (le quota dépend du palier, cf. SMS_QUOTA)
+  /**
+   * B7, réécrite le 02/09 : les SMS de service sont **inclus** aux paliers 2 et
+   * 3, sans compteur qui facture. Le palier 1 n'en a pas du tout, ses rappels
+   * passent par e-mail et notification, gratuits.
+   *
+   * Ce n'est donc pas un quota nul : c'est une capacité absente. La différence
+   * n'est pas théorique. Avec un quota à zéro, du code finit par essayer
+   * d'envoyer, ou par afficher un « 0 sur 0 » ; surtout, une page de pro en
+   * palier 1 pourrait promettre à une cliente un rappel qui n'arrivera jamais.
+   *
+   * La clause d'usage raisonnable, la bascule automatique sur e-mail et le pack
+   * à prix coûtant arrivent avec B7 elle-même, avec le code qui les utilise.
+   * Voir B7 et D10 de la roadmap, et l'hypothèse H-A, caduque, dans
+   * `docs/decisions.md`.
+   */
+  | 'sms_reminders' //          B7 (paliers 2 et 3 seulement)
   | 'smart_followup' //         B8 relance intelligente
   | 'online_payment' //         B9 (dans tous les paliers : les frais sont
   //                                portés par la transaction du pro)
@@ -55,7 +70,7 @@ const MINIMUM_TIER: Record<Capability, Tier> = {
   clients: 'tier_1',
   manual_blocking: 'tier_1',
   completion_learning: 'tier_2',
-  sms_reminders: 'tier_1',
+  sms_reminders: 'tier_2',
   smart_followup: 'tier_3',
   online_payment: 'tier_1',
   agenda: 'tier_1',
@@ -65,22 +80,19 @@ const MINIMUM_TIER: Record<Capability, Tier> = {
   support_assistant: 'tier_1',
 }
 
-/**
- * Forfait SMS inclus par période (B7).
+/*
+ * Le forfait SMS par palier et son dépassement facturé ONT ÉTÉ RETIRÉS.
  *
- * ⚠️ Valeurs à confirmer — §2 dit « quota modeste / confortable / large » sans
- * chiffrer. Repère §3.1 : [H1] 60 RDV/mois × [H2] 2,3 SMS = ~138 SMS pour une
- * activité pleine ; [H3] +20 pour les relances du palier 3.
- * Question ouverte posée à Morgan : ne pas traiter ces nombres comme actés.
+ * `SMS_QUOTA`, `TRIAL_SMS_QUOTA` et `smsQuotaFor()` chiffraient le modèle du
+ * compteur facturant, mort avec la réécriture de B7 le 02/09. Aucun appel ne
+ * subsistait hors des tests : les garder aurait laissé ce fichier, désigné
+ * comme le seul point de vérité du gating, faire autorité sur un modèle qui
+ * n'existe plus.
+ *
+ * Le plafond d'usage raisonnable, la cascade d'alerte et le pack complémentaire
+ * naîtront avec B7, en même temps que le code qui les utilise : les déclarer
+ * ici d'avance donnerait des constantes que personne n'appelle.
  */
-export const SMS_QUOTA: Record<Tier, number> = {
-  tier_1: 60,
-  tier_2: 150,
-  tier_3: 250,
-}
-
-/** Quota SMS de la période d'essai (§4 : « 30-50 »). */
-export const TRIAL_SMS_QUOTA = 50
 
 const RANK: Record<Tier, number> = { tier_1: 1, tier_2: 2, tier_3: 3 }
 
@@ -100,10 +112,6 @@ export type SubscriptionState = {
 export function can(subscription: SubscriptionState, capability: Capability): boolean {
   const effectiveTier: Tier = subscription.status === 'canceled' ? 'tier_1' : subscription.tier
   return RANK[effectiveTier] >= RANK[MINIMUM_TIER[capability]]
-}
-
-export function smsQuotaFor(subscription: SubscriptionState): number {
-  return subscription.status === 'trialing' ? TRIAL_SMS_QUOTA : SMS_QUOTA[subscription.tier]
 }
 
 /** Palier à vendre pour débloquer une capacité (écrans d'upsell). */

@@ -16,7 +16,18 @@ question qui ne vit que dans le chat disparaît avec la session. Trois lignes : 
 qu'elle bloque, la date. À la clôture, la question et sa réponse basculent dans l'entrée de
 l'étape et cette section se vide.
 
-_Rien en attente._
+- **L'essai est-il tout compris lui aussi ?** `TRIAL_SMS_QUOTA` valait 50 et l'essai se fait sur
+  le palier 2, désormais tout compris (B7 réécrite le 02/09). Bloque la définition de ce que
+  l'essai inclut en SMS, donc le contenu même de la promesse d'essai. Sans limite, c'est un
+  vecteur d'abus ; bridé, il ne montre pas le produit qu'on achète. Posée le 2026-09-02.
+- **La promesse de rappel par SMS est encore inconditionnelle côté cliente.** Le copy deck écrit
+  « {pro} sera chez vous {quand}, rappel par SMS la veille » sans regarder le palier
+  (`reservation-cliente.gabarits.confirmationDetail`), et la même promesse figure dans
+  `coordonneesAide` et `demandeChezLaPro`. Depuis que le palier 1 n'a plus de SMS, la page d'une
+  pro en palier 1 promet un rappel qui ne partira jamais. B7 demande une promesse dynamique selon
+  le palier ET selon l'état de bascule : la variante de texte revient à Design, elle ne
+  s'improvise pas dans le code. Bloque la vérité de la page de réservation pour le palier 1.
+  Trouvée le 2026-09-02, non corrigée.
 
 ---
 

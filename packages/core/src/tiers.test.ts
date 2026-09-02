@@ -3,7 +3,7 @@
 // contre un gating qui dérive silencieusement du document produit.
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { can, requiredTierFor, smsQuotaFor, TIERS, type Capability, type Tier } from './tiers.ts'
+import { can, requiredTierFor, TIERS, type Capability, type Tier } from './tiers.ts'
 
 const active = (tier: Tier) => ({ tier, status: 'active' as const })
 
@@ -19,7 +19,8 @@ const GRID: [Capability, Tier[]][] = [
   ['clients', ['tier_1', 'tier_2', 'tier_3']],
   ['manual_blocking', ['tier_1', 'tier_2', 'tier_3']],
   ['completion_learning', ['tier_2', 'tier_3']],
-  ['sms_reminders', ['tier_1', 'tier_2', 'tier_3']],
+  // B7 réécrite le 02/09 : le palier 1 n'a pas de SMS du tout.
+  ['sms_reminders', ['tier_2', 'tier_3']],
   ['smart_followup', ['tier_3']],
   ['online_payment', ['tier_1', 'tier_2', 'tier_3']],
   ['agenda', ['tier_1', 'tier_2', 'tier_3']],
@@ -64,7 +65,24 @@ test('le dunning ne coupe pas l’accès, la résiliation retombe au socle', () 
   assert.ok(can({ tier: 'tier_2', status: 'canceled' }, 'clients'))
 })
 
-test("l'essai donne le quota d'essai, pas celui du palier", () => {
-  assert.equal(smsQuotaFor({ tier: 'tier_2', status: 'trialing' }), 50)
-  assert.equal(smsQuotaFor({ tier: 'tier_2', status: 'active' }), 150)
+/*
+ * Le test du quota d'essai a disparu avec le modèle qu'il vérifiait. Ce que
+ * l'essai inclut en SMS est une question ouverte, inscrite dans la section
+ * d'arbitrage de `docs/journal.md` : elle ne se tranche pas dans un test.
+ */
+
+/**
+ * B7, réécrite le 02/09 : le palier 1 n'a pas de SMS du tout, ses rappels
+ * passent par e-mail et notification.
+ *
+ * Ce test protège une cliente, pas une ligne de facturation. Tant que le
+ * palier 1 portait la capacité, sa page de réservation pouvait lui promettre
+ * un rappel par SMS qui ne serait jamais parti.
+ */
+test('le palier 1 n’a pas de SMS, et ce n’est pas un quota à zéro', () => {
+  assert.equal(can({ tier: 'tier_1', status: 'active' }, 'sms_reminders'), false)
+  assert.equal(can({ tier: 'tier_2', status: 'active' }, 'sms_reminders'), true)
+  assert.equal(requiredTierFor('sms_reminders'), 'tier_2')
+  // Une résiliation retombe au socle : la capacité tombe avec elle.
+  assert.equal(can({ tier: 'tier_3', status: 'canceled' }, 'sms_reminders'), false)
 })
