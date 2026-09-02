@@ -12,7 +12,7 @@
     "lint": "eslint .",
     "web": "npm run dev --workspace @wiggy/web",
     "pro": "npm run start --workspace @wiggy/pro",
-    "verify": "npm run tokens:build && npm run db:types && npm run db:check && npm run db:test && npm run db:matrice && npm run design:check && npm run copy:manques && npm run check && npm test && npm run e2e",
+    "verify": "npm run tokens:build && npm run db:types && npm run db:check && npm run db:test && npm run db:matrice && npm run design:check && npm run copy:manques && npm run check && npm test && npm run e2e && npm run vues",
     "db:test": "node --test scripts/db-test.mjs",
     "db:bundle": "node scripts/db-bundle.mjs",
     "db:matrice": "node scripts/db-matrice.mjs",
@@ -31,7 +31,8 @@
     "photos:purge": "node scripts/photos-purge.mjs",
     "purge:compte": "node scripts/purge-compte.mjs",
     "e2e": "node scripts/e2e-tunnel.mjs",
-    "verifier:vide": "node scripts/verifier-vide.mjs"
+    "verifier:vide": "node scripts/verifier-vide.mjs",
+    "vues": "node scripts/vues.mjs"
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.3.13",

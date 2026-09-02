@@ -20,6 +20,66 @@ _Rien en attente._
 
 ---
 
+## 2026-09-02 Étape : `npm run vues`, captures d'écran et contrôle de contraste
+
+Lot 2 gelé jusqu'à la spécification de Claude Design. Seule chose construite pendant ce gel.
+
+**Fait :**
+
+- **`npm run vues`** ouvre chaque écran dans chaque état et dépose une capture dans `captures/`.
+  **22 vues** : les cinq écrans de paramétrage en état fourni ET en état vide, l'agenda, la
+  tournée, l'accueil pro, la galerie, le site, et les quatre étapes du tunnel cliente. Rendu en
+  430 px de large, le mobile étant l'écran de vérité du produit.
+- **Le contrôle de contraste** mesure, dans la page, la couleur réellement appliquée sur le fond
+  réellement vu, en remontant les ancêtres jusqu'au premier fond opaque, transparences
+  composées. C'est ce qu'aucune autre étape de `verify` ne sait faire : le typage voit des
+  classes, le lint voit du code, les tests voient des fonctions.
+- **Branché dans `npm run verify`** : un texte illisible arrête la livraison.
+- **Preuve que le filet mord** : la couleur de texte du bloc prune a été volontairement laissée
+  hériter dans la carte crème. Le contrôle a signalé **1,12:1, blanc cassé sur crème**, et même
+  **1:1, blanc sur blanc**, avec l'écran, la balise, le texte, les deux couleurs et la taille.
+  Sortie en échec. Le défaut décrit dans la consigne est exactement celui qu'il attrape.
+- **Le harnais de serveur est sorti** dans `scripts/serveur-dev.mjs`, partagé avec le test de
+  bout en bout : deux implémentations de la même chose auraient fini par diverger.
+- Deux comptes de test semés puis **effacés en fin de parcours, même en cas d'échec**. La
+  connexion passe par le vrai formulaire, pas par un raccourci : c'est le chemin d'une pro.
+
+**Schéma :** aucun.
+
+**Décisions :** aucune nouvelle.
+
+**Écarts au brief :**
+
+- **Deux seuils, pas un.** Bloquant à 3,0 pour le texte courant et 2,0 pour le grand texte,
+  c'est-à-dire l'illisible. Avertissement, non bloquant, au niveau AA (4,5 et 3,0). Faire échouer
+  au niveau AA aurait bloqué sur des jetons ratifiés, `texte-attenue` sur crème mesure 3,46:1, et
+  un garde-fou qui échoue pour rien est ignoré au bout de trois fois. **Relever la barre au
+  niveau AA est une décision de design, pas une décision de qui code.** Quinze textes sont
+  actuellement signalés en avertissement, tous des placeholders en `texte-attenue`.
+- **La correction de la couleur héritée du bloc prune n'a pas été touchée**, conformément au gel.
+  Elle est déjà neutralisée par `text-texte-principal` sur la carte crème ; c'est en la retirant
+  volontairement que le contrôle a été éprouvé.
+
+**Questions ouvertes :**
+
+- **Défaut trouvé par la première capture, non corrigé** : en 430 px, l'en-tête de l'espace pro
+  se chevauche. « Ma tournée » passe sur le mot-symbole et la barre de navigation du paramétrage
+  déborde. Aucun de ces écrans n'a jamais été regardé en mobile, alors que c'est l'écran de
+  vérité. Hors lot, signalé plutôt que réparé.
+- **Le seuil bloquant** est à trancher par Claude Design en même temps que la spécification.
+
+**À recetter par Morgan :**
+
+- `npm run vues`, puis ouvrir `captures/`. Vingt-deux images à comparer aux planches du board,
+  `captures/index.md` donne l'adresse de chacune.
+- Vérifier que les deux comptes `zzz-vues-rempli` et `zzz-vues-vide` ne subsistent nulle part
+  après coup, ni dans l'agenda ni sur une page publique.
+- `npm run vues -- --ouvrir` ouvre le dossier à la fin.
+
+**Statut à reporter dans la roadmap :** aucun changement d'identifiant.
+
+---
+
 ## 2026-09-02 Étape : lot 1 bis, la composition du board appliquée
 
 **Fait :**

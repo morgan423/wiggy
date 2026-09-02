@@ -30,14 +30,9 @@
 //
 // Il écrit en base : il porte les gardes de la règle R2-4, et refuse de
 // tourner ailleurs qu'en développement (D7).
-import { spawn } from 'node:child_process'
-import { setTimeout as attendre } from 'node:timers/promises'
-import { join, dirname } from 'node:path'
-import { fileURLToPath } from 'node:url'
 import { chromium } from 'playwright-core'
 import { lanceDirectement, env, exigerDeveloppement } from './garde.mjs'
-
-const racine = join(dirname(fileURLToPath(import.meta.url)), '..')
+import { preparerServeur } from './serveur-dev.mjs'
 
 /** Compte de test : slug fixe, reconnaissable, et hors de portée d'un vrai pro. */
 const SLUG = 'zzz-tunnel-e2e'
@@ -62,54 +57,6 @@ const ETAPES = {
   photos: 'Des photos, si vous voulez',
   coordonnees: 'Vos coordonnées',
   confirmation: 'Votre rendez-vous est confirmé',
-}
-
-// ───────────────────────────────────────────────────────────────────────────
-// Serveur
-// ───────────────────────────────────────────────────────────────────────────
-
-const repond = async (base) => {
-  try {
-    const r = await fetch(base, { signal: AbortSignal.timeout(2000) })
-    return r.ok
-  } catch {
-    return false
-  }
-}
-
-/**
- * Réutilise le serveur de développement s'il tourne, en démarre un sinon.
- *
- * Next refuse un second serveur de développement : réutiliser celui qui tourne
- * n'est pas un raccourci, c'est le seul chemin qui marche dans les deux cas.
- */
-async function preparerServeur() {
-  const impose = process.env.E2E_BASE_URL
-  const rienAArreter = () => undefined
-  if (impose) return { base: impose, arreter: rienAArreter }
-  if (await repond('http://localhost:3000')) {
-    console.log('Serveur de développement déjà en marche, réutilisé.')
-    return { base: 'http://localhost:3000', arreter: rienAArreter }
-  }
-
-  console.log('Démarrage d’un serveur de développement…')
-  const serveur = spawn('npx', ['next', 'dev', '--port', '3010'], {
-    cwd: join(racine, 'apps/web'),
-    stdio: 'ignore',
-  })
-  for (let i = 0; i < 60; i++) {
-    await attendre(1000)
-    if (await repond('http://localhost:3010')) {
-      return {
-        base: 'http://localhost:3010',
-        arreter: () => {
-          serveur.kill()
-        },
-      }
-    }
-  }
-  serveur.kill()
-  throw new Error('Le serveur de développement n’a pas démarré en 60 secondes.')
 }
 
 // ───────────────────────────────────────────────────────────────────────────

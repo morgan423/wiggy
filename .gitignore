@@ -47,3 +47,6 @@ CLES-A-REMPLIR.txt
 
 # Fichier généré pour application manuelle des migrations.
 MIGRATIONS-A-COLLER*.sql
+
+# Captures produites par `npm run vues` : régénérables, jamais versionnées.
+captures/
