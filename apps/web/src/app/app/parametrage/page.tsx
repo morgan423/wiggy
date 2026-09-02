@@ -3,15 +3,11 @@ import { copy, remplir } from '@wiggy/copy'
 import { requirePro } from '@/lib/auth'
 import { supabaseServer } from '@/lib/supabase/server'
 import {
-  PanneauPlein,
-  CarteCreme,
+  EnteteEcran,
+  CarteEcran,
   EtiquetteSection,
-  LigneEtat,
-  Pastille,
   BoutonPointille,
-  EtatVide,
 } from '@/components/composition'
-import { JOURS } from './horaires/jours'
 
 /**
  * Le hub « Ton activité », planche 10c du board.
@@ -67,159 +63,167 @@ export default async function Parametrage() {
   const listeHoraires = horaires.data ?? []
   const listeConges = conges.data ?? []
 
-  // Le chiffre que le paramétrage produit : le nombre d'heures ouvrables par
-  // semaine. C'est la conséquence directe des quatre réglages, et c'est ce que
-  // le moteur de créneaux a réellement à distribuer.
-  const heuresParSemaine = listeHoraires.reduce((total, h) => {
-    const minutes = enMinutes(h.ends_at) - enMinutes(h.starts_at)
-    return total + Math.max(0, minutes)
-  }, 0)
+  // Les trois étapes de la planche 14c : prestations, zone, journées. Ma Page
+  // ne s'ouvre qu'après elles.
+  const etapesFaites = [listePrestations, listeCommunes, listeHoraires].filter(
+    (l) => l.length > 0,
+  ).length
+  const pret = etapesFaites === 3
 
-  const pret = listePrestations.length > 0 && listeCommunes.length > 0 && listeHoraires.length > 0
+  // A8 : le forfait de base vit sur la ligne `from_km = 0`. Il ne sort jamais
+  // côté cliente ; ici, il informe la pro de ce qu'elle proposera.
+  const { data: forfait } = await supabase
+    .from('distance_fees')
+    .select('fee_cents')
+    .eq('from_km', 0)
+    .maybeSingle()
 
   return (
     <>
-      <PanneauPlein
-        statement={pret ? 'Ton activité tourne.' : 'On finit de t’installer.'}
-        chiffre={heuresParSemaine > 0 ? formatHeures(heuresParSemaine) : undefined}
-        legende={
-          heuresParSemaine > 0
-            ? `par semaine, réparties sur ${listeCommunes.length} commune${listeCommunes.length > 1 ? 's' : ''}`
-            : 'Pose tes horaires pour que tes clientes puissent réserver.'
+      <EnteteEcran
+        statement="Ton activité."
+        sousTitre={
+          pret
+            ? 'Tout est modifiable, à tout moment.'
+            : `${String(3 - etapesFaites)} étapes et ta page prend ses premières réservations.`
         }
-      >
-        <CarteCreme titre="Ton activité">
-          {aVerifier.length > 0 ? (
-            <LigneEtat
-              principal={
-                aVerifier.length === 2
-                  ? A.$aEcrire.inviteVerification
-                  : remplir(A.$aEcrire.invitePartielle, { reste: aVerifier[0] })
-              }
-              action="Vérifier"
-              href={verifs?.phone_verified_at ? '/verification/email' : '/verification/telephone'}
-            />
-          ) : null}
+      />
 
-          <EtiquetteSection>Prestations</EtiquetteSection>
-          {listePrestations.length === 0 ? (
-            <EtatVide
-              titre="Aucune prestation."
-              invitation="C’est ce que tes clientes choisissent en premier."
-            >
-              <BoutonPointille href="/app/parametrage/prestations" compact>
-                + Ajouter une prestation
-              </BoutonPointille>
-            </EtatVide>
-          ) : (
-            <>
-              {listePrestations.map((p) => (
-                <LigneEtat
-                  key={p.id}
-                  principal={p.name}
-                  secondaire={`${formatEuros(p.price_cents)} · ${p.duration_min} min${p.active ? '' : ' · masquée'}`}
-                  action="Modifier"
-                  href="/app/parametrage/prestations"
-                />
-              ))}
-              <BoutonPointille href="/app/parametrage/prestations">
-                + Ajouter une prestation
-              </BoutonPointille>
-            </>
-          )}
+      {aVerifier.length > 0 ? (
+        <CarteEcran
+          principal={
+            aVerifier.length === 2
+              ? A.$aEcrire.inviteVerification
+              : remplir(A.$aEcrire.invitePartielle, { reste: aVerifier[0] })
+          }
+          chevron
+          href={verifs?.phone_verified_at ? '/verification/email' : '/verification/telephone'}
+        />
+      ) : null}
 
-          <EtiquetteSection>Zone d’intervention</EtiquetteSection>
-          {listeCommunes.length === 0 ? (
-            <EtatVide
-              titre="Aucune commune."
-              invitation="Sans zone, aucun créneau ne peut être proposé."
-            >
-              <BoutonPointille href="/app/parametrage/zone" compact>
-                + Commune
-              </BoutonPointille>
-            </EtatVide>
-          ) : (
-            <div className="mt-3 flex flex-wrap items-center gap-2">
-              {listeCommunes.map((c) => (
-                <Pastille key={c.insee_code}>{c.name}</Pastille>
-              ))}
-              <BoutonPointille href="/app/parametrage/zone" compact>
-                + Commune
-              </BoutonPointille>
-            </div>
-          )}
+      {/*
+        Une rangée par section : elle RÉSUME et ouvre, le hub ne permet aucune
+        édition directe (planche 14c). L'état vide invite et n'affiche aucun
+        zéro : « Ajoute ta première prestation », jamais « 0 prestation ».
+      */}
+      <EtiquetteSection>Prestations</EtiquetteSection>
+      <CarteEcran
+        principal={
+          listePrestations.length > 0
+            ? `${String(listePrestations.length)} prestation${listePrestations.length > 1 ? 's' : ''}`
+            : 'Ce que tu proposes'
+        }
+        secondaire={
+          listePrestations.length > 0
+            ? fourchette(listePrestations)
+            : 'Ajoute ta première prestation'
+        }
+        chevron
+        href="/app/parametrage/prestations"
+      />
 
-          <EtiquetteSection>Horaires récurrents</EtiquetteSection>
-          {listeHoraires.length === 0 ? (
-            <EtatVide
-              titre="Aucun horaire."
-              invitation="Tes journées de travail, telles qu’elles sont vraiment."
-            >
-              <BoutonPointille href="/app/parametrage/horaires" compact>
-                + Ajouter une plage
-              </BoutonPointille>
-            </EtatVide>
-          ) : (
-            <>
-              {listeHoraires.map((h, i) => (
-                <LigneEtat
-                  key={`${h.weekday}-${h.starts_at}-${i}`}
-                  principal={JOURS[h.weekday] ?? 'Jour inconnu'}
-                  secondaire={`${h.starts_at.slice(0, 5)} à ${h.ends_at.slice(0, 5)}`}
-                  action="Modifier"
-                  href="/app/parametrage/horaires"
-                />
-              ))}
-              <BoutonPointille href="/app/parametrage/horaires">
-                + Ajouter une plage
-              </BoutonPointille>
-            </>
-          )}
+      <EtiquetteSection>Zone d’intervention</EtiquetteSection>
+      <CarteEcran
+        principal={listeCommunes.length > 0 ? nomsDeCommunes(listeCommunes) : 'Où tu te déplaces'}
+        secondaire={
+          listeCommunes.length > 0
+            ? forfait
+              ? `hors zone : base ${formatEuros(forfait.fee_cents)}`
+              : 'hors zone : demande sous réserve'
+            : '2-3 communes, ta tournée reste logique'
+        }
+        chevron
+        href="/app/parametrage/zone"
+      />
 
-          <EtiquetteSection>Congés</EtiquetteSection>
-          {listeConges.length === 0 ? (
-            <LigneEtat
-              principal="Aucun congé posé"
-              secondaire="Ton agenda est ouvert sur toute la période."
-              action="Poser un congé"
-              href="/app/parametrage/conges"
-            />
-          ) : (
-            <>
-              {listeConges.map((c) => (
-                <LigneEtat
-                  key={c.id}
-                  principal={`Du ${jourCourt.format(new Date(c.starts_at))} au ${jourCourt.format(new Date(c.ends_at))}`}
-                  secondaire={c.label ?? undefined}
-                  action="Modifier"
-                  href="/app/parametrage/conges"
-                />
-              ))}
-              <BoutonPointille href="/app/parametrage/conges">+ Ajouter des congés</BoutonPointille>
-            </>
-          )}
+      <EtiquetteSection>Journées & congés</EtiquetteSection>
+      <CarteEcran
+        principal={
+          listeHoraires.length > 0 ? joursTravailles(listeHoraires) : 'Tes journées de travail'
+        }
+        secondaire={
+          listeHoraires.length > 0 ? plageCommune(listeHoraires) : 'Choisis tes jours et tes heures'
+        }
+        chevron
+        href="/app/parametrage/horaires"
+      />
+      {/* Les congés n'apparaissent qu'une fois les horaires posés : au jour un,
+          ils n'ont aucun sens (planche 14c). */}
+      {listeHoraires.length > 0 ? (
+        <CarteEcran
+          principal={
+            listeConges.length > 0
+              ? `Congés : ${jourCourt.format(new Date(listeConges[0].starts_at))} au ${jourCourt.format(new Date(listeConges[0].ends_at))}`
+              : 'Aucun congé posé'
+          }
+          secondaire={
+            listeConges.length > 1 ? `+ ${String(listeConges.length - 1)} autre(s)` : undefined
+          }
+          chevron
+          href="/app/parametrage/conges"
+        />
+      ) : null}
 
-          <EtiquetteSection>Ta page de réservation</EtiquetteSection>
-          <LigneEtat
-            principal={pro.published ? 'En ligne' : 'Pas encore publiée'}
-            secondaire={pro.published ? `wiggy.fr/${pro.slug}` : 'Personne ne peut la voir.'}
-            action="Modifier"
-            href="/app/parametrage/profil"
-          />
-        </CarteCreme>
-      </PanneauPlein>
+      <EtiquetteSection>Ma Page</EtiquetteSection>
+      <CarteEcran
+        principal={pro.published ? `wiggy.fr/${pro.slug}` : 'Ma Page'}
+        secondaire={
+          pro.published
+            ? 'En ligne'
+            : pret
+              ? 'Prête à être mise en ligne'
+              : 'S’ouvre après tes 3 premières étapes'
+        }
+        chevron={pret || pro.published}
+        href={pret || pro.published ? '/app/parametrage/profil' : undefined}
+      />
+
+      <div className="mt-6">
+        <BoutonPointille href="/app/parametrage/prestations">
+          + Ajouter une prestation
+        </BoutonPointille>
+      </div>
     </>
   )
 }
 
-const enMinutes = (heure: string) => {
-  const [h, m] = heure.split(':').map(Number)
-  return h * 60 + m
+/** « de 28 € à 75 € », comme la planche. Une seule prestation ne fait pas une fourchette. */
+function fourchette(prestations: { price_cents: number }[]): string {
+  const prix = prestations.map((p) => p.price_cents)
+  const mini = Math.min(...prix)
+  const maxi = Math.max(...prix)
+  return mini === maxi ? formatEuros(mini) : `de ${formatEuros(mini)} à ${formatEuros(maxi)}`
 }
 
-/** « 38 h » ou « 38 h 30 ». Jamais « 38.5 h » : personne ne lit ses horaires ainsi. */
-function formatHeures(minutes: number): string {
-  const h = Math.floor(minutes / 60)
-  const m = minutes % 60
-  return m === 0 ? `${h} h` : `${h} h ${String(m).padStart(2, '0')}`
+/**
+ * « Nantes, Rezé, Vertou », puis « + N communes » au-delà de trois.
+ *
+ * Jamais d'ellipsis sur un nom de commune : la planche 14c est explicite, une
+ * commune coupée en deux ne se reconnaît plus.
+ */
+function nomsDeCommunes(communes: { name: string }[]): string {
+  const noms = communes.map((c) => c.name)
+  if (noms.length <= 3) return noms.join(', ')
+  return `${noms.slice(0, 2).join(', ')} + ${String(noms.length - 2)} communes`
+}
+
+const ABREGE = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
+
+/** « Lun a Sam » quand les jours se suivent, sinon la liste. */
+function joursTravailles(horaires: { weekday: number }[]): string {
+  const jours = [...new Set(horaires.map((h) => h.weekday))].sort((a, b) => a - b)
+  if (jours.length === 0) return 'Aucun jour'
+  const continu = jours.every((j, i) => i === 0 || j === jours[i - 1] + 1)
+  if (continu && jours.length > 2) {
+    return `${ABREGE[jours[0]]} à ${ABREGE[jours[jours.length - 1]]}`
+  }
+  return jours.map((j) => ABREGE[j]).join(', ')
+}
+
+/** La plage commune, ou le nombre de plages différentes s'il y en a plusieurs. */
+function plageCommune(horaires: { starts_at: string; ends_at: string }[]): string {
+  const plages = [
+    ...new Set(horaires.map((h) => `${h.starts_at.slice(0, 5)} à ${h.ends_at.slice(0, 5)}`)),
+  ]
+  return plages.length === 1 ? plages[0] : `${String(plages.length)} plages différentes`
 }

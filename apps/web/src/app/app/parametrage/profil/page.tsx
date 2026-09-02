@@ -1,6 +1,6 @@
 import { requirePro } from '@/lib/auth'
 import { supabaseServer } from '@/lib/supabase/server'
-import { PanneauPlein, CarteCreme } from '@/components/composition'
+import { EnteteEcran } from '@/components/composition'
 import { FormProfil, BoutonPublication } from './form'
 
 export default async function Profil() {
@@ -21,22 +21,31 @@ export default async function Profil() {
 
   return (
     <>
-      <PanneauPlein
-        statement="Ta page de réservation."
-        legende={
+      <EnteteEcran
+        retour="/app/parametrage"
+        statement="Ce que voient tes clientes."
+        sousTitre={
           profil.published
-            ? 'Elle est en ligne. C’est le lien que tu partages : bio Instagram, messages, fiche Google.'
-            : 'Elle n’est pas encore en ligne. Personne ne peut la voir.'
+            ? `Ta page est en ligne : wiggy.fr/${profil.slug}`
+            : 'Elle s’active quand prestations, zone et journées sont posées.'
         }
-        entete={<p className="text-lg font-bold break-all">{adresse}</p>}
-      >
-        <CarteCreme titre="Ce que voit ta clientèle">
-          <div className="mt-4 rounded-carte bg-surface p-5">
-            <BoutonPublication publiee={profil.published} />
-          </div>
-          <FormProfil profil={profil} />
-        </CarteCreme>
-      </PanneauPlein>
+      />
+      {/*
+        Planche 14g : « Mettre ma page en ligne » s'active quand prestations,
+        zone et journées sont posées, et D9 y ajoute les deux vérifications.
+        L'adresse publique reste visible, elle est ce qu'on partage.
+      */}
+      <div className="mt-4 rounded-carte bg-surface p-5">
+        <p className="text-sm font-semibold tracking-widest text-texte-secondaire uppercase">
+          Ton lien
+        </p>
+        <p className="mt-1 text-lg font-bold break-all">{adresse}</p>
+        <div className="mt-4">
+          <BoutonPublication publiee={profil.published} />
+        </div>
+      </div>
+
+      <FormProfil profil={profil} />
     </>
   )
 }

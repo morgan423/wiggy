@@ -69,6 +69,14 @@ Côté cliente finale, tout reste web : zéro installation pour réserver.
 - **Aucun tiret cadratin** dans les textes destinés aux humains (UI, SMS, e-mails, site, documents
   du dépôt). Le code lui-même n'est pas concerné. Contrôlé par `design:check`.
 - **Le prénom est le héros** : confirmations, célébrations et fiches nomment la personne.
+- **Un texte destiné à la cliente suit le CANAL réellement utilisé, jamais le palier** (B7).
+  Palier 1, option SMS désactivée par la pro, plafond d'usage atteint : trois causes, un seul
+  effet visible. Il n'y a donc qu'une dimension à écrire, celle du canal. Écrire par palier
+  multiplierait les variantes sans rien ajouter à ce que la cliente a besoin de savoir.
+- **La cliente ne doit jamais pouvoir deviner que sa coiffeuse est sur une offre moins chère**,
+  ni qu'une limite a été atteinte. Le texte dit **comment elle sera prévenue**, jamais pourquoi.
+  Un « votre coiffeuse a atteint son quota » trahit la pro auprès de sa propre cliente, et un
+  « offre découverte » la classe. Ces deux règles viennent de B7 et valent bien au-delà d'elle.
 - **Langage de recrutement (décision D4)** : « Wiggy sur ton téléphone », jamais « une app à
   installer ». Le coût perçu d'une installation fait renoncer avant d'avoir essayé, et le produit
   est d'abord une adresse web que l'on épingle.

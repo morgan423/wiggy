@@ -1,6 +1,6 @@
 import { requirePro } from '@/lib/auth'
 import { supabaseServer } from '@/lib/supabase/server'
-import { PanneauPlein, CarteCreme } from '@/components/composition'
+import { EnteteEcran } from '@/components/composition'
 import { FormConge } from './form'
 import { supprimerConge } from './actions'
 
@@ -25,53 +25,48 @@ export default async function Conges() {
 
   return (
     <>
-      <PanneauPlein
-        statement="Quand tu ne travailles pas."
-        chiffre={joursPoses > 0 ? String(joursPoses) : undefined}
-        legende={
+      <EnteteEcran
+        retour="/app/parametrage"
+        statement="Bientôt en vacances ?"
+        sousTitre={
           joursPoses > 0
-            ? `jour${joursPoses > 1 ? 's' : ''} posés. Aucune cliente ne peut réserver dessus.`
-            : 'Rien de posé : ton agenda est ouvert sur toute la période.'
+            ? `${String(joursPoses)} jour${joursPoses > 1 ? 's' : ''} posés. Aucune cliente ne peut réserver dessus.`
+            : 'Pose-les tôt : tes clientes réservent autour, personne n’annule.'
         }
-      >
-        <CarteCreme>
-          {conges && conges.length > 0 ? (
-            <ul className="mt-8 space-y-3">
-              {conges.map((c) => (
-                <li
-                  key={c.id}
-                  className="flex items-center gap-5 rounded-carte border-2 border-trait-discret p-5"
+      />
+      {conges && conges.length > 0 ? (
+        <ul className="mt-8 space-y-3">
+          {conges.map((c) => (
+            <li
+              key={c.id}
+              className="flex items-center gap-5 rounded-carte border-2 border-trait-discret p-5"
+            >
+              <div>
+                <p className="text-lg font-bold">
+                  Du {jour.format(new Date(c.starts_at))} au {jour.format(new Date(c.ends_at))}
+                </p>
+                {c.label ? <p className="text-texte-secondaire">{c.label}</p> : null}
+              </div>
+              <form action={supprimerConge} className="ml-auto">
+                <input type="hidden" name="id" value={c.id} />
+                <button
+                  type="submit"
+                  className="text-sm font-semibold text-texte-secondaire hover:text-erreur"
                 >
-                  <div>
-                    <p className="text-lg font-bold">
-                      Du {jour.format(new Date(c.starts_at))} au {jour.format(new Date(c.ends_at))}
-                    </p>
-                    {c.label ? <p className="text-texte-secondaire">{c.label}</p> : null}
-                  </div>
-                  <form action={supprimerConge} className="ml-auto">
-                    <input type="hidden" name="id" value={c.id} />
-                    <button
-                      type="submit"
-                      className="text-sm font-semibold text-texte-secondaire hover:text-erreur"
-                    >
-                      Supprimer
-                    </button>
-                  </form>
-                </li>
-              ))}
-            </ul>
-          ) : (
-            <p className="mt-8 rounded-carte bg-fond p-6 text-texte-secondaire">
-              Aucun congé posé.
-            </p>
-          )}
+                  Supprimer
+                </button>
+              </form>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="mt-8 rounded-carte bg-fond p-6 text-texte-secondaire">Aucun congé posé.</p>
+      )}
 
-          <section className="mt-12 border-t border-trait-discret pt-8">
-            <h2 className="text-xl font-bold tracking-tight">Poser un congé</h2>
-            <FormConge />
-          </section>
-        </CarteCreme>
-      </PanneauPlein>
+      <section className="mt-12 border-t border-trait-discret pt-8">
+        <h2 className="text-xl font-bold tracking-tight">Poser un congé</h2>
+        <FormConge />
+      </section>
     </>
   )
 }

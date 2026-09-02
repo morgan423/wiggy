@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import { can } from '@wiggy/core'
 import { requirePro } from '@/lib/auth'
 import { Avatar } from '@/components/avatar'
+import { NavMobile } from '@/components/nav-mobile'
 import { seDeconnecter } from '../(pro)/actions'
 
 export const metadata: Metadata = { robots: { index: false } }
@@ -19,7 +20,13 @@ export default async function LayoutApp({ children }: { children: React.ReactNod
 
   return (
     <div className="min-h-screen">
-      <header className="border-b border-trait-discret">
+      {/*
+        En 390, la planche 14a ne montre aucune barre en tête : l'écran s'ouvre
+        sur son bandeau prune, et la navigation vit en bas. Le mobile fait foi ;
+        la barre du haut reste pour le grand écran (12a). Elle se chevauchait
+        d'ailleurs à 390, faute d'avoir jamais été regardée à cette largeur.
+      */}
+      <header className="hidden border-b border-trait-discret sm:block">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-5">
           <Link href="/app" className="text-lg font-extrabold tracking-tight">
             Wiggy
@@ -56,7 +63,9 @@ export default async function LayoutApp({ children }: { children: React.ReactNod
           </nav>
         </div>
       </header>
-      <main className="mx-auto max-w-5xl px-6 py-10">{children}</main>
+      {/* La marge basse laisse la place à la barre de navigation fixe. */}
+      <main className="mx-auto max-w-5xl px-6 py-10 pb-28 sm:pb-10">{children}</main>
+      <NavMobile />
     </div>
   )
 }

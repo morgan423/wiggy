@@ -240,7 +240,8 @@ async function executer() {
 
     navigateur = await chromium.launch({ channel: 'chrome' })
     // Un mobile d'abord : c'est l'écran de vérité du produit.
-    const page = await navigateur.newPage({ viewport: { width: 430, height: 932 } })
+    // 390 : la largeur de référence de la spécification. Le mobile fait foi.
+    const page = await navigateur.newPage({ viewport: { width: 390, height: 844 } })
 
     let connecte = null
     for (const vue of VUES) {

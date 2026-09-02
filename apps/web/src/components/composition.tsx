@@ -64,17 +64,106 @@ export function PanneauPlein({
 }
 
 /**
- * La carte crème du board 10c, dans le panneau plein.
+ * L'en-tête d'écran de la spécification, planches 14c à 14g.
  *
- * Le contenu vit dessus, jamais sur la page nue, et les champs vivent sur la
- * surface, jamais sur cette crème : c'est ce qui étage la lecture.
+ * Un BANDEAU prune, pas un conteneur : le lien de retour en petit, le statement
+ * en Fraunces juste dessous, à gauche, jamais centré. Le corps de l'écran vit
+ * ensuite sur la crème, avec ses cartes sur la surface.
+ *
+ * Le ratio de la planche 8a est tenu ici par le duo bandeau prune en tête et
+ * barre de navigation prune en bas (14a) : la crème est la respiration entre
+ * deux masses pleines, et non le fond de toute la page.
  */
-export function CarteCreme({ titre, children }: { titre?: string; children: React.ReactNode }) {
+export function EnteteEcran({
+  retour,
+  retourLibelle,
+  statement,
+  sousTitre,
+  chiffre,
+}: {
+  retour?: string
+  retourLibelle?: string
+  statement: string
+  sousTitre?: string
+  /** Le chiffre que le réglage produit. Réel, jamais inventé. */
+  chiffre?: string
+}) {
   return (
-    <section className="mx-auto mt-8 max-w-xl rounded-bloc bg-fond p-5 text-texte-principal sm:p-7">
-      {titre ? <h2 className="titre tracking-tight">{titre}</h2> : null}
-      {children}
-    </section>
+    <header className="sur-plein -mx-6 -mt-10 bg-prune px-6 pt-8 pb-7 text-texte-sur-plein sm:mx-0 sm:mt-0 sm:rounded-bloc sm:px-8">
+      {retour ? (
+        <Link
+          href={retour}
+          className="text-xs font-extrabold text-texte-sur-plein-doux hover:text-texte-sur-plein"
+        >
+          ‹ {retourLibelle ?? 'Ton activité'}
+        </Link>
+      ) : null}
+      <h1 className="titre mt-1 max-w-xl tracking-tight">{statement}</h1>
+      {chiffre ? (
+        <p className="mt-4 flex flex-wrap items-baseline gap-x-4">
+          <span className="chiffre-heros text-celebration">{chiffre}</span>
+          {sousTitre ? (
+            <span className="font-semibold text-texte-sur-plein-doux">{sousTitre}</span>
+          ) : null}
+        </p>
+      ) : sousTitre ? (
+        <p className="mt-2 max-w-xl text-texte-sur-plein-doux">{sousTitre}</p>
+      ) : null}
+    </header>
+  )
+}
+
+/**
+ * Une carte de la planche : sur la SURFACE, jamais sur la crème.
+ *
+ * C'est ce qui la détache du corps de l'écran. Le contenu à gauche, la
+ * conséquence à droite, et la valeur de droite ne descend jamais à la ligne :
+ * elle est hors du bloc de texte, `shrink-0` comme le veut la planche 14d.
+ */
+export function CarteEcran({
+  principal,
+  secondaire,
+  valeur,
+  chevron = false,
+  href,
+  attenue = false,
+  children,
+}: {
+  principal: string
+  secondaire?: string
+  valeur?: string
+  chevron?: boolean
+  href?: string
+  /** Une prestation masquée reste lisible, à 55 % comme sur la planche. */
+  attenue?: boolean
+  children?: React.ReactNode
+}) {
+  const contenu = (
+    <>
+      <span className="flex min-w-0 flex-col gap-0.5">
+        {/* Deux lignes au maximum en liste, jamais de troncature au milieu d'un
+            mot : le nom complet reste lisible à l'édition. */}
+        <span className="line-clamp-2 font-bold">{principal}</span>
+        {secondaire ? <span className="text-sm text-texte-attenue">{secondaire}</span> : null}
+        {children}
+      </span>
+      {valeur ? <span className="titre shrink-0 tracking-tight">{valeur}</span> : null}
+      {chevron ? (
+        <span aria-hidden className="shrink-0 text-texte-attenue">
+          ›
+        </span>
+      ) : null}
+    </>
+  )
+  const classes = `mt-2 flex items-center justify-between gap-4 rounded-carte bg-surface px-4 py-3 ${
+    attenue ? 'opacity-55' : ''
+  }`
+  return href ? (
+    <Link href={href} className={`${classes} hover:opacity-80`}>
+      {contenu}
+    </Link>
+  ) : (
+    <div className={classes}>{contenu}</div>
   )
 }
 
@@ -84,50 +173,6 @@ export function EtiquetteSection({ children }: { children: React.ReactNode }) {
     <h3 className="mt-6 text-xs font-bold tracking-widest text-texte-secondaire uppercase">
       {children}
     </h3>
-  )
-}
-
-/**
- * Une ligne d'état : ce qui est réglé à gauche, sa conséquence à droite.
- *
- * Sur surface, jamais sur la crème : c'est ce qui la détache de la carte qui la
- * porte, exactement comme sur la planche 10c.
- */
-export function LigneEtat({
-  principal,
-  secondaire,
-  action,
-  href,
-}: {
-  principal: string
-  secondaire?: string
-  action?: string
-  href?: string
-}) {
-  const contenu = (
-    <>
-      <span className="font-bold">{principal}</span>
-      {secondaire ? <span className="text-texte-secondaire">{secondaire}</span> : null}
-      {action ? <span className="ml-auto font-bold text-action">{action}</span> : null}
-    </>
-  )
-  const classes =
-    'mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 rounded-carte bg-surface px-5 py-4'
-  return href ? (
-    <Link href={href} className={`${classes} hover:border-prune`}>
-      {contenu}
-    </Link>
-  ) : (
-    <div className={classes}>{contenu}</div>
-  )
-}
-
-/** Une pastille prune : les communes de la zone, sur la planche 10c. */
-export function Pastille({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="rounded-pilule bg-prune px-4 py-2 text-sm font-bold text-texte-sur-plein">
-      {children}
-    </span>
   )
 }
 

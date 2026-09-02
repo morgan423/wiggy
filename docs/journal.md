@@ -31,6 +31,74 @@ l'étape et cette section se vide.
 
 ---
 
+## 2026-09-02 Étape : livraison 1, les quatre écrans du paramétrage (14c, 14d, 14f, 14g)
+
+**Fait :**
+
+- **Deux règles éditoriales inscrites dans `CLAUDE.md`**, issues de B7 et valables bien au-delà
+  d'elle : un texte destiné à la cliente suit **le canal réellement utilisé, jamais le palier**
+  (trois causes, un seul effet visible, donc une seule dimension à écrire) ; et la cliente ne doit
+  **jamais pouvoir deviner** que sa coiffeuse est sur une offre moins chère ni qu'une limite a été
+  atteinte. Le texte dit comment elle sera prévenue, jamais pourquoi.
+- **L'anatomie des planches remplace celle du lot 1 bis.** Le prune n'est plus un conteneur : la
+  planche 14a montre un **bandeau prune en tête** (lien de retour, statement Fraunces à gauche),
+  un corps sur la crème, des cartes sur la surface, et une **barre de navigation prune en bas**.
+  Le ratio de 8a est tenu par ce duo de masses pleines, la crème étant la respiration entre
+  elles. `EnteteEcran` et `CarteEcran` remplacent `PanneauPlein`, `CarteCreme`, `LigneEtat` et
+  `Pastille`, retirés faute d'usage.
+- **14c, le hub** : une rangée par section, qui **résume et ouvre**, sans aucune édition directe.
+  « 2 prestations / de 45 € à 75 € », les communes en clair puis « + N communes » au-delà de
+  trois, jamais d'ellipsis sur un nom de commune. Les congés n'apparaissent qu'une fois les
+  horaires posés. L'état vide invite et **n'affiche aucun zéro**.
+- **14d, prestations** : le prix en Fraunces, hors du bloc de texte et `shrink-0`, donc il ne
+  descend jamais à la ligne ; le libellé à deux lignes maximum ; « 45 min · visible » et
+  « masquée de ta page » à 55 % d'opacité.
+- **14f et 14g** : bandeau, statement révisé « Bientôt en vacances ? » pour les congés, et
+  « Ce que voient tes clientes. » pour Ma Page.
+- **La barre du haut disparaît en 390** : la planche n'en montre aucune. Elle reste sur grand
+  écran (12a). La barre d'onglets du paramétrage disparaît aussi : le hub EST la navigation, deux
+  navigations concurrentes pour cinq écrans n'ont pas de sens.
+- **`npm run vues` capture désormais en 390**, la largeur de référence de la spécification.
+
+**Schéma :** aucun.
+
+**Décisions :** aucune nouvelle. Application des planches 14a, 14c, 14d, 14f, 14g.
+
+**Écarts au brief :**
+
+- **La barre de navigation du bas porte trois entrées, pas quatre.** La planche en montre quatre,
+  dont « Clientes ». La fiche cliente est spécifiée en 16c, livraison 3 : une entrée qui ne mène
+  nulle part serait pire que son absence. À compléter avec la livraison 3.
+- **Le cadre 14a n'était pas « déjà appliqué »**, contrairement à ce que la consigne indiquait.
+  Le lot 1 bis avait déduit d'un board d'univers un prune conteneur ; les planches montrent un
+  prune en bandeau plus une nav. J'ai suivi les planches, la consigne disant que la réponse y est.
+- **Le chevauchement de l'en-tête en mobile**, signalé le 02/09 et non assigné, disparaît avec ce
+  changement : la barre du haut n'existe plus à cette largeur.
+- **Les variantes de la promesse de rappel n'ont pas été écrites**, conformément à la consigne.
+  La ligne d'arbitrage du journal reste ouverte.
+- **Une gêne de lecture des captures** : `npm run vues` photographie la page entière, et la barre
+  de navigation, fixée au bas de l'écran, s'y imprime au milieu de l'image. Ce n'est pas un défaut
+  du produit, c'est un artefact de capture. À corriger si la relecture en souffre.
+
+**Questions ouvertes :** les deux lignes de la section d'arbitrage restent ouvertes, l'essai tout
+compris et la promesse de rappel. Aucune nouvelle.
+
+**À recetter par Morgan**, board ouvert à côté, `npm run vues` puis `captures/` :
+
+- **14c** : le hub avec un compte fourni et un compte vide. Aucun zéro dans l'état vide, les
+  congés absents au jour un, « Ma Page » qui ne s'ouvre qu'après les trois étapes.
+- **14d** : une prestation au libellé très long, pour vérifier que le prix ne descend pas à la
+  ligne et que le nom s'arrête à deux lignes. Une prestation masquée doit rester lisible.
+- **14f et 14g** : les statements, et le bouton de mise en ligne désactivé tant qu'il manque une
+  étape ou une vérification.
+- **La navigation du bas** : trois entrées, celle de l'écran courant en miel.
+- **En grand écran** : la barre du haut et la colonne du paramétrage doivent réapparaître.
+
+**Statut à reporter dans la roadmap :** aucun changement d'identifiant. Livraison 1 de la
+spécification appliquée sur ses cinq écrans, 14b compris.
+
+---
+
 ## 2026-09-02 Étape : D9 authentification du pro, A8 forfait de déplacement de base
 
 Livraison 1 de la spécification de Claude Design, planches 14a à 14g.

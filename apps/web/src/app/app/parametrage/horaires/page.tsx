@@ -1,6 +1,6 @@
 import { requirePro } from '@/lib/auth'
 import { supabaseServer } from '@/lib/supabase/server'
-import { PanneauPlein, CarteCreme } from '@/components/composition'
+import { EnteteEcran } from '@/components/composition'
 import { FormHoraire } from './form'
 import { supprimerPlage } from './actions'
 import { JOURS } from './jours'
@@ -27,58 +27,56 @@ export default async function Horaires() {
 
   return (
     <>
-      <PanneauPlein
+      <EnteteEcran
+        retour="/app/parametrage"
         statement="Tes journées de travail."
         chiffre={heuresParSemaine > 0 ? formatHeures(heuresParSemaine) : undefined}
-        legende={
+        sousTitre={
           heuresParSemaine > 0
             ? 'par semaine, à distribuer entre tes clientes'
             : 'Pose au moins une plage : sans horaires, ta page ne propose rien.'
         }
-      >
-        <CarteCreme>
-          <ul className="mt-8 space-y-2">
-            {parJour.map((jour) => (
-              <li
-                key={jour.nom}
-                className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-carte border-2 border-trait-discret px-5 py-4"
-              >
-                <span className="w-24 font-bold">{jour.nom}</span>
-                {jour.plages.length === 0 ? (
-                  <span className="text-texte-secondaire">Repos</span>
-                ) : (
-                  jour.plages.map((p) => (
-                    <span
-                      key={p.id}
-                      className="flex items-center gap-2 rounded-pilule bg-fond px-4 py-1"
+      />
+      <ul className="mt-8 space-y-2">
+        {parJour.map((jour) => (
+          <li
+            key={jour.nom}
+            className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-carte border-2 border-trait-discret px-5 py-4"
+          >
+            <span className="w-24 font-bold">{jour.nom}</span>
+            {jour.plages.length === 0 ? (
+              <span className="text-texte-secondaire">Repos</span>
+            ) : (
+              jour.plages.map((p) => (
+                <span
+                  key={p.id}
+                  className="flex items-center gap-2 rounded-pilule bg-fond px-4 py-1"
+                >
+                  {p.starts_at.slice(0, 5)} à {p.ends_at.slice(0, 5)}
+                  <form action={supprimerPlage}>
+                    <input type="hidden" name="id" value={p.id} />
+                    <button
+                      type="submit"
+                      aria-label={`Supprimer la plage de ${p.starts_at.slice(0, 5)} à ${p.ends_at.slice(0, 5)} le ${jour.nom.toLowerCase()}`}
+                      className="font-bold text-texte-secondaire hover:text-erreur"
                     >
-                      {p.starts_at.slice(0, 5)} à {p.ends_at.slice(0, 5)}
-                      <form action={supprimerPlage}>
-                        <input type="hidden" name="id" value={p.id} />
-                        <button
-                          type="submit"
-                          aria-label={`Supprimer la plage de ${p.starts_at.slice(0, 5)} à ${p.ends_at.slice(0, 5)} le ${jour.nom.toLowerCase()}`}
-                          className="font-bold text-texte-secondaire hover:text-erreur"
-                        >
-                          ×
-                        </button>
-                      </form>
-                    </span>
-                  ))
-                )}
-              </li>
-            ))}
-          </ul>
+                      ×
+                    </button>
+                  </form>
+                </span>
+              ))
+            )}
+          </li>
+        ))}
+      </ul>
 
-          <section className="mt-12 border-t border-trait-discret pt-8">
-            <h2 className="text-xl font-bold tracking-tight">Ajouter une plage</h2>
-            <p className="mt-2 text-sm text-texte-secondaire">
-              Tu peux en poser plusieurs par jour, par exemple matin et après-midi.
-            </p>
-            <FormHoraire />
-          </section>
-        </CarteCreme>
-      </PanneauPlein>
+      <section className="mt-12 border-t border-trait-discret pt-8">
+        <h2 className="text-xl font-bold tracking-tight">Ajouter une plage</h2>
+        <p className="mt-2 text-sm text-texte-secondaire">
+          Tu peux en poser plusieurs par jour, par exemple matin et après-midi.
+        </p>
+        <FormHoraire />
+      </section>
     </>
   )
 }

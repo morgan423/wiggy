@@ -21,8 +21,12 @@ const SECTIONS = [
 
 export default function LayoutParametrage({ children }: { children: React.ReactNode }) {
   return (
+    // En 390, la planche 14c fait du hub LA navigation du paramétrage : chaque
+    // rangée résume et ouvre sa section. Une barre d'onglets par-dessus ferait
+    // deux navigations concurrentes pour cinq écrans. Elle reste sur grand
+    // écran, en colonne, comme le prévoit 12a.
     <div className="grid gap-10 sm:grid-cols-[13rem_1fr]">
-      <nav aria-label="Paramétrage">
+      <nav aria-label="Paramétrage" className="hidden sm:block">
         <ul className="flex gap-2 overflow-x-auto sm:flex-col sm:gap-1">
           {SECTIONS.map((s) => (
             <li key={s.href}>
