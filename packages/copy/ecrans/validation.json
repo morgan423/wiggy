@@ -34,6 +34,9 @@
     "proRdvCliente": "Choisis une fiche existante ou saisis un prénom.",
     "proAdresseRequise": "Indique où se passe le rendez-vous : un rendez-vous sans lieu ne compte pas dans ta tournée.",
     "proCodePostalRequis": "Indique le code postal : c'est lui qui situe la commune.",
-    "proVilleRequise": "Indique la ville."
+    "proVilleRequise": "Indique la ville.",
+    "proJourRequis": "Choisis le jour de la semaine.",
+    "proHeureRequise": "Choisis une heure.",
+    "proDateRequise": "Choisis une date."
   }
 }

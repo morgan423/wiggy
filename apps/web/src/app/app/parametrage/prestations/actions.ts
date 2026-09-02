@@ -26,7 +26,9 @@ export async function creerPrestation(precedent: EtatForm, donnees: FormData): P
     price_cents: champ(donnees, 'price_cents'),
     duration_min: champ(donnees, 'duration_min'),
     deposit_percent: champ(donnees, 'deposit_percent'),
-    active: true,
+    // Une case non cochée n'est pas envoyée par le navigateur : son absence
+    // vaut « décochée », elle ne vaut pas « valeur manquante ».
+    active: champ(donnees, 'active') !== null,
   })
   if (!saisie.success) return erreur(precedent, saisie.error.issues[0].message, donnees)
 

@@ -1,5 +1,7 @@
 'use client'
 
+import { SURFACE_CHAMP, LIBELLE, AIDE, bordure } from './trousse/styles'
+
 /** Champs partagés par les écrans d'authentification. Registre : tutoiement. */
 
 export function Champ({
@@ -12,6 +14,7 @@ export function Champ({
   aide,
   inputMode,
   fautif = false,
+  desactive = false,
 }: {
   id: string
   label: string
@@ -23,10 +26,11 @@ export function Champ({
   inputMode?: 'numeric' | 'tel'
   /** Champ refusé par la validation : on y pose le curseur et on le signale. */
   fautif?: boolean
+  desactive?: boolean
 }) {
   return (
     <div className="mt-5">
-      <label htmlFor={id} className="block text-sm font-semibold">
+      <label htmlFor={id} className={LIBELLE}>
         {label}
       </label>
       <input
@@ -34,6 +38,7 @@ export function Champ({
         name={id}
         type={type}
         required={required}
+        disabled={desactive}
         autoComplete={autoComplete}
         defaultValue={defaultValue}
         inputMode={inputMode}
@@ -42,12 +47,12 @@ export function Champ({
         autoFocus={fautif}
         aria-invalid={fautif || undefined}
         aria-describedby={aide ? `${id}-aide` : undefined}
-        className={`mt-2 w-full rounded-champ border-2 px-5 py-4 text-lg ${
-          fautif ? 'border-erreur' : 'border-trait-discret'
-        }`}
+        // Même rectangle que la liste, la date et l'heure : trois classes
+        // dupliquées finissent par diverger, et la divergence se voit.
+        className={`${SURFACE_CHAMP} ${bordure(fautif, false)} hover:border-prune disabled:cursor-not-allowed disabled:opacity-55`}
       />
       {aide ? (
-        <p id={`${id}-aide`} className="mt-2 text-sm text-texte-secondaire">
+        <p id={`${id}-aide`} className={AIDE}>
           {aide}
         </p>
       ) : null}

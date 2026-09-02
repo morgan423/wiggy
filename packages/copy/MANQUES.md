@@ -166,3 +166,20 @@ subit sans comprendre se contourne.
 | `demandes-pro.$aEcrire.adresseApprochee`  | Adresse non reconnue, trajet calculé depuis le centre de la commune                              |
 | `demandes-pro.$aEcrire.adresseInconnue`   | Ni l'adresse ni la commune reconnues, aucun trajet calculé                                       |
 | `demandes-pro.$aEcrire.adresseAComplete`  | Reprise d'un rendez-vous créé avant que l'adresse ne devienne obligatoire                        |
+
+### Lot 1, la trousse de composants
+
+Trois refus nés de l'option neutre : une liste qui ne présuppose rien peut être
+laissée sur sa position neutre, et le formulaire doit alors le dire. Sans eux,
+un jour non choisi devenait lundi en silence.
+
+| Clé                                   | Texte                              |
+| ------------------------------------- | ---------------------------------- |
+| `validation.$aEcrire.proJourRequis`   | « Choisis le jour de la semaine. » |
+| `validation.$aEcrire.proHeureRequise` | « Choisis une heure. »             |
+| `validation.$aEcrire.proDateRequise`  | « Choisis une date. »              |
+
+Restent à ratifier, écrits directement dans les écrans faute de source au board :
+l'option neutre de chaque liste (« Choisis un jour », « Choisis dans tes fiches »,
+« Je préfère ne pas préciser »), et les libellés de la case « Visible sur ta page
+de réservation » et de la saisie assistée de communes.

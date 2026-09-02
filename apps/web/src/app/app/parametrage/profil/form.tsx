@@ -1,8 +1,9 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, useState } from 'react'
 import { enregistrerProfil, basculerPublication } from './actions'
-import { Champ, Zone, Choix, Erreur, Succes, BoutonPrincipal } from '@/components/champs'
+import { Champ, Zone, Erreur, Succes, BoutonPrincipal } from '@/components/champs'
+import { ListeDeroulante } from '@/components/trousse'
 import { VIDE, type EtatForm } from '@/lib/forms'
 
 type Profil = {
@@ -24,6 +25,10 @@ export function FormProfil({ profil }: { profil: Profil }) {
   // relue en base. `key` force le remontage, sans quoi un champ non contrôlé
   // ignore un changement de `defaultValue`.
   const valeur = (champ: keyof Profil) => etat.saisie?.[champ] ?? profil[champ]?.toString() ?? ''
+
+  // R3-1 ② : la valeur affichée par la liste EST la valeur soumise. Un seul
+  // état, tenu ici : il n'existe pas de second chemin qui pourrait diverger.
+  const [pronom, setPronom] = useState(valeur('pronoun'))
 
   return (
     <form action={action} key={etat.n}>
@@ -55,12 +60,13 @@ export function FormProfil({ profil }: { profil: Profil }) {
           defaultValue={valeur('years_experience')}
         />
       </div>
-      <Choix
+      <ListeDeroulante
         id="pronoun"
         label="Comment ta clientèle parle de toi"
-        defaultValue={valeur('pronoun')}
+        valeur={pronom}
+        onValeur={setPronom}
+        optionNeutre="Je préfère ne pas préciser"
         options={[
-          { valeur: '', texte: 'Je préfère ne pas préciser' },
           { valeur: 'elle', texte: 'Elle' },
           { valeur: 'il', texte: 'Il' },
         ]}

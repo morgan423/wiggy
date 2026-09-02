@@ -88,17 +88,28 @@ export const CommuneInput = z.object({
 /** B11 ③ — une plage de travail récurrente. 0 = lundi. */
 export const HoraireInput = z
   .object({
-    weekday: z.coerce.number().int().min(0).max(6),
-    starts_at: z.string().regex(HEURE, V.heure),
-    ends_at: z.string().regex(HEURE, V.heure),
+    // Le vide ne doit surtout pas devenir lundi. `z.coerce.number()` transforme
+    // la chaîne vide en 0, et l'option neutre de la liste déroulante (R3-1)
+    // rend ce piège atteignable en un clic : sans ce garde, ne rien choisir
+    // poserait une plage le lundi.
+    weekday: z.preprocess(
+      (v) => (v === '' || v === undefined || v === null ? Number.NaN : v),
+      z.coerce
+        .number(V.proJourRequis)
+        .int(V.proJourRequis)
+        .min(0, V.proJourRequis)
+        .max(6, V.proJourRequis),
+    ),
+    starts_at: z.string().regex(HEURE, V.proHeureRequise),
+    ends_at: z.string().regex(HEURE, V.proHeureRequise),
   })
   .refine((h) => h.ends_at > h.starts_at, { message: V.finAvantDebut, path: ['ends_at'] })
 
 /** B11 ④ — congés. Distincts du blocage ponctuel B4. */
 export const CongeInput = z
   .object({
-    starts_at: z.coerce.date(),
-    ends_at: z.coerce.date(),
+    starts_at: z.coerce.date(V.proDateRequise),
+    ends_at: z.coerce.date(V.proDateRequise),
     label: z.string().trim().max(120).optional().nullable(),
   })
   .refine((c) => c.ends_at > c.starts_at, { message: V.finAvantDebut, path: ['ends_at'] })

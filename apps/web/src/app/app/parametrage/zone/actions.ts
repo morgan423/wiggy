@@ -5,6 +5,7 @@ import { CommuneInput } from '@wiggy/api'
 import { champ, champTexte } from '@/lib/forms'
 import { requirePro } from '@/lib/auth'
 import { supabaseServer } from '@/lib/supabase/server'
+import { chercherCommunes } from '@/lib/communes'
 
 /**
  * B11 ② — zone d'intervention en liste de communes (méthode tranchée).
@@ -48,4 +49,21 @@ export async function retirerCommune(donnees: FormData) {
 function nombreOuNull(valeur: FormDataEntryValue | null): number | null {
   const n = Number(valeur)
   return valeur !== null && valeur !== '' && Number.isFinite(n) ? n : null
+}
+
+/**
+ * B12 : la source locale de la saisie assistée.
+ *
+ * Elle lit le référentiel descendu en base (D6). L'écran ne connaît pas la
+ * source : il passe cette fonction au composant, qui se charge du délai, de
+ * l'annulation et du chemin gracieux. C'est ce qui permettra de brancher la
+ * source distante des adresses sans toucher aux écrans.
+ */
+export async function chercherCommunesAssistee(terme: string) {
+  await requirePro()
+  const resultats = await chercherCommunes(terme)
+  // Le composant distingue « aucun résultat » de « la source ne répond pas » :
+  // on lève plutôt que de rendre un tableau vide qui mentirait.
+  if (resultats === null) throw new Error('referentiel_communes_indisponible')
+  return resultats
 }

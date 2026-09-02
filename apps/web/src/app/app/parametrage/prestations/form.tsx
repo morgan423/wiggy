@@ -3,6 +3,7 @@
 import { useActionState } from 'react'
 import { creerPrestation } from './actions'
 import { Champ, Erreur, Succes, BoutonPrincipal } from '@/components/champs'
+import { CaseACocher } from '@/components/trousse'
 import { VIDE, type EtatForm } from '@/lib/forms'
 
 export function FormPrestation() {
@@ -44,6 +45,12 @@ export function FormPrestation() {
         required={false}
         defaultValue={repris('deposit_percent')}
         aide="En %. Laisse vide pour suivre ton réglage général."
+      />
+      <CaseACocher
+        id="active"
+        label="Visible sur ta page de réservation"
+        defaultChecked
+        aide="Décoche pour la préparer sans la proposer encore."
       />
       <Erreur message={etat.statut === 'erreur' ? etat.message : undefined} />
       <Succes message={etat.statut === 'ok' ? etat.message : undefined} />

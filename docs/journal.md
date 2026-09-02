@@ -20,6 +20,79 @@ _Rien en attente._
 
 ---
 
+## 2026-09-02 Étape : lot 1, la trousse de composants
+
+**Fait :**
+
+- **La règle de l'option neutre vit dans le domaine**, `packages/core/src/selection.ts`, et non
+  dans un composant : une règle qu'on peut exécuter est une règle qu'on peut prouver. Quatre
+  tests la couvrent, dont celui que le cahier des charges exige, une liste sans libellé neutre
+  refuse de se construire.
+- **Liste déroulante**, **case à cocher**, **sélecteur de date**, **sélecteur d'heure** et
+  **saisie assistée (B12)** : cinq composants, tous sur les jetons, zone tactile de 44 px,
+  focus visible, aucun contrôle natif restant. Le champ de saisie existant a été aligné sur le
+  même rectangle, via un fichier de styles partagé.
+- **Branchés sur les cinq écrans de paramétrage**, et sur eux seuls : profil (pronom),
+  horaires (jour et deux heures), congés (deux dates), prestations (case « visible »), zone
+  (saisie assistée sur la source locale des communes).
+- **Galerie** `/app/galerie` : chaque composant dans ses états, vide, rempli, en erreur,
+  désactivé, texte long. Aucune donnée réelle. Fermée hors développement par une **liste
+  blanche** : seule la valeur `developpement` ouvre la page, une variable absente ou mal
+  orthographiée la ferme. Se tromper doit fermer, jamais ouvrir.
+- **Un piège de validation refermé au passage** : avec l'option neutre, ne choisir aucun jour
+  envoyait la chaîne vide, que `z.coerce.number()` transforme en 0, c'est-à-dire lundi. Une
+  plage se serait posée le lundi sans que personne ne l'ait demandé. Refusé désormais, en
+  français.
+
+**Schéma :** aucun.
+
+**Décisions :** aucune nouvelle. Application des deux règles de R3-1 et du cahier des charges
+du lot 1.
+
+**Écarts au brief :**
+
+- **La carte de rendez-vous, le badge de statut et la visionneuse de photos ne sont pas
+  construits.** Leurs écrans arrivent au lot 3 : les faire ici serait du décor sans usage.
+- **Un état `desactive` a été ajouté aux composants** bien qu'aucun écran de paramétrage ne
+  l'utilise. La galerie exige de montrer cet état, et le montrer supposait qu'il existe.
+- **La saisie assistée est passée par une correction non prévue.** Le composant remettait son
+  délai à zéro à chaque rendu quand l'appelant passait une fonction en ligne : la recherche ne
+  partait jamais, sans la moindre erreur à l'écran. La fonction est désormais tenue dans une
+  référence, hors des dépendances de l'effet. Un composant dont la justesse dépend de la
+  vigilance de l'appelant marche chez celui qui l'a écrit et meurt en silence ailleurs.
+- **Le libellé du sélecteur de date a été raccourci** après l'avoir regardé : « lundi 14
+  septembre 2026 » se cassait sur trois lignes dans une colonne de moitié de largeur, ce qui
+  est le cas courant. Le jour de la semaine est retiré, le calendrier ouvert le montre déjà.
+
+**Questions ouvertes :**
+
+- **Les libellés neutres restent à ratifier** : « Choisis un jour », « Je préfère ne pas
+  préciser », « Choisis dans tes fiches » (celui-ci posé pour le lot 3), ainsi que « Visible sur
+  ta page de réservation ». Ils sont déclarés dans `packages/copy/MANQUES.md`.
+- **R3-1 n'est pas corrigé sur son propre écran** : l'ajout de rendez-vous appartient au lot 3.
+  Les deux règles qu'il porte, elles, sont appliquées dès maintenant et tenues par le composant.
+
+**À recetter par Morgan :**
+
+- **Galerie** : ouvrir `/app/galerie`, parcourir la page **à la touche de tabulation** et
+  vérifier que chaque élément montre un contour net. Ouvrir chaque liste, chaque calendrier.
+- **Profil** : la liste du pronom s'ouvre sur « Je préfère ne pas préciser », le choix tient
+  après enregistrement et rechargement.
+- **Horaires** : la liste s'ouvre sur « Choisis un jour ». **Enregistrer sans choisir de jour
+  doit être refusé**, et surtout ne pas poser une plage le lundi. Les deux heures se choisissent
+  dans une liste au quart d'heure.
+- **Congés** : les deux dates s'ouvrent sur un calendrier Wiggy, lundi en première colonne, plus
+  aucune surbrillance bleue du navigateur.
+- **Prestations** : la case « Visible sur ta page de réservation », cochée par défaut. La
+  décocher doit créer une prestation masquée.
+- **Zone** : taper « st paul », les résultats arrivent **sans bouton**, dès deux lettres. Le
+  choix reste affiché et s'efface d'une croix. Puis « Ajouter à ta zone ».
+
+**Statut à reporter dans la roadmap :** aucun changement d'identifiant. B12 est amorcée, sur sa
+seule source locale.
+
+---
+
 ## 2026-09-01 Étape : D8 le test de bout en bout, R2-7 bis l'adresse obligatoire
 
 **Fait :**
