@@ -17,11 +17,22 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Une seule couleur de focus, visible sur crème comme sur prune. */
+/* Un seul traitement de focus, décidé ici et nulle part ailleurs.
+   En prune, pas en framboise : la framboise est trop proche de la brique de
+   l'erreur, et voir un contour rouge sans savoir s'il signale une faute ou un
+   simple passage au clavier est le pire des deux mondes. Le prune ne veut dire
+   que « c'est ici que tu es ». */
 :focus-visible {
-  outline: 3px solid var(--color-action);
-  outline-offset: 3px;
+  outline: 3px solid var(--color-prune);
+  outline-offset: 2px;
   border-radius: var(--radius-champ);
+}
+
+/* Sur un bloc pleine couleur, le prune disparaîtrait dans le fond : le miel
+   prend le relais. Même traitement, une seule couleur à la fois, jamais deux
+   contours superposés. */
+.sur-plein :focus-visible {
+  outline-color: var(--color-celebration);
 }
 
 /* ───────────────────────────────────────────────────────────────
@@ -60,6 +71,18 @@ body {
   font-size: var(--text-titre);
   line-height: var(--leading-titre);
   font-weight: var(--font-weight-titre);
+}
+
+/* Le chiffre héros : la seule place de l'axe WONK dans l'application.
+   Le board (8a) réserve WONK aux statements ET aux chiffres héros ; la planche
+   11d le montre à l'œuvre dans l'app, en miel sur un bloc prune. Jamais en
+   interface courante, jamais sous 20 px. */
+.chiffre-heros {
+  font-family: var(--font-display);
+  font-size: var(--text-display);
+  line-height: 1;
+  font-weight: var(--font-weight-display);
+  font-variation-settings: var(--wonk);
 }
 
 /* Le motif trajet : la ligne pointillée entre deux rendez-vous. C'est la

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { usePanneau } from './panneau'
-import { SURFACE_CHAMP, LIBELLE, AIDE, PANNEAU, bordure } from './styles'
+import { SURFACE_CHAMP, LIBELLE, AIDE, PANNEAU, bordure, DESACTIVE } from './styles'
 
 /**
  * Le sélecteur de date de Wiggy.
@@ -113,7 +113,7 @@ export function SelecteurDate({
           onClick={() => {
             setOuvert(!ouvert)
           }}
-          className={`${SURFACE_CHAMP} ${bordure(fautif, ouvert)} flex items-center justify-between gap-3 hover:border-prune disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:border-trait-discret`}
+          className={`${SURFACE_CHAMP} ${bordure(fautif, ouvert)} flex items-center justify-between gap-3 hover:border-prune ${DESACTIVE}`}
         >
           <span className={`truncate ${valeur ? '' : 'text-texte-attenue'}`}>
             {valeur ? enClair(valeur) : 'Choisir une date'}

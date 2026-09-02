@@ -1,8 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useActionState, useEffect, useState } from 'react'
 import type { Commune } from '@wiggy/core'
 import { SaisieAssistee } from '@/components/trousse'
+import { Succes } from '@/components/champs'
+import { VIDE, type EtatForm } from '@/lib/forms'
 import { chercherCommunesAssistee, ajouterCommune } from './actions'
 
 /**
@@ -19,10 +21,18 @@ import { chercherCommunesAssistee, ajouterCommune } from './actions'
  */
 export function RechercheCommune({ dejaChoisies }: { dejaChoisies: string[] }) {
   const [commune, setCommune] = useState<Commune | null>(null)
+  const [etat, action] = useActionState<EtatForm, FormData>(ajouterCommune, VIDE)
+
+  // Une commune ajoutée quitte le champ : elle est désormais dans la liste
+  // au-dessus, la garder ici laisserait croire qu'il reste quelque chose à faire.
+  useEffect(() => {
+    if (etat.statut === 'ok') setCommune(null)
+  }, [etat.statut, etat.n])
 
   return (
-    <form action={ajouterCommune}>
+    <form action={action}>
       <SaisieAssistee<Commune>
+        key={etat.n}
         id="commune"
         label="Nom de la commune"
         placeholder="Pau, Lescar, st paul…"
@@ -71,6 +81,7 @@ export function RechercheCommune({ dejaChoisies }: { dejaChoisies: string[] }) {
           </button>
         </>
       ) : null}
+      <Succes message={etat.statut === 'ok' ? etat.message : undefined} />
     </form>
   )
 }

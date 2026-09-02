@@ -21,7 +21,7 @@ for await (const f of glob('apps/*/src/**/*.{tsx,ts,css}', { cwd: racine })) {
 
 /** Tailwind : tailles de texte strictement inférieures à 20 px. */
 const PETITES_TAILLES = ['text-xs', 'text-sm', 'text-base', 'text-lg']
-const CLASSES_SERIF = ['statement', 'display', 'titre', 'font-display']
+const CLASSES_SERIF = ['statement', 'display', 'titre', 'font-display', 'chiffre-heros']
 
 for (const chemin of fichiers) {
   const contenu = readFileSync(chemin, 'utf8')
@@ -52,13 +52,18 @@ for (const chemin of fichiers) {
       signaler(chemin, n, 'serif-dans-agenda', 'la serif n’a pas sa place dans l’agenda')
     }
 
-    // ③ WONK réservé aux statements, qui sont eux-mêmes réservés au site.
+    // ③ WONK réservé aux statements du site et aux chiffres héros.
+    //
+    // Le board 8a écrit « WONK réservé aux statements ET aux chiffres héros »,
+    // et la planche 11d le montre dans l'application, en miel sur prune. La
+    // classe `statement` reste au site ; dans l'app, seul `chiffre-heros`
+    // ouvre l'axe, et jamais l'interface courante.
     if (/\bstatement\b/.test(classes) && estEspacePro) {
       signaler(
         chemin,
         n,
         'wonk-hors-site',
-        'la classe `statement` (axe WONK) est réservée au site marketing',
+        'dans l’espace pro, le chiffre héros porte la classe `chiffre-heros`',
       )
     }
     if (/WONK["']?\s*1/.test(ligne) && !estGlobals) {

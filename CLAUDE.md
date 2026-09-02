@@ -88,8 +88,20 @@ Côté cliente finale, tout reste web : zéro installation pour réserver.
 - Zone tactile 44 px minimum. Zéro animation ambiante. `prefers-reduced-motion` respecté sans
   exception. Deux célébrations seulement (confirmation cliente, journée bouclée), aux timings des
   tokens.
-- Sur une page, plus de surface pleine couleur que de crème. Le board design est une référence de
-  rendu, jamais un socle de code.
+- **Le board fait foi pour la composition.** On ne recopie pas son HTML, on en respecte la
+  structure, les proportions et le ratio. Il n'est pas une inspiration dont on retiendrait
+  l'esprit : quand une planche montre un bloc pleine couleur qui contient sa carte, on construit
+  un bloc pleine couleur qui contient sa carte. En cas d'hésitation sur une proportion, une
+  couleur de bloc ou un enchaînement, la réponse est dans le board, pas dans le jugement de qui
+  code. Le fichier est dans le dépôt : `packages/copy/reference-board-phase2.html`.
+- **Règle de ratio (planche 8a)** : sur chaque page, plus de surface pleine couleur (prune,
+  framboise, miel) que de crème. La crème est la respiration, jamais la norme. Le contenu vient
+  **dans** le bloc pleine couleur, pas à côté : posé en frère, il redonne une page à 95 % de crème,
+  ce que la recette 4 a rejeté.
+- **Composition asymétrique**, statement à gauche, **tout-centré banni**.
+- **Fraunces WONK** réservé aux statements du site et aux **chiffres héros** (classe
+  `chiffre-heros`, planche 11d). Jamais en interface courante, jamais sous 20 px, jamais dans
+  l'agenda.
 - Avatar à trois sources : photo, puis illustration, puis initiale sur pastille déterministe. Jamais
   de blanc sur miel ou abricot.
 

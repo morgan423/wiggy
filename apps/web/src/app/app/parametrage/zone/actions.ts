@@ -2,7 +2,7 @@
 
 import { revalidatePath } from 'next/cache'
 import { CommuneInput } from '@wiggy/api'
-import { champ, champTexte } from '@/lib/forms'
+import { champ, champTexte, erreur, ok, type EtatForm } from '@/lib/forms'
 import { requirePro } from '@/lib/auth'
 import { supabaseServer } from '@/lib/supabase/server'
 import { chercherCommunes } from '@/lib/communes'
@@ -16,7 +16,7 @@ import { chercherCommunes } from '@/lib/communes'
 
 const CHEMIN = '/app/parametrage/zone'
 
-export async function ajouterCommune(donnees: FormData) {
+export async function ajouterCommune(precedent: EtatForm, donnees: FormData): Promise<EtatForm> {
   const saisie = CommuneInput.safeParse({
     insee_code: champ(donnees, 'insee_code'),
     name: champ(donnees, 'name'),
@@ -24,7 +24,7 @@ export async function ajouterCommune(donnees: FormData) {
     lat: nombreOuNull(champ(donnees, 'lat')),
     lng: nombreOuNull(champ(donnees, 'lng')),
   })
-  if (!saisie.success) return
+  if (!saisie.success) return erreur(precedent, saisie.error.issues[0].message, donnees)
 
   const { pro } = await requirePro()
   const supabase = await supabaseServer()
@@ -35,6 +35,10 @@ export async function ajouterCommune(donnees: FormData) {
   await supabase.from('service_area_communes').upsert({ ...saisie.data, pro_id: pro.id })
 
   revalidatePath(CHEMIN)
+  // `n` change à chaque succès : c'est ce qui remonte le formulaire côté écran
+  // et vide le champ de recherche. Sans ça, la commune ajoutée restait
+  // affichée comme si elle attendait encore d'être ajoutée.
+  return ok(precedent, `${saisie.data.name} est dans ta zone.`)
 }
 
 export async function retirerCommune(donnees: FormData) {

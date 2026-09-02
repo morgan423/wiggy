@@ -12,6 +12,7 @@ import {
   LIGNE_SURVOLEE,
   LIGNE_RETENUE,
   bordure,
+  DESACTIVE,
 } from './styles'
 
 /**
@@ -134,7 +135,7 @@ export function ListeDeroulante({
             else ouvrir()
           }}
           onKeyDown={auClavier}
-          className={`${SURFACE_CHAMP} ${bordure(fautif, ouvert)} flex items-center justify-between gap-3 hover:border-prune disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:border-trait-discret`}
+          className={`${SURFACE_CHAMP} ${bordure(fautif, ouvert)} flex items-center justify-between gap-3 hover:border-prune ${DESACTIVE}`}
         >
           <span className={valeur ? '' : 'text-texte-attenue'}>{texte}</span>
           {/* La flèche est à nous : celle du système ne se met pas au thème. */}

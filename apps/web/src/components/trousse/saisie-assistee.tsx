@@ -10,6 +10,7 @@ import {
   LIGNE_PANNEAU,
   LIGNE_SURVOLEE,
   bordure,
+  DESACTIVE,
 } from './styles'
 
 /**
@@ -168,7 +169,7 @@ export function SaisieAssistee<T>({
       </label>
 
       {choisi ? (
-        <div className="mt-2 flex items-center gap-3 rounded-champ border-2 border-prune bg-fond px-5 py-4">
+        <div className="mt-2 flex items-center gap-3 rounded-champ border-2 border-prune bg-surface px-5 py-4">
           <span className="text-lg font-semibold">{choisi}</span>
           {onEffacer ? (
             <button
@@ -199,7 +200,7 @@ export function SaisieAssistee<T>({
               setTerme(e.target.value)
             }}
             onKeyDown={auClavier}
-            className={`${SURFACE_CHAMP} ${bordure(false, ouvert)} hover:border-prune disabled:cursor-not-allowed disabled:opacity-55`}
+            className={`${SURFACE_CHAMP} ${bordure(false, ouvert)} hover:border-prune ${DESACTIVE}`}
           />
 
           {ouvert ? (

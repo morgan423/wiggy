@@ -63,7 +63,10 @@ export function Champ({
 export function Erreur({ message }: { message?: string }) {
   if (!message) return null
   return (
-    <p role="alert" className="mt-5 font-semibold text-erreur">
+    <p
+      role="alert"
+      className="mt-5 rounded-carte border-2 border-erreur bg-surface px-5 py-4 font-semibold text-erreur"
+    >
       {message}
     </p>
   )
@@ -155,10 +158,20 @@ export function Choix({
   )
 }
 
+/**
+ * Le message de succès, en bloc miel plein.
+ *
+ * Un quart de teinte sur crème passait inaperçu : la recette 4 l'a signalé,
+ * et le board réserve le miel à la célébration. Un enregistrement réussi est
+ * une petite célébration, il se voit.
+ */
 export function Succes({ message }: { message?: string }) {
   if (!message) return null
   return (
-    <p role="status" className="mt-5 rounded-champ bg-celebration/25 px-5 py-3 font-semibold">
+    <p
+      role="status"
+      className="mt-5 rounded-carte bg-celebration px-5 py-4 text-lg font-bold text-texte-sur-miel"
+    >
       {message}
     </p>
   )

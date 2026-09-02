@@ -10,6 +10,7 @@ import {
   LIGNE_PANNEAU,
   LIGNE_RETENUE,
   bordure,
+  DESACTIVE,
 } from './styles'
 
 /**
@@ -86,7 +87,7 @@ export function SelecteurHeure({
           onClick={() => {
             setOuvert(!ouvert)
           }}
-          className={`${SURFACE_CHAMP} ${bordure(fautif, ouvert)} flex items-center justify-between gap-3 hover:border-prune disabled:cursor-not-allowed disabled:opacity-55 disabled:hover:border-trait-discret`}
+          className={`${SURFACE_CHAMP} ${bordure(fautif, ouvert)} flex items-center justify-between gap-3 hover:border-prune ${DESACTIVE}`}
         >
           <span className={valeur ? 'font-mono' : 'text-texte-attenue'}>{valeur || 'Choisir'}</span>
           <span aria-hidden className="shrink-0 text-texte-secondaire">

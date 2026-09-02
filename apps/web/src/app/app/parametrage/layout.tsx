@@ -9,6 +9,9 @@ import Link from 'next/link'
  */
 
 const SECTIONS = [
+  // Le hub (board 10c) est le point d'entrée : les écrans d'édition subsistent
+  // derrière chaque section, ils cessent d'être la porte.
+  { href: '/app/parametrage', texte: 'Ton activité' },
   { href: '/app/parametrage/prestations', texte: 'Prestations' },
   { href: '/app/parametrage/zone', texte: 'Zone d’intervention' },
   { href: '/app/parametrage/horaires', texte: 'Horaires' },
@@ -25,7 +28,7 @@ export default function LayoutParametrage({ children }: { children: React.ReactN
             <li key={s.href}>
               <Link
                 href={s.href}
-                className="block rounded-champ px-4 py-3 font-semibold whitespace-nowrap hover:bg-fond"
+                className="block rounded-champ px-4 py-3 font-semibold whitespace-nowrap hover:bg-surface"
               >
                 {s.texte}
               </Link>

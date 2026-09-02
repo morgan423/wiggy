@@ -20,6 +20,75 @@ _Rien en attente._
 
 ---
 
+## 2026-09-02 Étape : lot 1 bis, la composition du board appliquée
+
+**Fait :**
+
+- **`CLAUDE.md` reformulé.** « Le board est une référence de rendu, jamais un socle de code »
+  disait « ne recopie pas son HTML » et a été lu « le board n'est qu'une inspiration ». La règle
+  dit maintenant que **le board fait foi pour la composition** : on ne recopie pas son HTML, on
+  en respecte la structure, les proportions et le ratio, et en cas d'hésitation la réponse est
+  dans le board, pas dans le jugement de qui code. La règle de ratio, la composition asymétrique
+  et l'axe WONK y sont chacun une ligne à part, plus une incise en fin de phrase.
+- **Le hub « Ton activité »** (planche 10c) existe, à `/app/parametrage`, et devient le point
+  d'entrée. Il affiche l'**état réel** des quatre réglages : prestations avec prix et durée à
+  droite, communes en pastilles prune, horaires et congés en lignes de résumé, ajouts par boutons
+  en pointillés dans le flux. Les écrans d'édition subsistent derrière chaque section.
+- **Le bloc pleine couleur ouvre chaque écran de paramétrage**, avec le chiffre que le réglage
+  produit, en miel et en WONK sur prune, comme la planche 11d. Tous les chiffres viennent de la
+  base : heures par semaine calculées sur les plages réelles, jours de congés bornes comprises,
+  nombre de communes, nombre de prestations. Aucun n'est inventé, et un réglage vide affiche
+  l'état vide de la planche 7b plutôt qu'un zéro sans contexte.
+- **Le ratio est rétabli par la structure, pas par des retouches** : le contenu vient **dans** le
+  bloc prune, comme la carte crème de 344 px dans le panneau de 560 px de la planche 11d.
+- **Les six remarques de la recette 4** : le champ de saisie assistée passe sur la surface, les
+  panneaux ne font plus défiler la page derrière eux (`overscroll-contain`), le champ se vide
+  après l'ajout d'une commune, le focus a un traitement unique **en prune** au lieu du framboise
+  trop proche de la brique de l'erreur, le message de succès devient un bloc miel plein, et
+  l'état désactivé passe sur la crème au lieu d'une simple opacité.
+- **Classe `chiffre-heros`** ajoutée aux tokens de la feuille globale, et la règle de
+  `design:check` corrigée pour l'autoriser dans l'application tout en gardant `statement` au site.
+
+**Schéma :** aucun.
+
+**Décisions :** aucune nouvelle. Application des planches 8a, 10c, 11d et 7b.
+
+**Écarts au brief :**
+
+- **La couleur des étiquettes de section du board n'a pas été reprise.** La planche 10c les pose
+  en brun terracotta `#a4552f`, qui n'appartient pas à la palette ratifiée. La planche 8a demande
+  précisément de purger les couleurs hors palette du livrable dev : elles utilisent
+  `texte-secondaire`. C'est le seul point où le board se contredit lui-même.
+- **La carte crème est centrée dans le bloc prune**, ce qui peut se lire comme du tout-centré.
+  C'est ce que fait la planche 11d : la carte de 344 px est en `align-self: center` dans le
+  panneau. La règle « tout-centré banni » porte sur le statement, qui est bien à gauche.
+- **Le premier essai avait le ratio inversé** malgré le bloc prune : posé en frère de la carte
+  crème, il ne couvrait qu'un cinquième de l'écran. Vu à l'écran, corrigé par imbrication. Sans
+  l'avoir regardé, le lot serait parti avec le défaut qu'il devait corriger.
+
+**Questions ouvertes :**
+
+- **Le système d'avatars dessinés** reste un chantier à part. Les états vides utilisent d'ici là
+  un substitut neutre, jamais une illustration improvisée.
+- **Les statements des écrans sont de notre plume** : « Ce que tu proposes. », « Où tu te
+  déplaces. », « Tes journées de travail. », « Quand tu ne travailles pas. ». Le board donne le
+  ton, pas ces phrases. À ratifier.
+
+**À recetter par Morgan**, board ouvert à côté, **sur les écrans réels et non sur la galerie** :
+
+- **`/app/parametrage`** : le hub montre-t-il l'état réel des quatre réglages ? Les pastilles, les
+  boutons en pointillés, les prix alignés à droite.
+- **Le ratio, à l'œil nu**, sur les cinq écrans : plus de prune que de crème.
+- **Un compte vide** : chaque section doit montrer un état vide qui invite, pas un zéro.
+- **Le focus au clavier** : un seul contour, prune sur crème, miel sur les blocs pleins, et plus
+  aucune confusion possible avec le rouge de l'erreur.
+- **La zone** : ajouter une commune doit vider le champ et afficher un bloc miel.
+- **Les heures** : faire défiler la liste ne doit plus emporter la page.
+
+**Statut à reporter dans la roadmap :** aucun changement d'identifiant.
+
+---
+
 ## 2026-09-02 Étape : lot 1, la trousse de composants
 
 **Fait :**
