@@ -7,7 +7,15 @@ import { copy, remplir } from './index.ts'
 
 const racine = join(dirname(fileURLToPath(import.meta.url)), '..')
 
-/** Toutes les chaînes verbatim relevées sur le board. */
+/**
+ * Toutes les chaînes verbatim des SOURCES RATIFIÉES.
+ *
+ * Deux sources désormais, et le test ne fait pas la différence entre elles :
+ * le board de la phase 2 (`bloc: 1a` à `13b`), et la spécification écran par
+ * écran de Design (`bloc: spec-14`), qui fait foi pour les écrans depuis la
+ * livraison 1. Un texte qui ne vient d'aucune des deux est un texte inventé, et
+ * il doit se déclarer sous `$aEcrire`.
+ */
 function chainesDuBoard(): string[] {
   const dossier = join(racine, 'source')
   return readdirSync(dossier)
@@ -18,9 +26,14 @@ function chainesDuBoard(): string[] {
     })
 }
 
-/** Compare à la ponctuation près : le deck filtre les cadratins du board. */
+/**
+ * Compare à la ponctuation près : le deck filtre les cadratins des sources.
+ * Les glyphes d'icône (coche, croix) sont ignorés de la même façon : ils
+ * appartiennent au rendu de la planche, pas au texte.
+ */
 const normaliser = (s: string) =>
   s
+    .replace(/[✓✕✔✖]/g, ' ')
     .replace(/[—–]/g, ',')
     .replace(/[:,;.]/g, '')
     .replace(/['’]/g, "'")

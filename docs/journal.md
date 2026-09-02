@@ -20,6 +20,93 @@ _Rien en attente._
 
 ---
 
+## 2026-09-02 Étape : D9 authentification du pro, A8 forfait de déplacement de base
+
+Livraison 1 de la spécification de Claude Design, planches 14a à 14g.
+
+**Fait :**
+
+- **Le plafond anti-pompage, écrit AVANT la première ligne de vérification**, comme la décision
+  l'exige. Trois compteurs, parce qu'un seul se contourne : par numéro (3 par heure, 6 par jour),
+  par appelant (5 et 15), et un **coupe-circuit global** à 400 SMS par jour, qui borne la casse
+  d'une journée de pompage à une vingtaine d'euros même si un réseau de machines passe sous les
+  deux premiers. Le tout sur `rate_limits` et `consommer_quota()`, plus le piège anti-robot de la
+  migration 0005 sur les deux formulaires atteignables sans être connecté.
+- **Le numéro n'est jamais journalisé ni posé en clair dans une clé de quota** : seule son
+  empreinte salée sert de compteur. Et le code n'est jamais stocké en clair : une fuite de
+  `phone_verifications` ne doit pas permettre de prendre un compte.
+- **Les cinq écrans du côté pro de 14b** : inscription (« Bienvenue chez Wiggy. », 8 caractères
+  comme la spécification, contre 10 auparavant), connexion (« Te revoilà. » et le lien d'oubli),
+  vérification du téléphone, vérification de l'e-mail, mot de passe oublié.
+- **La récupération passe par le téléphone vérifié, jamais par un lien e-mail** : une boîte
+  compromise ne doit pas suffire à prendre un compte. Le trou signalé le 31/08, l'absence totale
+  de récupération, se referme sans chantier dédié.
+- **La mise en ligne de la page est désactivée** tant que l'e-mail et le téléphone ne sont pas
+  vérifiés, et **la rangée d'invite apparaît dans le hub**, en nommant ce qui manque plutôt qu'en
+  disant « incomplet ».
+- **A8** : le forfait de déplacement de base, sur la ligne `from_km = 0` de `distance_fees`.
+  **La table perd sa lecture publique** (migration 0009), la politique et le droit retirés
+  ensemble. Matrice d'accès régénérée.
+- **Trois tests de base** prouvent ce qui compte : le forfait est illisible pour une visiteuse et
+  lisible par sa pro, la table des codes est verrouillée pour la visiteuse comme pour le pro, et
+  la mémoire du numéro vérifié existe des deux côtés.
+- **La spécification devient une source ratifiée du copy deck**, au même titre que le board :
+  242 chaînes extraites dans `packages/copy/source/spec-14.json`. Le test qui refuse les textes
+  inventés les accepte donc, et continue de refuser le reste.
+
+**Schéma :** migration `0009_auth_et_forfait.sql`, **EN ATTENTE d'application par Morgan**.
+
+**Décisions :** application de D9 et A8. Aucune nouvelle.
+
+**Écarts au brief :**
+
+- **Aucun SMS ne part réellement** : B7 n'est pas construit et aucun fournisseur n'est branché.
+  L'interface existe, et **en développement seulement** le code s'affiche à l'écran, sinon la
+  vérification du téléphone serait irrecettable. La garde est en liste blanche : une variable
+  absente ferme le passage.
+- **Ceci ne contredit pas le principe n°1.** « Aucun envoi automatique de SMS sans validation du
+  pro » protège les clientes des envois décidés par l'app. Un code de vérification est demandé
+  par la personne qui le reçoit, pour elle-même.
+- **La récupération ne révèle jamais si un compte existe** : adresse inconnue, compte sans
+  téléphone vérifié et compte valide reçoivent la même réponse. Dire « ce compte n'a pas de
+  téléphone vérifié » ferait de cet écran un annuaire des comptes Wiggy.
+- **Le mot de passe passe de 10 à 8 caractères**, la spécification faisant foi pour les écrans.
+  C'est un assouplissement, je le signale plutôt que de le glisser.
+- **Trois choses non construites, délibérément** : la vérification du numéro de la cliente,
+  l'écran de proposition du forfait par la pro, et l'écran de confirmation par la cliente. Elles
+  vivent dans le tunnel ou dans l'agenda, donc en livraisons 2 et 3. La structure les attend :
+  `clients.phone_verified_at` existe déjà, et `phone_verifications.pro_id` est nullable pour
+  porter une vérification sans compte.
+- **Un commentaire faux corrigé au passage** dans `lib/quota.ts` : il affirmait que `anon` peut
+  insérer dans `city_waitlist` via PostgREST, ce que la décision verrouillée interdit
+  précisément. Il aurait fait croire à une faille inexistante, ou pire, servi d'argument pour en
+  ouvrir une.
+
+**Questions ouvertes :**
+
+- **Le fournisseur SMS** reste à choisir (B7). Tant qu'il manque, la vérification du téléphone ne
+  se recette qu'en développement.
+- **Le sender ID des SMS** reste ouvert depuis le 30/08.
+
+**À recetter par Morgan**, après avoir collé la migration 0009 :
+
+- **Inscription** : créer un compte, vérifier qu'on arrive sur la vérification du téléphone.
+- **Téléphone** : saisir un numéro, lire le code dans le bandeau abricot de développement, le
+  saisir. Un code faux, puis un code expiré, doivent donner deux messages différents.
+- **Le plafond** : demander quatre codes de suite pour le même numéro. Le quatrième doit être
+  refusé, en français, sans que rien ne parte.
+- **La mise en ligne** : tant que l'e-mail n'est pas vérifié, elle doit refuser en nommant ce qui
+  manque. La rangée d'invite doit être en tête du hub.
+- **A8** : poser un forfait de base sur l'écran de zone, puis vérifier qu'il **n'apparaît nulle
+  part** sur la page publique.
+- `npm run vues` régénère les captures avec les nouveaux écrans.
+
+**Statut à reporter dans la roadmap :** `D9` et `A8` sont mises en œuvre sur leur périmètre de
+livraison 1. `A8` reste en cours : ses deux autres pièces, la proposition et la confirmation,
+sont en livraisons 2 et 3.
+
+---
+
 ## 2026-09-02 Étape : `npm run vues`, captures d'écran et contrôle de contraste
 
 Lot 2 gelé jusqu'à la spécification de Claude Design. Seule chose construite pendant ce gel.

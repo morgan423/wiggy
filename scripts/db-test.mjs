@@ -341,3 +341,64 @@ describe('A4 — photos de la réservation', () => {
     })
   })
 })
+
+describe('D9 / A8 — authentification et forfait de déplacement', () => {
+  test('le forfait de déplacement n’est plus lisible par une visiteuse', async () => {
+    // A8 : le montant ne sort JAMAIS côté cliente. Un « +10 € » public
+    // ancrerait la pro trop bas quand le trajet est long ; elle découvre le
+    // montant dans sa proposition, et la cliente le confirme.
+    await asPro(db, ALICE, async () => {
+      await db.query(
+        `insert into distance_fees (pro_id, from_km, fee_cents) values ($1, 0, 1000)`,
+        [ALICE],
+      )
+    })
+    await asAnon(db, async () => {
+      const r = await tenter(db, 'select fee_cents from distance_fees')
+      assert.equal(r.ok, false, 'le montant du forfait ne doit pas être lisible')
+      assert.match(r.message, /permission denied/i)
+    })
+    // Le pro, lui, lit et modifie le sien.
+    await asPro(db, ALICE, async () => {
+      const { rows } = await db.query('select fee_cents from distance_fees')
+      assert.equal(rows[0].fee_cents, 1000)
+    })
+  })
+
+  test('la table des codes est verrouillée par conception', async () => {
+    // Même principe que `city_waitlist` : RLS active, aucune politique. Les
+    // codes ne s'écrivent et ne se lisent que par la route serveur, qui porte
+    // les plafonds anti-pompage. Ajouter une politique les contournerait.
+    for (const [role, jouer] of [
+      ['visiteuse', (f) => asAnon(db, f)],
+      ['pro', (f) => asPro(db, ALICE, f)],
+    ]) {
+      await jouer(async () => {
+        const lecture = await tenter(db, 'select * from phone_verifications')
+        assert.equal(lecture.rows?.length ?? 0, 0, `${role} ne doit rien lire`)
+        const ecriture = await tenter(
+          db,
+          `insert into phone_verifications (phone, code_hash, expires_at)
+           values ('0600000000', 'x', now() + interval '10 minutes')`,
+        )
+        assert.equal(ecriture.ok, false, `${role} ne doit rien écrire`)
+      })
+    }
+  })
+
+  test('un numéro vérifié se retient, des deux côtés', async () => {
+    // D9 : vérifier à chaque réservation ajouterait un SMS par rendez-vous,
+    // soit 43 % de plus sur le poste variable dominant. La mémoire du numéro
+    // est ce qui rend la décision tenable, et elle existe dès maintenant même
+    // si l'écran cliente arrive en livraison 2.
+    await asPro(db, ALICE, async () => {
+      await db.query(`update pros set phone_verified_at = now() where id = $1`, [ALICE])
+      const { rows: fiche } = await db.query(
+        `insert into clients (pro_id, first_name, phone, phone_verified_at)
+         values ($1, 'Marie', '0611223344', now()) returning phone_verified_at`,
+        [ALICE],
+      )
+      assert.ok(fiche[0].phone_verified_at, 'la fiche cliente retient sa vérification')
+    })
+  })
+})

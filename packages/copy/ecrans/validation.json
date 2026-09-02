@@ -37,6 +37,14 @@
     "proVilleRequise": "Indique la ville.",
     "proJourRequis": "Choisis le jour de la semaine.",
     "proHeureRequise": "Choisis une heure.",
-    "proDateRequise": "Choisis une date."
+    "proDateRequise": "Choisis une date.",
+    "proMotDePasseCourt": "8 caractères minimum.",
+    "proCodeFaux": "Ce code ne correspond pas. Vérifie les cinq chiffres.",
+    "proCodeExpire": "Ce code a expiré. Demande-en un nouveau.",
+    "proCodeTropDeTentatives": "Trop d’essais. Demande un nouveau code.",
+    "proPlafondNumero": "Trop de codes demandés pour ce numéro. Réessaie dans une heure.",
+    "proPlafondAppelant": "Trop de demandes depuis cet appareil. Réessaie dans une heure.",
+    "proPlafondGlobal": "L’envoi de codes est momentanément suspendu. Réessaie plus tard.",
+    "proSmsIndisponible": "L’envoi n’a pas abouti. Réessaie dans un instant."
   }
 }

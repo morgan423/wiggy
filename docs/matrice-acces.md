@@ -25,8 +25,8 @@ Trois rôles interviennent :
 | `communes` | `communes_publiques` : visiteuse anonyme, pro authentifié peut **lire** | `true` |
 | `communes_import` | 🔒 RLS active, **aucune politique** | Verrouillée par conception : écriture via route serveur uniquement (service_role). |
 | `distance_fees` | `pro_owns` : pro authentifié peut **lire/écrire/modifier/supprimer** | `(pro_id = auth.uid())` |
-| `distance_fees` | `public_distance_fees` : visiteuse anonyme peut **lire** | `(EXISTS ( SELECT 1 FROM pros p WHERE ((p.id = distance_fees.pro_id) AND p.published)))` |
 | `geocodage_refus` | 🔒 RLS active, **aucune politique** | Verrouillée par conception : écriture via route serveur uniquement (service_role). |
+| `phone_verifications` | 🔒 RLS active, **aucune politique** | Verrouillée par conception : écriture via route serveur uniquement (service_role). |
 | `pro_settings` | `pro_owns` : pro authentifié peut **lire/écrire/modifier/supprimer** | `(pro_id = auth.uid())` |
 | `pro_settings` | `public_booking_settings` : visiteuse anonyme peut **lire** | `(EXISTS ( SELECT 1 FROM pros p WHERE ((p.id = pro_settings.pro_id) AND p.published)))` |
 | `pros` | `pro_self` : pro authentifié peut **lire/écrire/modifier/supprimer** | `(id = auth.uid())` |
@@ -52,7 +52,6 @@ base, quelle qu'en soit la provenance.
 | Table | Colonnes exposées |
 |---|---|
 | `communes` | `insee_code`, `lat`, `lng`, `name`, `population`, `postal_codes`, `search_key`, `updated_at` |
-| `distance_fees` | `fee_cents`, `from_km`, `id`, `pro_id` |
 | `pro_settings` | `booking_confirmation_mode`, `default_deposit_percent`, `free_cancellation_hours`, `payment_mode`, `pro_id` |
 | `pros` | `bio`, `city`, `display_name`, `headline`, `id`, `instagram_url`, `photo_url`, `pronoun`, `published`, `slug`, `years_experience` |
 | `service_area_communes` | `insee_code`, `lat`, `lng`, `name`, `postal_code`, `pro_id` |
@@ -68,10 +67,6 @@ besoin avant de réserver ?**
 ### `communes_publiques` · `communes`
 
 Référentiel public de l'État (code INSEE, nom, codes postaux, centroïde), importé en base par la décision D6 pour ne plus dépendre d'un service tiers à l'exécution. Aucune donnée personnelle : ce sont des communes, déjà librement consultables sur geo.api.gouv.fr. La cliente en a besoin AVANT de réserver, pour savoir si elle est desservie, et la pro pour composer sa zone. L'écriture reste au service_role : aucune politique ne l'ouvre.
-
-### `public_distance_fees` · `distance_fees`
-
-Le supplément kilométrique fait partie du prix annoncé (A8). Le cacher jusqu'au paiement serait une mauvaise surprise, et la roadmap exige des tarifs justes sur la page publique.
 
 ### `public_booking_settings` · `pro_settings`
 

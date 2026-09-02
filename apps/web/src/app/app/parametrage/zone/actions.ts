@@ -1,8 +1,9 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { CommuneInput } from '@wiggy/api'
-import { champ, champTexte, erreur, ok, type EtatForm } from '@/lib/forms'
+import { CommuneInput, V } from '@wiggy/api'
+import { parseEuros, formatEuros } from '@wiggy/core'
+import { champ, champTexte, erreur, erreurBase, ok, type EtatForm } from '@/lib/forms'
 import { requirePro } from '@/lib/auth'
 import { supabaseServer } from '@/lib/supabase/server'
 import { chercherCommunes } from '@/lib/communes'
@@ -70,4 +71,39 @@ export async function chercherCommunesAssistee(terme: string) {
   // on lève plutôt que de rendre un tableau vide qui mentirait.
   if (resultats === null) throw new Error('referentiel_communes_indisponible')
   return resultats
+}
+
+/**
+ * A8 : le forfait de déplacement de base.
+ *
+ * La ligne `from_km = 0` de `distance_fees` le porte : c'est le forfait qui
+ * s'applique dès qu'on sort de la zone, sans seuil kilométrique.
+ *
+ * `distance_fees` a perdu sa lecture publique (migration 0009) : ce montant ne
+ * sort plus jamais côté cliente.
+ */
+export async function enregistrerForfait(
+  precedent: EtatForm,
+  donnees: FormData,
+): Promise<EtatForm> {
+  const saisi = champ(donnees, 'forfait')
+  const { pro } = await requirePro()
+  const supabase = await supabaseServer()
+
+  if (!saisi) {
+    await supabase.from('distance_fees').delete().eq('pro_id', pro.id).eq('from_km', 0)
+    revalidatePath(CHEMIN)
+    return ok(precedent, 'Aucun forfait ne sera proposé.')
+  }
+
+  const cents = parseEuros(saisi)
+  if (cents === null) return erreur(precedent, V.prixInvalide, donnees)
+
+  const { error } = await supabase
+    .from('distance_fees')
+    .upsert({ pro_id: pro.id, from_km: 0, fee_cents: cents }, { onConflict: 'pro_id,from_km' })
+  if (error) return erreurBase(precedent, 'forfait_failed', error, donnees)
+
+  revalidatePath(CHEMIN)
+  return ok(precedent, `Forfait de base enregistré : ${formatEuros(cents)}.`)
 }

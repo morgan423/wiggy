@@ -70,6 +70,7 @@
     "photosEnvoi": "Envoi en cours…",
     "photosEchec": "L’envoi n’a pas abouti. Réessayez, ou continuez sans photo.",
     "photosAideEtape": "Vos cheveux aujourd’hui et ce dont vous rêvez : {pro} prépare mieux, et prévoit le temps qu’il faut.",
-    "photosChoisies": "{n} photo(s) choisie(s)."
+    "photosChoisies": "{n} photo(s) choisie(s).",
+    "forfaitTitre": "Au-delà de ta zone"
   }
 }

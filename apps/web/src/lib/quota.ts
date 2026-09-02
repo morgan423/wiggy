@@ -8,11 +8,11 @@ import { supabaseAdmin, supabaseConfigured } from './supabase/admin'
  * Compté en base et non en mémoire : un compteur en mémoire ne verrait qu'une
  * instance sur N et repartirait à zéro à chaque déploiement.
  *
- * ⚠️ Portée réelle : ceci protège le chemin applicatif. Depuis que `anon` peut
- * insérer directement dans `city_waitlist` via PostgREST, un attaquant peut
- * contourner cette couche — ce que la base seule ne peut pas empêcher, faute
- * de connaître l'adresse IP. Les garde-fous du chemin direct sont le WITH CHECK
- * de la politique et le plafond par adresse e-mail (migration 0005).
+ * Portée : ceci protège le chemin applicatif, qui est le SEUL chemin d'écriture
+ * ouvert. `city_waitlist`, `rate_limits`, `geocodage_refus` et
+ * `phone_verifications` sont verrouillées par conception, RLS active et aucune
+ * politique : rien ne s'y écrit via PostgREST. Le plafond par adresse de la
+ * migration 0005 reste la seconde ceinture, côté base.
  */
 
 /** Empreinte de l'IP appelante. On ne stocke jamais l'IP : c'est une donnée personnelle. */

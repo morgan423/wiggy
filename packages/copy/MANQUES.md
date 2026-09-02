@@ -7,6 +7,11 @@ par l'improvisation au moment de coder.
 
 Vérification : `node scripts/copy-manques.mjs`.
 
+**Deux sources ratifiées depuis la livraison 1 de la spécification** : le board de la
+phase 2 (`packages/copy/source/1a.json` à `13b.json`) et la spécification écran par
+écran de Claude Design (`spec-14.json`). Ce document ne liste que ce qui ne vient ni de
+l'un ni de l'autre.
+
 ## Écrans sans aucun copy dans le board
 
 | Écran                                        | Ce qu'il faut écrire                                                                                                                 | Urgence                                                                                              |
@@ -183,3 +188,32 @@ Restent à ratifier, écrits directement dans les écrans faute de source au boa
 l'option neutre de chaque liste (« Choisis un jour », « Choisis dans tes fiches »,
 « Je préfère ne pas préciser »), et les libellés de la case « Visible sur ta page
 de réservation » et de la saisie assistée de communes.
+
+### D9 et A8 : authentification et forfait de déplacement
+
+L'essentiel des textes d'authentification vient de la planche 14b et n'est donc pas ici.
+Ce qui suit est de notre plume : les messages de refus des plafonds anti-pompage, que la
+spécification ne traite pas, et quelques libellés de champ que la planche montre remplis
+sans les nommer.
+
+| Clé                                            | Texte                                                                    |
+| ---------------------------------------------- | ------------------------------------------------------------------------ |
+| `authentification.$aEcrire.gabaritRenvoyer`    | « Renvoyer le code ({secondes} s) »                                      |
+| `authentification.$aEcrire.verifieOk`          | « Ton numéro est vérifié. »                                              |
+| `authentification.$aEcrire.emailChamp`         | « Ton e-mail »                                                           |
+| `authentification.$aEcrire.oubliNumero`        | « Le numéro de ton compte »                                              |
+| `authentification.$aEcrire.codeDeveloppement`  | « Aucun fournisseur SMS configuré. Code de développement : {code} »      |
+| `authentification.$aEcrire.inviteVerification` | « Vérifie ton téléphone et ta boîte mail pour mettre ta page en ligne. » |
+| `authentification.$aEcrire.invitePartielle`    | « Il te reste {reste} à vérifier pour mettre ta page en ligne. »         |
+| `authentification.$aEcrire.telephoneChamp`     | « Ton numéro de téléphone »                                              |
+| `authentification.$aEcrire.telephoneBouton`    | « Recevoir le code »                                                     |
+| `authentification.$aEcrire.plusCeNumero`       | « Je n’ai plus ce numéro »                                               |
+| `reservation-cliente.$aEcrire.forfaitTitre`    | « Au-delà de ta zone »                                                   |
+| `validation.$aEcrire.proMotDePasseCourt`       | « 8 caractères minimum. »                                                |
+| `validation.$aEcrire.proCodeFaux`              | « Ce code ne correspond pas. Vérifie les cinq chiffres. »                |
+| `validation.$aEcrire.proCodeExpire`            | « Ce code a expiré. Demande-en un nouveau. »                             |
+| `validation.$aEcrire.proCodeTropDeTentatives`  | « Trop d’essais. Demande un nouveau code. »                              |
+| `validation.$aEcrire.proPlafondNumero`         | « Trop de codes demandés pour ce numéro. Réessaie dans une heure. »      |
+| `validation.$aEcrire.proPlafondAppelant`       | « Trop de demandes depuis cet appareil. Réessaie dans une heure. »       |
+| `validation.$aEcrire.proPlafondGlobal`         | « L’envoi de codes est momentanément suspendu. Réessaie plus tard. »     |
+| `validation.$aEcrire.proSmsIndisponible`       | « L’envoi n’a pas abouti. Réessaie dans un instant. »                    |

@@ -1,4 +1,5 @@
 import { formatEuros, ZONE } from '@wiggy/core'
+import { copy, remplir } from '@wiggy/copy'
 import { requirePro } from '@/lib/auth'
 import { supabaseServer } from '@/lib/supabase/server'
 import {
@@ -24,6 +25,8 @@ import { JOURS } from './horaires/jours'
  * vide affiche l'état vide de la planche 7b plutôt qu'un zéro sans contexte.
  */
 
+const A = copy.authentification
+
 const jourCourt = new Intl.DateTimeFormat('fr-FR', {
   timeZone: ZONE,
   day: 'numeric',
@@ -33,6 +36,7 @@ const jourCourt = new Intl.DateTimeFormat('fr-FR', {
 export default async function Parametrage() {
   const { pro } = await requirePro()
   const supabase = await supabaseServer()
+  const { data: auth } = await supabase.auth.getUser()
 
   const [prestations, communes, horaires, conges] = await Promise.all([
     supabase
@@ -44,6 +48,19 @@ export default async function Parametrage() {
     supabase.from('working_hours').select('weekday, starts_at, ends_at').order('weekday'),
     supabase.from('time_off').select('id, starts_at, ends_at, label').order('starts_at'),
   ])
+
+  // D9 : tant que les deux vérifications manquent, la rangée d'invite reste
+  // dans le hub et la mise en ligne est désactivée. On nomme ce qui manque
+  // plutôt que de dire « incomplet ».
+  const { data: verifs } = await supabase
+    .from('pros')
+    .select('phone_verified_at')
+    .eq('id', pro.id)
+    .maybeSingle()
+  const aVerifier = [
+    auth.user?.email_confirmed_at ? null : 'ton e-mail',
+    verifs?.phone_verified_at ? null : 'ton téléphone',
+  ].filter((m): m is string => m !== null)
 
   const listePrestations = prestations.data ?? []
   const listeCommunes = communes.data ?? []
@@ -72,6 +89,18 @@ export default async function Parametrage() {
         }
       >
         <CarteCreme titre="Ton activité">
+          {aVerifier.length > 0 ? (
+            <LigneEtat
+              principal={
+                aVerifier.length === 2
+                  ? A.$aEcrire.inviteVerification
+                  : remplir(A.$aEcrire.invitePartielle, { reste: aVerifier[0] })
+              }
+              action="Vérifier"
+              href={verifs?.phone_verified_at ? '/verification/email' : '/verification/telephone'}
+            />
+          ) : null}
+
           <EtiquetteSection>Prestations</EtiquetteSection>
           {listePrestations.length === 0 ? (
             <EtatVide

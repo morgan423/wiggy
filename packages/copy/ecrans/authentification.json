@@ -1,0 +1,55 @@
+{
+  "$ecran": "Authentification du pro (D9, planche 14b)",
+  "$source": "spécification Design, itération 14, planche 14b",
+  "$registre": "pro",
+  "$note": "Formulation neutre : le genre n'est pas encore paramétré au moment de ces écrans.",
+  "inscription": {
+    "titre": "Bienvenue chez Wiggy.",
+    "sousTitre": "Un vrai compte : ton e-mail, ton mot de passe, puis on vérifie ton téléphone et ta boîte mail.",
+    "email": "Ton e-mail",
+    "motDePasse": "Ton mot de passe",
+    "aideMotDePasse": "8 caractères minimum",
+    "bouton": "Créer mon compte",
+    "dejaInscrit": "Déjà un compte ?",
+    "seConnecter": "Se connecter"
+  },
+  "connexion": {
+    "titre": "Te revoilà.",
+    "bouton": "Se connecter",
+    "oublie": "Mot de passe oublié ?"
+  },
+  "telephone": {
+    "titre": "Vérifions ton numéro.",
+    "corriger": "Corriger le numéro",
+    "rienRecu": "Rien reçu ?",
+    "renvoyer": "Renvoyer le code"
+  },
+  "email": {
+    "titre": "Un clic dans ta boîte mail.",
+    "telephoneFait": "Ton téléphone est vérifié : il ne manque que l’e-mail pour mettre ta page en ligne.",
+    "ouvrir": "Ouvrir ma boîte mail",
+    "renvoyer": "Renvoyer l’e-mail"
+  },
+  "oubli": {
+    "titre": "On te rouvre la porte.",
+    "nouveauMotDePasse": "Ton nouveau mot de passe",
+    "bouton": "Changer mon mot de passe"
+  },
+  "$aEcrire": {
+    "$note": "Absent de la spécification : à faire ratifier.",
+    "gabaritRenvoyer": "Renvoyer le code ({secondes} s)",
+    "verifieOk": "Ton numéro est vérifié.",
+    "emailChamp": "Ton e-mail",
+    "oubliNumero": "Le numéro de ton compte",
+    "codeDeveloppement": "Aucun fournisseur SMS configuré. Code de développement : {code}",
+    "inviteVerification": "Vérifie ton téléphone et ta boîte mail pour mettre ta page en ligne.",
+    "invitePartielle": "Il te reste {reste} à vérifier pour mettre ta page en ligne.",
+    "telephoneChamp": "Ton numéro de téléphone",
+    "telephoneBouton": "Recevoir le code",
+    "plusCeNumero": "Je n’ai plus ce numéro"
+  },
+  "gabarits": {
+    "codeEnvoye": "C’est lui qui reçoit tes demandes de rendez-vous. Code envoyé au {numero}.",
+    "codeParTelephone": "Le code part sur ton téléphone vérifié ({numero}), jamais de lien par e-mail."
+  }
+}

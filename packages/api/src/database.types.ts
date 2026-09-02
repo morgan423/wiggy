@@ -249,6 +249,7 @@ export type Database = {
         typical_return_days: number | null
         created_at: string
         updated_at: string
+        phone_verified_at: string | null
         }
         Insert: {
         id?: string
@@ -261,6 +262,7 @@ export type Database = {
         typical_return_days?: number | null
         created_at?: string
         updated_at?: string
+        phone_verified_at?: string | null
         }
         Update: {
         id?: string
@@ -273,6 +275,7 @@ export type Database = {
         typical_return_days?: number | null
         created_at?: string
         updated_at?: string
+        phone_verified_at?: string | null
         }
         Relationships: []
       }
@@ -378,6 +381,42 @@ export type Database = {
         }
         Relationships: []
       }
+      phone_verifications: {
+        Row: {
+        id: string
+        pro_id: string | null
+        phone: string
+        code_hash: string
+        usage: string
+        expires_at: string
+        attempts: number
+        consumed_at: string | null
+        created_at: string
+        }
+        Insert: {
+        id?: string
+        pro_id?: string | null
+        phone: string
+        code_hash: string
+        usage?: string
+        expires_at: string
+        attempts?: number
+        consumed_at?: string | null
+        created_at?: string
+        }
+        Update: {
+        id?: string
+        pro_id?: string | null
+        phone?: string
+        code_hash?: string
+        usage?: string
+        expires_at?: string
+        attempts?: number
+        consumed_at?: string | null
+        created_at?: string
+        }
+        Relationships: []
+      }
       pro_settings: {
         Row: {
         pro_id: string
@@ -430,6 +469,7 @@ export type Database = {
         created_at: string
         updated_at: string
         pronoun: string | null
+        phone_verified_at: string | null
         }
         Insert: {
         id: string
@@ -446,6 +486,7 @@ export type Database = {
         created_at?: string
         updated_at?: string
         pronoun?: string | null
+        phone_verified_at?: string | null
         }
         Update: {
         id?: string
@@ -462,6 +503,7 @@ export type Database = {
         created_at?: string
         updated_at?: string
         pronoun?: string | null
+        phone_verified_at?: string | null
         }
         Relationships: []
       }

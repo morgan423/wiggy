@@ -5,6 +5,7 @@ import notificationCopilote from '../ecrans/notification-copilote.json' with { t
 import ficheCliente from '../ecrans/fiche-cliente.json' with { type: 'json' }
 import demandesPro from '../ecrans/demandes-pro.json' with { type: 'json' }
 import validation from '../ecrans/validation.json' with { type: 'json' }
+import authentification from '../ecrans/authentification.json' with { type: 'json' }
 
 /**
  * Copy deck : la source de vérité du contenu, écran par écran.
@@ -27,6 +28,7 @@ export const copy = {
   ficheCliente,
   demandesPro,
   validation,
+  authentification,
 } as const
 
 export type CopyDeck = typeof copy

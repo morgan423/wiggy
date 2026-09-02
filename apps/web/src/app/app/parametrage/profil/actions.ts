@@ -57,6 +57,10 @@ export async function enregistrerProfil(precedent: EtatForm, donnees: FormData):
  * Arbitrage assumé : on refuse de publier une page sans prestation. Une fiche
  * vide indexée par Google dessert le pro et contredit le principe « aucune
  * donnée fictive ni page creuse en production ». Dépublier reste libre.
+ *
+ * D9 : la mise en ligne exige EN PLUS que l'e-mail et le téléphone soient
+ * vérifiés. Une page publique adossée à un compte non joignable, c'est une
+ * cliente qui réserve chez quelqu'un qu'on ne sait pas prévenir.
  */
 export async function basculerPublication(
   precedent: EtatForm,
@@ -67,6 +71,23 @@ export async function basculerPublication(
   const supabase = await supabaseServer()
 
   if (publierMaintenant) {
+    const { data: auth } = await supabase.auth.getUser()
+    const { data: fiche } = await supabase
+      .from('pros')
+      .select('phone_verified_at')
+      .eq('id', pro.id)
+      .maybeSingle()
+    const manque = [
+      auth.user?.email_confirmed_at ? null : 'ton e-mail',
+      fiche?.phone_verified_at ? null : 'ton téléphone',
+    ].filter((m): m is string => m !== null)
+    if (manque.length > 0) {
+      return erreur(
+        precedent,
+        `Il te reste ${manque.join(' et ')} à vérifier pour mettre ta page en ligne.`,
+      )
+    }
+
     const { count } = await supabase
       .from('services')
       .select('*', { count: 'exact', head: true })

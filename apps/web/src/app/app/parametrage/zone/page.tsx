@@ -1,7 +1,9 @@
 import { requirePro } from '@/lib/auth'
 import { supabaseServer } from '@/lib/supabase/server'
 import { PanneauPlein, CarteCreme } from '@/components/composition'
+import { formatEuros } from '@wiggy/core'
 import { RechercheCommune } from './recherche'
+import { FormForfait } from './forfait'
 import { retirerCommune } from './actions'
 
 export default async function Zone() {
@@ -14,6 +16,13 @@ export default async function Zone() {
     .order('name')
 
   const dejaChoisies = (choisies ?? []).map((c) => c.insee_code)
+
+  // A8 : le forfait de base vit sur la ligne `from_km = 0`.
+  const { data: forfait } = await supabase
+    .from('distance_fees')
+    .select('fee_cents')
+    .eq('from_km', 0)
+    .maybeSingle()
 
   return (
     <>
@@ -59,6 +68,17 @@ export default async function Zone() {
           <section className="mt-12 border-t border-trait-discret pt-8">
             <h2 className="text-xl font-bold tracking-tight">Ajouter une commune</h2>
             <RechercheCommune dejaChoisies={dejaChoisies} />
+          </section>
+
+          <section className="mt-8 border-t border-trait-discret pt-6">
+            <h2 className="text-xl font-bold tracking-tight">Au-delà de ta zone</h2>
+            <p className="mt-2 text-texte-secondaire">
+              Une adresse hors zone n’est pas refusée : elle devient une demande sous réserve, que
+              tu valides.
+            </p>
+            <FormForfait
+              montant={forfait ? formatEuros(forfait.fee_cents).replace(/\s*€/, '') : ''}
+            />
           </section>
         </CarteCreme>
       </PanneauPlein>

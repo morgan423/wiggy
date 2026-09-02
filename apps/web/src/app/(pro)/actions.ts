@@ -2,6 +2,7 @@
 
 import { redirect } from 'next/navigation'
 import { z } from 'zod'
+import { copy } from '@wiggy/copy'
 import { supabaseServer } from '@/lib/supabase/server'
 import { champ } from '@/lib/forms'
 
@@ -24,8 +25,8 @@ const Identifiants = z.object({
 const Inscription = z.object({
   nom: z.string().trim().min(1, 'Indique ton nom professionnel.').max(80),
   email: z.email('Cette adresse e-mail semble incomplète.'),
-  // Supabase impose 6 caractères ; on demande mieux dès le départ.
-  motDePasse: z.string().min(10, 'Choisis un mot de passe d’au moins 10 caractères.'),
+  // La spécification 14b tranche à 8 : c'est elle qui fait foi pour les écrans.
+  motDePasse: z.string().min(8, copy.validation.$aEcrire.proMotDePasseCourt),
 })
 
 export async function seConnecter(_precedent: EtatAuth, donnees: FormData): Promise<EtatAuth> {
@@ -72,7 +73,9 @@ export async function sInscrire(_precedent: EtatAuth, donnees: FormData): Promis
   // fiche pro sera créée au premier accès authentifié (cf. lib/auth.ts).
   if (!data.session) return { statut: 'verifie_tes_mails' }
 
-  redirect('/app')
+  // D9 : l'inscription enchaîne directement sur les deux vérifications,
+  // téléphone puis e-mail. La page ne se met pas en ligne avant les deux.
+  redirect('/verification/telephone')
 }
 
 export async function seDeconnecter() {
