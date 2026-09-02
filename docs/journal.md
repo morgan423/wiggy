@@ -16,10 +16,6 @@ question qui ne vit que dans le chat disparaît avec la session. Trois lignes : 
 qu'elle bloque, la date. À la clôture, la question et sa réponse basculent dans l'entrée de
 l'étape et cette section se vide.
 
-- **L'essai est-il tout compris lui aussi ?** `TRIAL_SMS_QUOTA` valait 50 et l'essai se fait sur
-  le palier 2, désormais tout compris (B7 réécrite le 02/09). Bloque la définition de ce que
-  l'essai inclut en SMS, donc le contenu même de la promesse d'essai. Sans limite, c'est un
-  vecteur d'abus ; bridé, il ne montre pas le produit qu'on achète. Posée le 2026-09-02.
 - **La promesse de rappel par SMS est encore inconditionnelle côté cliente.** Le copy deck écrit
   « {pro} sera chez vous {quand}, rappel par SMS la veille » sans regarder le palier
   (`reservation-cliente.gabarits.confirmationDetail`), et la même promesse figure dans
@@ -28,6 +24,83 @@ l'étape et cette section se vide.
   le palier ET selon l'état de bascule : la variante de texte revient à Design, elle ne
   s'improvise pas dans le code. Bloque la vérité de la page de réservation pour le palier 1.
   Trouvée le 2026-09-02, non corrigée.
+
+---
+
+## 2026-09-02 Étape : D12 anatomie unique, défauts de la recette 6, D11 SMS de l'essai
+
+**Recette 6 : six passages sur six passés.** Les deux écarts au brief de la livraison 1 sont
+ratifiés par Morgan : la barre de navigation à trois entrées, et le prune en bandeau plutôt qu'en
+conteneur. Les trois défauts ci-dessous sont des corrections d'usage, pas un refus de livraison.
+
+**Fait :**
+
+- **D12, une seule anatomie à toutes les largeurs.** La barre du haut et la colonne latérale du
+  paramétrage ont disparu **partout**, pas seulement en mobile. Bandeau prune en tête, corps sur
+  la crème, cartes sur la surface, barre prune en navigation. Ce reliquat n'avait jamais été
+  dessiné, et c'est lui qui avait fait marquer deux passages cassés sur un rendu que personne
+  n'avait conçu.
+- **Sur grand écran, la barre du bas se redresse en colonne à gauche**, et le contenu se centre
+  dans une colonne lisible. C'est le choix que D12 ② laissait ouvert : une barre horizontale
+  collée en bas d'un écran de 27 pouces est loin de tout, alors qu'une colonne à gauche est là où
+  l'œil la cherche. C'est la même barre, avec des classes de largeur, pas un second composant.
+- **La déconnexion a suivi.** Elle vivait dans la barre du haut : elle est désormais en fin de
+  hub, l'écran du compte, discrète et séparée des réglages par un filet.
+- **Défaut 1** : « Paramétrage » atterrissait sur Prestations. Les deux liens fautifs pointent le
+  hub, et celui de la barre du haut a disparu avec elle.
+- **Défaut 2** : le bouton « + Ajouter une prestation » est retiré du hub. La planche 14c dit que
+  le hub résume et ouvre, sans aucune édition directe.
+- **Défaut 3** : le formulaire « Nouvelle prestation » ne s'ouvre plus que sur action. Il y avait
+  deux affordances d'ajout concurrentes sur le même écran, dont une qui n'attendait aucun geste.
+  Il n'en reste qu'une, et c'est elle qui commande l'ouverture. Sur une liste vide, elle prend la
+  forme du bouton framboise de la planche 14d ; sinon, celle du bouton en pointillés.
+- **D11 ②** : `TRIAL_SMS_QUOTA` avait déjà été supprimée à l'étape précédente. Le commentaire de
+  `tiers.ts` dit maintenant que c'est **la décision** de D11 et non un effet de bord : l'essai est
+  un palier 2 sans exception, et une constante d'essai qui vaudrait la même chose que le palier
+  serait une occasion de divergence future.
+- **D11 ④, la restriction de destination**, au même endroit que les trois compteurs
+  anti-pompage, et éprouvée **avant** eux : refuser sans avoir rien compté évite qu'un fraudeur
+  consomme nos compteurs avec des numéros qui ne partiront jamais. La règle vit dans le domaine,
+  `packages/core/src/telephone.ts`, avec quatre tests : une règle de sécurité qu'on peut exécuter
+  est une règle qu'on peut prouver.
+- **Une seule normalisation de numéro**, celle du domaine. Celle de `lib/sms/codes.ts` a été
+  retirée : deux normalisations qui divergent laisseraient un numéro compté d'un côté et envoyé
+  de l'autre.
+- **`npm run vues`** repose la barre en flux le temps de la capture. Elle s'imprimait au travers
+  du contenu sur les images de page entière, et la recette se fait désormais sur ces images.
+
+**Schéma :** aucun.
+
+**Décisions :** application de D11 et D12. Aucune nouvelle.
+
+**Écarts au brief :**
+
+- **La barre latérale sur grand écran est un choix, pas une lecture de planche.** Le board ne
+  contient aucune planche bureau, D12 ② l'autorisait sans l'imposer. Je l'ai fait, et je le dis
+  comme demandé. Réversible en une classe si la barre horizontale est préférée.
+- **Les DOM sont ouverts, les collectivités d'outre-mer ne le sont pas.** D11 écrit « France
+  métropolitaine et DOM » : la Nouvelle-Calédonie, la Polynésie et Wallis sont hors du plan de
+  numérotation français et restent fermées. Un test le fixe, pour que ce ne soit pas un oubli.
+- **L'agenda B10 n'a pas été touché**, conformément à l'exception réservée à la livraison 3. Il
+  hérite malgré lui de l'anatomie unique, puisque le cadre est partagé : sa vue semaine sur une
+  colonne étroite reste à traiter avec la livraison 3.
+
+**Questions ouvertes :** la ligne de la promesse de rappel reste ouverte dans la section
+d'arbitrage. Celle de l'essai tout compris est **fermée par D11** et retirée.
+
+**À recetter par Morgan**, sur `captures/` :
+
+- **Le hub** ne porte plus aucun bouton d'ajout, et « Se déconnecter » est en fin de page.
+- **Prestations** : une seule affordance d'ajout, le formulaire fermé au chargement, qui s'ouvre
+  au clic et se referme sur « Annuler ».
+- **En grand écran** : la barre à gauche, le contenu centré, plus aucune barre en haut ni de
+  colonne d'onglets.
+- **La restriction de destination** : saisir un numéro étranger à la vérification du téléphone
+  doit refuser, en français, sans qu'aucun compteur ne bouge.
+- **Les captures** ne portent plus de barre en travers du contenu.
+
+**Statut à reporter dans la roadmap :** aucun changement d'identifiant. D11 et D12 sont
+appliquées ; l'exception d'agenda de D12 ⑤ reste ouverte pour la livraison 3.
 
 ---
 

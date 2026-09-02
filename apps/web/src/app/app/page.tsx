@@ -24,7 +24,7 @@ export default async function AccueilApp() {
     {
       fait: (prestations ?? 0) > 0,
       texte: 'Créer tes prestations',
-      lien: '/app/parametrage/prestations',
+      lien: '/app/parametrage',
     },
     {
       fait: (communes ?? 0) > 0,

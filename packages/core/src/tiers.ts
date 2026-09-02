@@ -92,6 +92,13 @@ const MINIMUM_TIER: Record<Capability, Tier> = {
  * Le plafond d'usage raisonnable, la cascade d'alerte et le pack complémentaire
  * naîtront avec B7, en même temps que le code qui les utilise : les déclarer
  * ici d'avance donnerait des constantes que personne n'appelle.
+ *
+ * D11 confirme la suppression de `TRIAL_SMS_QUOTA` et en fait la décision, pas
+ * un effet de bord : **l'essai est un palier 2 sans exception**, mêmes SMS,
+ * même clause d'usage, même cascade. Une constante d'essai qui vaudrait la
+ * même chose que le palier serait une occasion de divergence future. Le
+ * garde-fou de l'essai n'est pas un quota plus bas, c'est la restriction de
+ * destination, posée avec les compteurs anti-pompage.
  */
 
 const RANK: Record<Tier, number> = { tier_1: 1, tier_2: 2, tier_3: 3 }

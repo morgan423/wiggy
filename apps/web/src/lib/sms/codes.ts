@@ -1,4 +1,5 @@
 import { createHash, randomInt } from 'node:crypto'
+import { numeroFrancais } from '@wiggy/core'
 import { supabaseAdmin, supabaseConfigured } from '@/lib/supabase/admin'
 import { plafondEnvoiCode, type RefusPlafond } from './plafonds'
 import { envoyerCode } from './index'
@@ -12,7 +13,16 @@ import { envoyerCode } from './index'
  *
  * La table est verrouillée par conception : tout passe par ici, en service
  * role, et les plafonds anti-pompage sont éprouvés AVANT la génération.
+ *
+ * La normalisation vient du domaine (`numeroFrancais`), la même que celle qui
+ * borne les destinations : deux normalisations qui divergent laisseraient un
+ * numéro compté d'un côté et envoyé de l'autre.
  */
+
+/** Ramène au format national. Le refus de destination est traité en amont. */
+export function normaliserNumero(saisie: string): string {
+  return numeroFrancais(saisie) ?? saisie.replace(/\D/g, '')
+}
 
 /** Cinq chiffres : la spécification vérifie automatiquement au cinquième. */
 const LONGUEUR = 5
@@ -28,13 +38,6 @@ export type Usage = 'verification' | 'recuperation'
 function empreinte(code: string): string {
   const sel = process.env.RATE_LIMIT_SALT ?? ''
   return createHash('sha256').update(`${sel}:code:${code}`).digest('hex')
-}
-
-/** Normalise un numéro français pour le comparer et le compter de façon stable. */
-export function normaliserNumero(numero: string): string {
-  const chiffres = numero.replace(/\D/g, '')
-  if (chiffres.startsWith('33')) return `0${chiffres.slice(2)}`
-  return chiffres
 }
 
 export type EnvoiCode =

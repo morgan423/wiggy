@@ -2,12 +2,8 @@ import { formatEuros, ZONE } from '@wiggy/core'
 import { copy, remplir } from '@wiggy/copy'
 import { requirePro } from '@/lib/auth'
 import { supabaseServer } from '@/lib/supabase/server'
-import {
-  EnteteEcran,
-  CarteEcran,
-  EtiquetteSection,
-  BoutonPointille,
-} from '@/components/composition'
+import { EnteteEcran, CarteEcran, EtiquetteSection } from '@/components/composition'
+import { seDeconnecter } from '@/app/(pro)/actions'
 
 /**
  * Le hub « Ton activité », planche 10c du board.
@@ -178,11 +174,20 @@ export default async function Parametrage() {
         href={pret || pro.published ? '/app/parametrage/profil' : undefined}
       />
 
-      <div className="mt-6">
-        <BoutonPointille href="/app/parametrage/prestations">
-          + Ajouter une prestation
-        </BoutonPointille>
-      </div>
+      {/*
+        La déconnexion vivait dans la barre du haut, supprimée par D12. Sa place
+        est ici : le hub est l'écran du compte, et la planche 14c n'en montre
+        aucune autre. Discrète, en fin de page, jamais à côté d'une action de
+        réglage.
+      */}
+      <form action={seDeconnecter} className="mt-10 border-t border-trait-discret pt-6">
+        <button
+          type="submit"
+          className="tactile font-semibold text-texte-secondaire hover:text-erreur"
+        >
+          Se déconnecter
+        </button>
+      </form>
     </>
   )
 }

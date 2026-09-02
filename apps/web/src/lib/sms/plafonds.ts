@@ -1,4 +1,5 @@
 import { createHash } from 'node:crypto'
+import { destinationSmsAutorisee } from '@wiggy/core'
 import { quotaDisponible, quotaGlobal } from '@/lib/quota'
 
 /**
@@ -10,7 +11,16 @@ import { quotaDisponible, quotaGlobal } from '@/lib/quota'
  * que nous payons. Le poste variable dominant du produit est justement le SMS :
  * un pompage réussi ne dégrade pas le service, il vide la trésorerie.
  *
- * Trois plafonds, parce qu'un seul se contourne :
+ * Un garde-fou de destination, plus trois plafonds.
+ *
+ * ⓪ LA DESTINATION (D11 ④). Les SMS ne partent qu'en France métropolitaine et
+ *    dans les DOM. C'est le garde-fou qui a permis d'écarter l'abaissement du
+ *    plafond d'essai : abaisser un plafond divise le gain d'un fraudeur par
+ *    trois sans jamais l'annuler, borner la destination l'annule **à zéro quel
+ *    que soit le plafond**. La fraude au pompage vise des numéros surtaxés à
+ *    l'étranger ; hors du plan français, rien ne part.
+ *
+ * Puis trois plafonds, parce qu'un seul se contourne :
  *   ① PAR NUMÉRO, un attaquant qui change d'adresse garde sa cible ;
  *   ② PAR APPELANT, un attaquant qui change de numéro garde sa machine ;
  *   ③ GLOBAL PAR JOUR, le coupe-circuit. Même si les deux premiers sont
@@ -47,7 +57,7 @@ function empreinteNumero(numero: string): string {
   return createHash('sha256').update(`${sel}:tel:${propre}`).digest('hex').slice(0, 32)
 }
 
-export type RefusPlafond = 'numero' | 'appelant' | 'global' | null
+export type RefusPlafond = 'destination' | 'numero' | 'appelant' | 'global' | null
 
 /**
  * Consomme un jeton sur les trois compteurs. Renvoie la raison du refus, ou
@@ -57,6 +67,10 @@ export type RefusPlafond = 'numero' | 'appelant' | 'global' | null
  * abus sur un seul numéro ne consomme pas le compteur global.
  */
 export async function plafondEnvoiCode(numero: string): Promise<RefusPlafond> {
+  // La destination d'abord : refuser sans avoir rien compté évite qu'un
+  // fraudeur consomme nos compteurs avec des numéros qui ne partiront jamais.
+  if (!destinationSmsAutorisee(numero)) return 'destination'
+
   const empreinte = empreinteNumero(numero)
 
   if (!(await quotaGlobal(`sms:num:h:${empreinte}`, PAR_NUMERO_HEURE, 3600))) return 'numero'

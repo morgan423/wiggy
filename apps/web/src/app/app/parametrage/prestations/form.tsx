@@ -1,22 +1,56 @@
 'use client'
 
-import { useActionState } from 'react'
+import { useActionState, useState } from 'react'
 import { creerPrestation } from './actions'
 import { Champ, Erreur, Succes, BoutonPrincipal } from '@/components/champs'
 import { CaseACocher } from '@/components/trousse'
+import { BoutonPointille } from '@/components/composition'
 import { VIDE, type EtatForm } from '@/lib/forms'
 
-export function FormPrestation() {
+/**
+ * Planche 14d : l'ajout est une feuille qui S'OUVRE SUR ACTION.
+ *
+ * Le formulaire était déployé en permanence sous la liste, à côté d'un bouton
+ * « + Ajouter une prestation » : deux affordances d'ajout concurrentes sur le
+ * même écran, dont l'une n'attendait aucun geste. Défaut relevé à la recette 6.
+ *
+ * Une seule affordance désormais, et elle commande l'ouverture.
+ */
+export function FormPrestation({ premiere = false }: { premiere?: boolean }) {
   const [etat, action, enCours] = useActionState<EtatForm, FormData>(creerPrestation, VIDE)
+  const [ouvert, setOuvert] = useState(false)
 
   // Une erreur ne doit pas effacer la saisie : React 19 réinitialise le
   // formulaire après chaque action, on le repeuple avec ce qui a été soumis.
   const repris = (champ: string) => (etat.statut === 'erreur' ? (etat.saisie?.[champ] ?? '') : '')
 
+  if (!ouvert) {
+    return premiere ? (
+      <button
+        type="button"
+        onClick={() => {
+          setOuvert(true)
+        }}
+        className="tactile mt-2 w-full justify-center rounded-pilule bg-action px-8 text-lg font-bold text-texte-sur-plein hover:bg-action-survol active:bg-action-pressee"
+      >
+        Ajouter une prestation
+      </button>
+    ) : (
+      <BoutonPointille
+        onClick={() => {
+          setOuvert(true)
+        }}
+      >
+        + Ajouter une prestation
+      </BoutonPointille>
+    )
+  }
+
   return (
     // `key` remet le formulaire à blanc après un ajout réussi : on enchaîne
     // les prestations sans avoir à tout effacer à la main.
     <form action={action} key={etat.n}>
+      <h2 className="text-xl font-bold tracking-tight">Nouvelle prestation</h2>
       <Champ
         id="name"
         label="Nom de la prestation"
@@ -55,6 +89,15 @@ export function FormPrestation() {
       <Erreur message={etat.statut === 'erreur' ? etat.message : undefined} />
       <Succes message={etat.statut === 'ok' ? etat.message : undefined} />
       <BoutonPrincipal enCours={enCours}>Ajouter la prestation</BoutonPrincipal>
+      <button
+        type="button"
+        onClick={() => {
+          setOuvert(false)
+        }}
+        className="tactile mt-3 w-full justify-center font-semibold text-texte-secondaire hover:text-prune"
+      >
+        Annuler
+      </button>
     </form>
   )
 }

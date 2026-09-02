@@ -33,6 +33,7 @@ export type EtatOubli =
   | { statut: 'change' }
 
 const MESSAGES_PLAFOND = {
+  destination: V.proDestinationSms,
   numero: V.proPlafondNumero,
   appelant: V.proPlafondAppelant,
   global: V.proPlafondGlobal,

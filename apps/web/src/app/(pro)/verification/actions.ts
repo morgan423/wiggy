@@ -32,6 +32,7 @@ export type EtatVerif =
   | { statut: 'verifie' }
 
 const MESSAGES_PLAFOND = {
+  destination: V.proDestinationSms,
   numero: V.proPlafondNumero,
   appelant: V.proPlafondAppelant,
   global: V.proPlafondGlobal,

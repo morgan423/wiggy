@@ -264,6 +264,15 @@ async function executer() {
       for (const r of illisibles) illisiblesGlobal.push({ vue: vue.nom, ...r })
       for (const r of souslAA) aaGlobal.push({ vue: vue.nom, ...r })
 
+      // La barre de navigation est fixée au bas de l'écran : dans une capture
+      // de page entière, elle s'imprimait au milieu de l'image, par-dessus le
+      // contenu. On la repose en flux le temps de la photo, elle revient donc
+      // à sa place naturelle, en bas. La recette se fait sur ces images : une
+      // barre en travers du contenu la rendrait illisible.
+      await page.addStyleTag({
+        content: '[data-nav-fixe]{position:static !important;}',
+      })
+
       const fichier = join(DOSSIER, `${vue.nom}.png`)
       await page.screenshot({ path: fichier, fullPage: true })
       capturees.push(vue)

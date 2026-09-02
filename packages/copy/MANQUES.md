@@ -217,3 +217,4 @@ sans les nommer.
 | `validation.$aEcrire.proPlafondAppelant`       | « Trop de demandes depuis cet appareil. Réessaie dans une heure. »       |
 | `validation.$aEcrire.proPlafondGlobal`         | « L’envoi de codes est momentanément suspendu. Réessaie plus tard. »     |
 | `validation.$aEcrire.proSmsIndisponible`       | « L’envoi n’a pas abouti. Réessaie dans un instant. »                    |
+| `validation.$aEcrire.proDestinationSms`        | « Wiggy n’envoie de codes qu’en France métropolitaine et dans les DOM. » |

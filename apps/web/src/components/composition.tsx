@@ -89,7 +89,7 @@ export function EnteteEcran({
   chiffre?: string
 }) {
   return (
-    <header className="sur-plein -mx-6 -mt-10 bg-prune px-6 pt-8 pb-7 text-texte-sur-plein sm:mx-0 sm:mt-0 sm:rounded-bloc sm:px-8">
+    <header className="sur-plein -mx-6 -mt-10 bg-prune px-6 pt-8 pb-7 text-texte-sur-plein sm:rounded-b-bloc">
       {retour ? (
         <Link
           href={retour}
@@ -184,22 +184,26 @@ export function EtiquetteSection({ children }: { children: React.ReactNode }) {
  */
 export function BoutonPointille({
   href,
+  onClick,
   children,
   compact = false,
 }: {
-  href: string
+  href?: string
+  onClick?: () => void
   children: React.ReactNode
   compact?: boolean
 }) {
-  return (
-    <Link
-      href={href}
-      className={`tactile rounded-pilule border-2 border-dashed border-trait-discret font-bold hover:border-prune ${
-        compact ? 'px-4' : 'mt-3 flex w-full justify-center px-5'
-      }`}
-    >
+  const classes = `tactile rounded-pilule border-2 border-dashed border-trait-discret font-bold hover:border-prune ${
+    compact ? 'px-4' : 'mt-3 flex w-full justify-center px-5'
+  }`
+  return href ? (
+    <Link href={href} className={classes}>
       {children}
     </Link>
+  ) : (
+    <button type="button" onClick={onClick} className={classes}>
+      {children}
+    </button>
   )
 }
 

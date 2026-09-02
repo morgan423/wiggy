@@ -1,7 +1,7 @@
 import { formatEuros } from '@wiggy/core'
 import { requirePro } from '@/lib/auth'
 import { supabaseServer } from '@/lib/supabase/server'
-import { EnteteEcran, CarteEcran, BoutonPointille, EtatVide } from '@/components/composition'
+import { EnteteEcran, CarteEcran, EtatVide } from '@/components/composition'
 import { FormPrestation } from './form'
 import { basculerPrestation, supprimerPrestation } from './actions'
 
@@ -25,12 +25,7 @@ export default async function Prestations() {
           titre="Ta liste est vide."
           invitation="Ajoute ta première prestation : deux minutes suffisent, tu pourras tout retoucher."
         >
-          <a
-            href="#ajouter"
-            className="tactile rounded-pilule bg-action px-8 font-bold text-texte-sur-plein hover:bg-action-survol"
-          >
-            Ajouter une prestation
-          </a>
+          <FormPrestation premiere />
         </EtatVide>
       ) : (
         <ul className="mt-4">
@@ -66,15 +61,10 @@ export default async function Prestations() {
       )}
 
       {liste.length > 0 ? (
-        <BoutonPointille href="#ajouter">+ Ajouter une prestation</BoutonPointille>
+        <section className="mt-4">
+          <FormPrestation />
+        </section>
       ) : null}
-
-      <section id="ajouter" className="mt-10 border-t border-trait-discret pt-6">
-        <h2 className="text-xl font-bold tracking-tight">
-          {liste.length === 0 ? 'Ta première prestation' : 'Nouvelle prestation'}
-        </h2>
-        <FormPrestation />
-      </section>
     </>
   )
 }
