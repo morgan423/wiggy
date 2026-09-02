@@ -2,7 +2,7 @@
   "$ecran": "Réservation cliente (A1/A3/A5/A6)",
   "$source": "board phase 2, blocs 3c, 4a, 4b, 7b, 8b et 9b",
   "$registre": "cliente",
-  "$note": "Les clés de `gabarits` portent des marques {pro}, {cliente}, {quand} : le board illustre avec des noms de démonstration, le produit interpole les vrais.",
+  "$note": "Les clés de `gabarits` portent des marques {pro}, {cliente}, {quand} : le board illustre avec des noms de démonstration, le produit interpole les vrais. Les six variantes de la promesse de rappel se choisissent par le CANAL réellement utilisé, jamais par le palier : trois causes, un seul rendu.",
   "$ligneEditoriale": "Formulations impersonnelles ou centrées sur la pro plutôt que « nous » : Wiggy reste discret sur la page de la pro, la cliente reste la cliente de la pro.",
   "entete": {
     "sousTitreExemple": "Coiffeuse à domicile · Nantes & alentours"
@@ -12,9 +12,7 @@
     "creneauxTitre": "{pro} est près de chez vous :",
     "aucunCreneauTitre": "{pro} n'est pas près de chez vous cette semaine.",
     "confirmationTitre": "Votre rendez-vous est confirmé, {cliente}.",
-    "confirmationDetail": "{pro} sera chez vous {quand}, rappel par SMS la veille.",
-    "demandeEnvoyee": "Demande envoyée à {pro}, réponse rapide",
-    "demandeChezLaPro": "Votre demande est chez {pro}, réponse rapide, vous serez prévenue par SMS."
+    "demandeEnvoyee": "Demande envoyée à {pro}, réponse rapide"
   },
   "prestations": {
     "titre": "Que souhaitez-vous réserver ?"
@@ -45,7 +43,6 @@
     "adressePreciser": "Est-ce l’une de ces adresses ?",
     "adresseAucuneSuggestion": "Ajoutez votre code postal, cela nous aidera à la retrouver.",
     "coordonneesTitre": "Vos coordonnées",
-    "coordonneesAide": "Pour vous confirmer le rendez-vous par SMS.",
     "horsZoneTitre": "Vous êtes un peu en dehors de la zone habituelle de {pro}.",
     "horsZoneDemande": "Vous pouvez tout de même lui faire une demande : {pronom} vous répond rapidement.",
     "horsZoneDemandeSansPronom": "Vous pouvez tout de même lui faire une demande : la réponse arrive rapidement.",
@@ -72,5 +69,15 @@
     "photosAideEtape": "Vos cheveux aujourd’hui et ce dont vous rêvez : {pro} prépare mieux, et prévoit le temps qu’il faut.",
     "photosChoisies": "{n} photo(s) choisie(s).",
     "forfaitTitre": "Au-delà de ta zone"
+  },
+  "rappel": {
+    "$note": "Livrées par Design le 02/09. La cliente ne doit jamais pouvoir deviner l'offre de sa coiffeuse ni qu'une limite a été atteinte : le texte dit comment elle sera prévenue, jamais pourquoi.",
+    "confirmationDetailSms": "{pro} vient chez vous. Vous recevrez un rappel par SMS la veille.",
+    "confirmationDetailEmail": "{pro} vient chez vous. Vous recevrez un rappel la veille, par e-mail.",
+    "coordonneesAideSms": "Confirmation et rappel arrivent par SMS. Jamais de publicité.",
+    "coordonneesAideEmail": "Votre numéro sert à {pro} pour le jour J. Confirmation et rappel arrivent par e-mail. Jamais de publicité.",
+    "demandeChezLaProSms": "{pro} vous répond rapidement. Vous serez prévenue par SMS.",
+    "demandeChezLaProEmail": "{pro} vous répond rapidement. Vous serez prévenue par e-mail, et ici même sur cette page.",
+    "emailRequisAide": "pour vous prévenir"
   }
 }

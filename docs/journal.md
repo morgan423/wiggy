@@ -16,14 +16,81 @@ question qui ne vit que dans le chat disparaît avec la session. Trois lignes : 
 qu'elle bloque, la date. À la clôture, la question et sa réponse basculent dans l'entrée de
 l'étape et cette section se vide.
 
-- **La promesse de rappel par SMS est encore inconditionnelle côté cliente.** Le copy deck écrit
-  « {pro} sera chez vous {quand}, rappel par SMS la veille » sans regarder le palier
-  (`reservation-cliente.gabarits.confirmationDetail`), et la même promesse figure dans
-  `coordonneesAide` et `demandeChezLaPro`. Depuis que le palier 1 n'a plus de SMS, la page d'une
-  pro en palier 1 promet un rappel qui ne partira jamais. B7 demande une promesse dynamique selon
-  le palier ET selon l'état de bascule : la variante de texte revient à Design, elle ne
-  s'improvise pas dans le code. Bloque la vérité de la page de réservation pour le palier 1.
-  Trouvée le 2026-09-02, non corrigée.
+- **La liste d'attente promet de prendre un numéro et demande une adresse e-mail.** Le texte
+  ratifié par Design écrit « Laissez votre numéro, on vous prévient dès qu'une arrive », alors que
+  le formulaire A9 collecte un e-mail, et que `city_waitlist` ne porte que ça. Bloque la
+  cohérence de l'écran de recherche par ville. Le texte vient d'être ratifié : c'est la liste
+  d'attente qui est à trancher, collecter un numéro ou réécrire la phrase. Trouvée le 2026-09-02,
+  non corrigée.
+
+---
+
+## 2026-09-02 Étape : les six variantes de la promesse de rappel
+
+**Fait :**
+
+- **Les six variantes livrées par Design** sont au copy deck, dans le bloc `rappel` de
+  `reservation-cliente`, plus l'état vide de la recherche par ville. Elles sont versées comme
+  **source ratifiée** (`packages/copy/source/design-rappel.json`), au même titre que le board et
+  la spécification : sans cela, le test qui refuse les textes inventés les aurait rejetées.
+- **Ce sont les versions corrigées qui ont été collées**, jamais celles du livrable : le copy de
+  Design portait des cadratins, proscrits par `CLAUDE.md`.
+- **Le choix du canal vit dans le domaine**, `packages/core/src/rappel.ts`, et la fonction ne
+  renvoie **que le canal, jamais la cause**. C'est délibéré : un appelant qui reçoit la cause
+  finit par l'afficher, et un « votre coiffeuse a atteint son quota » la trahirait auprès de sa
+  propre cliente. Un test vérifie que les trois causes produisent exactement le même rendu.
+- **Le paramètre `plafondAtteint` existe avant la mécanique qui le renseignera** (B7). Le jour où
+  le compteur existera, il y aura une ligne à changer dans `lib/rappel.ts` et **aucun texte à
+  réécrire**.
+- **L'e-mail devient requis sur le canal e-mail**, avec « pour vous prévenir » pour seule
+  explication. « Facultatif » ne s'affiche que sur le canal SMS. Sans cette règle, on promettait
+  un rappel par e-mail à une cliente qui n'avait pas donné d'e-mail.
+- **Trois écrans suivent le canal** : les coordonnées du tunnel, la célébration de confirmation
+  et l'attente d'une demande sous réserve, ainsi que la page de suivi par jeton.
+
+**Schéma :** aucun.
+
+**Décisions :** aucune nouvelle. Application des deux règles éditoriales de `CLAUDE.md`.
+
+**Écarts au brief :**
+
+- **Le test de bout en bout a refusé le premier commit, et il avait tort.** L'échec ne venait pas
+  du code livré mais de mon harnais : Next refuse un second serveur de développement de façon
+  **globale, pas par port**, et je traitais « le port 3000 ne répond pas » comme « aucun serveur
+  ne tourne ». Le script en lançait alors un second, aussitôt refusé, et attendait soixante
+  secondes pour rien. `preparerServeur` laisse maintenant quelques secondes à un serveur en cours
+  de démarrage, lit le refus de Next sur sa sortie au lieu d'attendre l'expiration, et se rabat
+  sur le serveur existant. `verify` a été lancé deux fois de suite pour le vérifier. Un garde-fou
+  instable finit toujours par être ignoré : c'est le risque que D8 nomme, et il a failli se
+  réaliser sur un faux positif.
+- **Les marques de gabarit sont écrites `{pro}` et non `{Pro}`.** Le livrable utilise la
+  majuscule ; c'est un nom de marque, pas du texte, et tous les autres gabarits du deck sont en
+  minuscules. La phrase rendue est identique au caractère près. La source ratifiée, elle,
+  conserve la forme livrée.
+- **L'état vide de la recherche est rendu d'un seul tenant**, et non coupé en titre et
+  sous-titre : la chaîne ratifiée est une seule phrase, la scinder reviendrait à la réécrire. Le
+  paragraphe qui vivait là, de notre plume, a disparu avec elle.
+
+**Questions ouvertes :**
+
+- **La ligne de la promesse de rappel quitte la section d'arbitrage** : elle est tranchée.
+- **Une nouvelle prend sa place**, révélée par le texte ratifié lui-même : il promet de prendre un
+  **numéro**, alors que le formulaire de liste d'attente demande une **adresse e-mail**, et que
+  `city_waitlist` ne stocke que ça. Le texte vient d'être ratifié, c'est donc la liste d'attente
+  qui est à trancher. Non corrigée : collecter un numéro touche au schéma, à l'anti-abus et à la
+  restriction de destination D11.
+
+**À recetter par Morgan :**
+
+- **Canal SMS** (offre 2, SMS actifs) : réserver et vérifier les trois textes, dont
+  « (facultatif) » sur le champ e-mail.
+- **Canal e-mail** : basculer `sms_enabled` à faux dans les réglages, ou passer le compte en
+  offre 1, et refaire le parcours. **Les deux doivent donner exactement le même rendu**, et le
+  champ e-mail devient obligatoire avec « pour vous prévenir ».
+- **La page de suivi** d'une demande sous réserve suit le même canal.
+- **La recherche par ville** sur une ville sans pro affiche la phrase ratifiée.
+
+**Statut à reporter dans la roadmap :** aucun changement d'identifiant.
 
 ---
 

@@ -21,5 +21,8 @@
     "titre": "Pas de réseau par ici.",
     "detail": "Tu peux continuer à travailler : tes modifications se synchroniseront dès que le réseau revient.",
     "compteur": "2 modifications en attente"
+  },
+  "gabarits": {
+    "villeSansPro": "Pas encore de pro à {ville}. Laissez votre numéro, on vous prévient dès qu'une arrive."
   }
 }

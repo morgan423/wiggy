@@ -6,6 +6,7 @@ import { copy, remplir } from '@wiggy/copy'
 import { supabaseServer } from '@/lib/supabase/server'
 import { supabaseConfigured } from '@/lib/supabase/admin'
 import { creneauxProposables } from '@/lib/creneaux'
+import { canalDeRappel } from '@/lib/rappel'
 import { chercherHebergements } from '@/lib/lieux'
 import { FormCoordonnees } from './coordonnees-form'
 import { FormPhotos } from './photos-form'
@@ -89,6 +90,8 @@ export default async function Reserver({
     .order('name')
 
   const prestation = prestations?.find((p) => p.id === q.p)
+  // Le canal réellement utilisé, jamais le palier. Trois causes, un seul rendu.
+  const canal = await canalDeRappel(pro.id)
   const chemin = `/${pro.slug}/reserver`
   /** Les paramètres courants, en chaînes : sérialisables, donc traversables. */
   const parametres: Record<string, string> = Object.fromEntries(
@@ -172,7 +175,11 @@ export default async function Reserver({
         /* Étape 5 : les coordonnées, puis la célébration. */
         <>
           <h1 className="display mt-6 tracking-tight">{C.$aEcrire.coordonneesTitre}</h1>
-          <p className="mt-3 text-texte-secondaire">{C.$aEcrire.coordonneesAide}</p>
+          <p className="mt-3 text-texte-secondaire">
+            {canal === 'sms'
+              ? C.rappel.coordonneesAideSms
+              : remplir(C.rappel.coordonneesAideEmail, { pro: prenom })}
+          </p>
           <p className="mt-1 text-texte-attenue">
             {prestation.name}, {jourFr.format(new Date(q.c))} à {heureFr.format(new Date(q.c))}.
           </p>
@@ -186,6 +193,7 @@ export default async function Reserver({
               codePostal={q.cp}
               ville={q.v ?? ''}
               depotPhotos={q.d ?? ''}
+              canal={canal}
               horsZone={Boolean(q.sr)}
               sejourDu={q.du ?? ''}
               sejourAu={q.au ?? ''}

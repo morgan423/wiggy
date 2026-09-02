@@ -1,6 +1,7 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import { citySearchTerm, normalizeCityName } from '@wiggy/core'
+import { copy, remplir } from '@wiggy/copy'
 import { supabaseConfigured } from '@/lib/supabase/admin'
 import { supabaseServer } from '@/lib/supabase/server'
 import { WaitlistForm } from './waitlist-form'
@@ -140,12 +141,17 @@ export default async function Recherche({
           </section>
         ) : (
           <section className="mt-14 rounded-carte bg-fond p-8 sm:p-12">
-            <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
-              Personne ne se déplace encore à {ville}.
-            </h2>
-            <p className="mt-4 text-lg text-texte-secondaire">
-              Laissez-nous votre e-mail : nous vous prévenons dès qu’un professionnel s’installe
-              dans votre ville.
+            {/*
+              Une seule chaîne ratifiée, rendue d'un seul tenant : la couper en
+              titre et sous-titre reviendrait à la réécrire.
+
+              ⚠️ Elle dit « Laissez votre numéro » alors que le formulaire
+              ci-dessous demande une adresse e-mail. L'écart est signalé au
+              journal : c'est la liste d'attente qui est à trancher, pas le
+              texte, qui vient d'être ratifié.
+            */}
+            <p className="text-2xl font-bold tracking-tight sm:text-3xl">
+              {remplir(copy.etatsVides.gabarits.villeSansPro, { ville })}
             </p>
             <WaitlistForm ville={ville} />
           </section>

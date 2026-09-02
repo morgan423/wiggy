@@ -2,7 +2,7 @@
 
 import { useActionState } from 'react'
 import { copy, remplir } from '@wiggy/copy'
-import { ZONE } from '@wiggy/core'
+import { ZONE, emailRequis, type CanalRappel } from '@wiggy/core'
 import { reserver, type EtatReservation } from './actions'
 import { Champ, Erreur, BoutonPrincipal } from '@/components/champs'
 
@@ -31,6 +31,7 @@ export function FormCoordonnees({
   codePostal,
   ville,
   depotPhotos,
+  canal,
   horsZone,
   sejourDu,
   sejourAu,
@@ -43,6 +44,8 @@ export function FormCoordonnees({
   codePostal: string
   ville: string
   depotPhotos: string
+  /** Le canal réellement utilisé. Jamais le palier : trois causes, un rendu. */
+  canal: CanalRappel
   horsZone: boolean
   sejourDu: string
   sejourAu: string
@@ -70,8 +73,14 @@ export function FormCoordonnees({
         </p>
         <p className="celebration-sms mt-4 text-lg">
           {etat.enAttente
-            ? remplir(C.gabarits.demandeChezLaPro, { pro: prenomPro })
-            : remplir(C.gabarits.confirmationDetail, { pro: prenomPro, quand })}
+            ? remplir(
+                canal === 'sms' ? C.rappel.demandeChezLaProSms : C.rappel.demandeChezLaProEmail,
+                { pro: prenomPro },
+              )
+            : remplir(
+                canal === 'sms' ? C.rappel.confirmationDetailSms : C.rappel.confirmationDetailEmail,
+                { pro: prenomPro },
+              )}
         </p>
         <p className="mt-4">{quand}</p>
         {/* Sans compte, ce lien est le seul chemin de retour vers la réponse
@@ -113,12 +122,18 @@ export function FormCoordonnees({
         defaultValue={repris('telephone')}
         fautif={fautif === 'telephone'}
       />
+      {/*
+        L'e-mail devient obligatoire quand c'est par lui qu'on préviendra :
+        sans cette règle, on promettrait un rappel par e-mail à une cliente qui
+        n'en a pas donné. « Facultatif » ne s'affiche que sur le canal SMS.
+      */}
       <Champ
         id="email"
-        label="Votre e-mail"
+        label={emailRequis(canal) ? 'Votre e-mail' : 'Votre e-mail (facultatif)'}
         type="email"
-        required={false}
+        required={emailRequis(canal)}
         autoComplete="email"
+        aide={emailRequis(canal) ? C.rappel.emailRequisAide : undefined}
         defaultValue={repris('email')}
         fautif={fautif === 'email'}
       />

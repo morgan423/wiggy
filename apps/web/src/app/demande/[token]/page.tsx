@@ -4,6 +4,7 @@ import type { Metadata } from 'next'
 import { ZONE } from '@wiggy/core'
 import { copy, remplir } from '@wiggy/copy'
 import { supabaseAdmin, supabaseConfigured } from '@/lib/supabase/admin'
+import { canalDeRappel } from '@/lib/rappel'
 import { WaitlistForm } from '@/app/recherche/waitlist-form'
 
 /**
@@ -40,7 +41,7 @@ export default async function SuiviDemande({ params }: { params: Promise<{ token
 
   const { data: rdv } = await supabaseAdmin()
     .from('appointments')
-    .select('starts_at, status, service_name, city, pros(display_name, slug)')
+    .select('pro_id, starts_at, status, service_name, city, pros(display_name, slug)')
     .eq('public_token', token)
     .maybeSingle()
   if (!rdv) notFound()
@@ -50,6 +51,7 @@ export default async function SuiviDemande({ params }: { params: Promise<{ token
   const nomPro = fiche.display_name ?? ''
   const prenom = nomPro.split(' ')[0] ?? nomPro
   const quand = quandFr.format(new Date(rdv.starts_at))
+  const canal = await canalDeRappel(rdv.pro_id)
 
   return (
     <main className="mx-auto max-w-2xl px-6 py-12">
@@ -80,7 +82,12 @@ export default async function SuiviDemande({ params }: { params: Promise<{ token
           <h1 className="display mt-6 tracking-tight">
             {remplir(C.gabarits.demandeEnvoyee, { pro: prenom })}
           </h1>
-          <p className="mt-6 text-lg">{remplir(C.gabarits.demandeChezLaPro, { pro: prenom })}</p>
+          <p className="mt-6 text-lg">
+            {remplir(
+              canal === 'sms' ? C.rappel.demandeChezLaProSms : C.rappel.demandeChezLaProEmail,
+              { pro: prenom },
+            )}
+          </p>
           <p className="mt-4 text-texte-secondaire">
             {rdv.service_name}, {quand}.
           </p>

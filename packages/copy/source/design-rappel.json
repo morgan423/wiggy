@@ -1,0 +1,14 @@
+{
+  "bloc": "design-rappel",
+  "source": "Design, variantes de la promesse de rappel, livrées le 02/09. Version corrigée par Morgan : les cadratins du livrable sont proscrits par CLAUDE.md.",
+  "chaines": [
+    "{Pro} vient chez vous. Vous recevrez un rappel par SMS la veille.",
+    "{Pro} vient chez vous. Vous recevrez un rappel la veille, par e-mail.",
+    "Confirmation et rappel arrivent par SMS. Jamais de publicité.",
+    "Votre numéro sert à {Pro} pour le jour J. Confirmation et rappel arrivent par e-mail. Jamais de publicité.",
+    "{Pro} vous répond rapidement. Vous serez prévenue par SMS.",
+    "{Pro} vous répond rapidement. Vous serez prévenue par e-mail, et ici même sur cette page.",
+    "Pas encore de pro à {ville}. Laissez votre numéro, on vous prévient dès qu'une arrive.",
+    "pour vous prévenir"
+  ]
+}

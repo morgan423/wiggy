@@ -10,11 +10,12 @@ const racine = join(dirname(fileURLToPath(import.meta.url)), '..')
 /**
  * Toutes les chaînes verbatim des SOURCES RATIFIÉES.
  *
- * Deux sources désormais, et le test ne fait pas la différence entre elles :
- * le board de la phase 2 (`bloc: 1a` à `13b`), et la spécification écran par
- * écran de Design (`bloc: spec-14`), qui fait foi pour les écrans depuis la
- * livraison 1. Un texte qui ne vient d'aucune des deux est un texte inventé, et
- * il doit se déclarer sous `$aEcrire`.
+ * Trois sources désormais, et le test ne fait pas la différence entre elles :
+ * le board de la phase 2 (`bloc: 1a` à `13b`), la spécification écran par écran
+ * de Design (`bloc: spec-14`), qui fait foi pour les écrans depuis la livraison
+ * 1, et les livraisons de copy ponctuelles (`bloc: design-rappel`). Un texte
+ * qui ne vient d'aucune des trois est un texte inventé, et il doit se déclarer
+ * sous `$aEcrire`.
  */
 function chainesDuBoard(): string[] {
   const dossier = join(racine, 'source')
