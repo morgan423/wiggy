@@ -154,6 +154,13 @@ export default async function Parametrage() {
               href="/app/parametrage/conges"
             />
 
+            <EtiquetteSection>Réglages</EtiquetteSection>
+            <RangeeEcran
+              principal="Paiement, confirmation, GPS"
+              chevron
+              href="/app/parametrage/reglages"
+            />
+
             <EtiquetteSection>Ma Page</EtiquetteSection>
             <RangeeEcran
               principal={pro.published ? `wiggy.fr/${pro.slug}` : 'Ma Page'}

@@ -131,6 +131,14 @@ ${lignes.join('\n')}
         Args: { p_cle: string; p_limite: number; p_fenetre_sec: number }
         Returns: boolean
       }
+      consommer_sms: {
+        Args: { p_pro: string; p_mois: string }
+        Returns: number
+      }
+      marquer_alerte_sms: {
+        Args: { p_pro: string; p_mois: string }
+        Returns: boolean
+      }
     }
     Enums: {
 ${enums.map((e) => `      ${e.nom}: ${nomEnum(e.nom)}`).join('\n')}

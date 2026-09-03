@@ -7,6 +7,7 @@ import { heureLocaleVersInstant, finRendezVous, dureeReelle } from '@wiggy/core'
 import { copy } from '@wiggy/copy'
 import { requirePro } from '@/lib/auth'
 import { supabaseServer } from '@/lib/supabase/server'
+import { prevenirCliente } from '@/lib/messagerie/prevenance'
 import { geocoder } from '@/lib/adresse'
 import { centreDeCommune } from '@/lib/lieu-approche'
 import { erreur, erreurBase, ok, champ, type EtatForm, champTexte } from '@/lib/forms'
@@ -269,6 +270,12 @@ export async function terminerRdv(donnees: FormData) {
   revalidatePath('/app/agenda')
   revalidatePath('/app/tournee')
   revalidatePath(`/app/agenda/${id}`)
+
+  // C2 et C7 : à la clôture, la pro est encore chez la cliente. C'est le seul
+  // moment où le prochain rendez-vous se cale sans friction, et où la question
+  // suivante est déjà « où je vais maintenant ». On la ramène donc sur la
+  // tournée plutôt que de la laisser sur un écran qui vient de se vider.
+  redirect(`/app/tournee?vient_de=${id}`)
 }
 
 /**
@@ -320,4 +327,72 @@ export async function libererPlage(donnees: FormData) {
   const { error } = await supabase.from('blocked_slots').delete().eq('id', id)
   if (error) console.error('liberation_plage_failed', error.code)
   revalidatePath('/app/agenda')
+}
+
+/**
+ * C5 — « Je suis en retard », prévisualisé puis validé.
+ *
+ * ⚠️ **Le message ne part JAMAIS tout seul.** L'écran le compose, la pro le
+ * lit, et c'est ce geste-là qui l'envoie. C'est le principe non négociable n°1,
+ * et il n'a pas d'exception : « aucun envoi automatique sans validation
+ * explicite du pro ».
+ *
+ * G4 : le message **ouvre par la pro** (« c'est Sophie ») et **porte son
+ * numéro**, parce qu'il appelle une réponse et qu'un sender ID alphanumérique
+ * ne se répond pas.
+ *
+ * D14 : pendant la bêta il partira en e-mail. La cliente est prévenue, c'est
+ * ce qui compte pour elle.
+ */
+export async function prevenirDuRetard(precedent: EtatForm, donnees: FormData): Promise<EtatForm> {
+  const id = champ(donnees, 'id')
+  const texte = champ(donnees, 'texte')
+  if (typeof id !== 'string' || typeof texte !== 'string') {
+    return erreur(precedent, 'Message introuvable.', donnees)
+  }
+
+  const { pro } = await requirePro()
+  const supabase = await supabaseServer()
+  const { data: rdv } = await supabase
+    .from('appointments')
+    .select('id, clients(first_name, phone, email)')
+    .eq('id', id)
+    .maybeSingle()
+  if (!rdv) return erreur(precedent, 'Rendez-vous introuvable.', donnees)
+
+  const cliente = clienteJoignable(rdv.clients)
+  if (!cliente.telephone && !cliente.email) {
+    return erreur(precedent, copy.agendaTournee.$aEcrire.retardSansCoordonnee, donnees)
+  }
+
+  const envoi = await prevenirCliente({
+    proId: pro.id,
+    destinataire: cliente,
+    sujet: copy.agendaTournee.$aEcrire.retardTitre,
+    texte,
+  })
+  if (envoi.canal === 'aucun') {
+    return erreur(precedent, copy.agendaTournee.$aEcrire.retardSansCoordonnee, donnees)
+  }
+
+  revalidatePath('/app/tournee')
+  return ok(precedent, copy.agendaTournee.$aEcrire.retardParti)
+}
+
+/**
+ * Les coordonnées d'une cliente, normalisées.
+ *
+ * PostgREST renvoie une relation imbriquée tantôt en objet, tantôt en tableau
+ * selon la cardinalité qu'il détecte, et les types générés ne le disent pas.
+ * On normalise ici, une fois, plutôt que de promener des `any` dans une route
+ * qui envoie des messages.
+ */
+function clienteJoignable(relation: unknown): { telephone?: string; email?: string } {
+  const brut: unknown = Array.isArray(relation) ? relation[0] : relation
+  if (typeof brut !== 'object' || brut === null) return {}
+  const c = brut as Record<string, unknown>
+  return {
+    telephone: typeof c.phone === 'string' ? c.phone : undefined,
+    email: typeof c.email === 'string' ? c.email : undefined,
+  }
 }

@@ -41,6 +41,15 @@ const PAS_MIN = 5
 export type MesureDuree = {
   /** Minutes réellement passées, telles que la clôture les a enregistrées. */
   minutes: number
+  /**
+   * B5 — la pro a corrigé cette durée À LA MAIN sur le rendez-vous.
+   *
+   * Une correction manuelle **n'est pas une mesure parmi d'autres, c'est une
+   * instruction**. « L'app propose, le pro dispose » : quand elle a pris la
+   * peine de dire « chez elle c'est une heure et demie », on ne moyenne pas sa
+   * phrase avec trois observations de machine.
+   */
+  corrigee?: boolean
 }
 
 function mediane(valeurs: number[]): number {
@@ -64,12 +73,23 @@ export function dureeApprise({
   historiqueCliente?: MesureDuree[]
   historiquePro?: MesureDuree[]
 }): number {
+  // B5 — ce que la pro a corrigé à la main prime sur tout le reste, et ne se
+  // moyenne avec rien. La plus RÉCENTE de ses corrections fait foi : une
+  // instruction plus neuve remplace une instruction plus ancienne. Les
+  // historiques arrivent du plus récent au plus ancien.
+  const corrigees = [...historiqueCliente, ...historiquePro].filter((m) => m.corrigee)
   const minutes =
-    historiqueCliente.length >= MINIMUM_CLIENTE
-      ? mediane(historiqueCliente.map((m) => m.minutes))
-      : historiquePro.length >= MINIMUM_PRO
-        ? mediane(historiquePro.map((m) => m.minutes))
-        : dureeCatalogue
+    corrigees.length > 0
+      ? corrigees[0].minutes
+      : historiqueCliente.length >= MINIMUM_CLIENTE
+        ? mediane(historiqueCliente.map((m) => m.minutes))
+        : historiquePro.length >= MINIMUM_PRO
+          ? mediane(historiquePro.map((m) => m.minutes))
+          : dureeCatalogue
+
+  // La borne protège de la mesure aberrante, pas de la pro. Ce qu'elle a écrit
+  // elle-même s'applique tel quel : elle sait ce qu'elle fait.
+  if (corrigees.length > 0) return Math.max(PAS_MIN, Math.ceil(minutes / PAS_MIN) * PAS_MIN)
 
   const plancher = dureeCatalogue * (1 - ECART_MAXIMAL)
   const plafond = dureeCatalogue * (1 + ECART_MAXIMAL)

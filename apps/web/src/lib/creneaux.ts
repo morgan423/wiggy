@@ -115,7 +115,7 @@ export async function creneauxProposables(options: {
     // interrogeable ici : dans le tunnel, on ne sait pas encore qui réserve.
     supabase
       .from('appointments')
-      .select('actual_duration_min')
+      .select('actual_duration_min, starts_at, ends_at')
       .eq('pro_id', options.proId)
       .eq('service_id', options.serviceId)
       .not('actual_duration_min', 'is', null)
@@ -211,16 +211,29 @@ export async function creneauxProposables(options: {
   }))
 
   const lookup = lieu ? await tableDesTrajets(rendezVous, lieu.point, geoFiltre) : () => 0
+  const dureeCatalogue = service.data.duration_min
+
   // La durée apprise remplace celle du catalogue, puis le tampon nouvelle
   // cliente (B5) s'y ajoute : le tampon est un temps de découverte, pas un
   // temps de prestation, et il n'a donc rien à faire dans l'apprentissage.
   const duree =
     dureeApprise({
-      dureeCatalogue: service.data.duration_min,
+      dureeCatalogue,
       historiquePro: (apprentissage.data ?? [])
-        .map((r) => r.actual_duration_min)
-        .filter((n): n is number => typeof n === 'number')
-        .map((minutes) => ({ minutes })),
+        .filter(
+          (r): r is typeof r & { actual_duration_min: number } =>
+            typeof r.actual_duration_min === 'number',
+        )
+        .map((r) => ({
+          minutes: r.actual_duration_min,
+          // B5 — une durée PLANIFIÉE différente du catalogue ne peut venir que
+          // d'une correction à la main de la pro : rien d'autre ne l'écrit.
+          // Pas besoin d'une colonne pour le savoir, la donnée le dit déjà.
+          corrigee:
+            Math.round(
+              (new Date(r.ends_at).getTime() - new Date(r.starts_at).getTime()) / 60_000,
+            ) !== dureeCatalogue,
+        })),
     }) + (reglages.data?.new_client_buffer_min ?? 0)
 
   const proposables: JourProposable[] = []

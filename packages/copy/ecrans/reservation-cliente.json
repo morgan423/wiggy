@@ -75,7 +75,13 @@
     "fixeAccesTitre": "Comment entrer",
     "fixeConfirmationDetailSms": "Rendez-vous chez {pro}. Vous recevrez un rappel par SMS la veille.",
     "fixeConfirmationDetailEmail": "Rendez-vous chez {pro}. Vous recevrez un rappel la veille, par e-mail.",
-    "fixeAucunDeplacement": "{pro} ne se déplace pas : c'est vous qui venez."
+    "fixeAucunDeplacement": "{pro} ne se déplace pas : c'est vous qui venez.",
+    "realisationsTitre": "Ses réalisations",
+    "seDeplaceChezVous": "{pro} se déplace chez vous",
+    "ctaCollant": "Trouver un moment avec {pro}",
+    "ctaSousTitre": "Vous choisissez, {pro} vient chez vous.",
+    "forfaitPossible": "Un forfait de déplacement peut s'appliquer selon votre adresse. {pro} vous l'indique avant de confirmer.",
+    "acompteSurCarte": "acompte de {pourcent} % à la réservation"
   },
   "rappel": {
     "$note": "Livrées par Design le 02/09. La cliente ne doit jamais pouvoir deviner l'offre de sa coiffeuse ni qu'une limite a été atteinte : le texte dit comment elle sera prévenue, jamais pourquoi.",

@@ -36,7 +36,7 @@ async function chargerFiche(slug: string) {
 
   if (!pro) return null
 
-  const [prestations, reglages, communes] = await Promise.all([
+  const [prestations, reglages, communes, realisations] = await Promise.all([
     supabase
       .from('services')
       .select('id, name, description, price_cents, duration_min, deposit_percent')
@@ -59,6 +59,14 @@ async function chargerFiche(slug: string) {
       .select('insee_code, name')
       .eq('pro_id', pro.id)
       .order('name'),
+    // A1, planche 15a : « Ses réalisations ». Une coiffeuse se choisit d'abord
+    // sur ce qu'elle sait faire.
+    supabase
+      .from('pro_photos')
+      .select('id, chemin')
+      .eq('pro_id', pro.id)
+      .order('position')
+      .limit(6),
   ])
 
   // Une requête qui échoue ne doit pas se confondre avec une fiche vide : sans
@@ -77,6 +85,7 @@ async function chargerFiche(slug: string) {
     prestations: prestations.data ?? [],
     reglages: reglages.data,
     communes: communes.data ?? [],
+    realisations: realisations.data ?? [],
   }
 }
 
@@ -106,7 +115,7 @@ export default async function PagePublique({ params }: Parametres) {
   const fiche = await chargerFiche(slug)
   if (!fiche) notFound()
 
-  const { pro, prestations, reglages, communes } = fiche
+  const { pro, prestations, reglages, communes, realisations } = fiche
   const prenom = pro.display_name.split(' ')[0] ?? pro.display_name
   const moinsChere = prestations.reduce<number | undefined>(
     (mini, p) => (mini === undefined || p.price_cents < mini ? p.price_cents : mini),
@@ -114,23 +123,27 @@ export default async function PagePublique({ params }: Parametres) {
   )
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-12 sm:py-16">
-      <header className="flex flex-wrap items-center gap-6">
+    <main className="mx-auto max-w-2xl px-6 pt-12 pb-32">
+      <header className="flex flex-wrap items-center gap-5">
         <Avatar nom={pro.display_name} photoUrl={pro.photo_url} taille="lg" />
         <div>
           <h1 className="display tracking-tight">{pro.display_name}</h1>
-          {pro.headline ? (
-            <p className="mt-2 text-lg text-texte-secondaire">{pro.headline}</p>
-          ) : null}
-          {communes.length > 0 ? (
-            <p className="mt-2 text-texte-secondaire">
-              {C.$aEcrire.zoneIntervention} {communes.map((c) => c.name).join(', ')}
+          {/* Planche 15a : l'accroche et la zone sur une même ligne. La zone
+              s'affiche en COMMUNES : jamais une adresse, jamais une carte
+              centrée sur le domicile de la pro. */}
+          {(pro.headline ?? communes.length > 0) ? (
+            <p className="mt-2 text-lg text-texte-secondaire">
+              {[pro.headline, communes.map((c) => c.name).join(', ')].filter(Boolean).join(' · ')}
             </p>
           ) : null}
         </div>
       </header>
 
+      {/* La bio manquait à la page, relevé à la recette du 31/08. C'est
+          pourtant elle qui donne envie : on choisit une personne. */}
       {pro.bio ? <p className="mt-8 text-lg whitespace-pre-line">{pro.bio}</p> : null}
+
+      <p className="mt-6 font-bold">{remplir(C.$aEcrire.seDeplaceChezVous, { pro: prenom })}</p>
 
       <section className="mt-12">
         <h2 className="titre tracking-tight">
@@ -139,17 +152,29 @@ export default async function PagePublique({ params }: Parametres) {
         {prestations.length === 0 ? (
           <p className="mt-4 text-texte-secondaire">Aucune prestation pour le moment.</p>
         ) : (
+          /*
+            Planche 15a : les prestations sont des CARTES D'INFORMATION, pas des
+            boutons. Une seule action sur la page, le bandeau du bas : taper une
+            carte ne réserve pas.
+
+            La DURÉE a disparu, et c'est délibéré (recette du 31/08). Elle
+            n'aide pas la cliente à choisir, et elle engage la pro sur un temps
+            qui varie d'une tête à l'autre.
+          */
           <ul className="mt-6 space-y-3">
             {prestations.map((p) => (
-              <li
-                key={p.id}
-                className="flex flex-wrap items-baseline gap-x-4 gap-y-1 rounded-carte border-2 border-trait-discret p-5"
-              >
-                <span className="text-lg font-bold">{p.name}</span>
-                <span className="text-texte-attenue">{p.duration_min} min</span>
-                <span className="ml-auto text-lg font-bold">{formatEuros(p.price_cents)}</span>
+              <li key={p.id} className="rounded-carte bg-surface p-5">
+                <span className="flex flex-wrap items-baseline gap-x-4">
+                  <span className="text-lg font-bold">{p.name}</span>
+                  <span className="ml-auto text-lg font-bold">{formatEuros(p.price_cents)}</span>
+                </span>
                 {p.description ? (
-                  <span className="w-full text-texte-secondaire">{p.description}</span>
+                  <span className="mt-2 block text-texte-secondaire">{p.description}</span>
+                ) : null}
+                {p.deposit_percent ? (
+                  <span className="mt-2 block text-sm text-texte-secondaire">
+                    {remplir(C.$aEcrire.acompteSurCarte, { pourcent: String(p.deposit_percent) })}
+                  </span>
                 ) : null}
               </li>
             ))}
@@ -157,8 +182,32 @@ export default async function PagePublique({ params }: Parametres) {
         )}
       </section>
 
+      {/*
+        Planche 15a : sans réalisation, la section DISPARAÎT. Jamais de bloc
+        vide sur la page de quelqu'un qui débute : une page trouée dessert plus
+        qu'une page courte.
+      */}
+      {realisations.length > 0 ? (
+        <section className="mt-12">
+          <h2 className="titre tracking-tight">{C.$aEcrire.realisationsTitre}</h2>
+          <ul className="mt-6 flex snap-x gap-3 overflow-x-auto pb-2">
+            {realisations.map((photo) => (
+              <li key={photo.id} className="w-40 shrink-0 snap-start">
+                {/* Pas de `next/image` : ces URL viennent du stockage public et
+                    changent avec lui. */}
+                <img
+                  src={urlRealisation(photo.chemin)}
+                  alt=""
+                  className="aspect-[4/5] w-full rounded-carte object-cover"
+                />
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
       {reglages ? (
-        <section className="mt-12 rounded-bloc bg-fond p-8">
+        <section className="mt-12 rounded-bloc bg-surface p-8">
           <h2 className="titre tracking-tight">Réserver avec {prenom}</h2>
           <ConditionsReservation
             prenomPro={prenom}
@@ -170,12 +219,12 @@ export default async function PagePublique({ params }: Parametres) {
               freeCancellationHours: reglages.free_cancellation_hours,
             }}
           />
-          <a
-            href={`/${pro.slug}/reserver`}
-            className="tactile mt-8 rounded-pilule bg-action px-8 text-lg font-bold text-texte-sur-plein hover:bg-action-survol active:bg-action-pressee"
-          >
-            Choisir un créneau
-          </a>
+          {/* A8 : la page annonce qu'un forfait PEUT s'appliquer, jamais son
+              montant. Un chiffre public ancrerait la pro trop bas quand le
+              trajet est long, et la cliente le découvre dans sa proposition. */}
+          <p className="mt-4 text-sm text-texte-secondaire">
+            {remplir(C.$aEcrire.forfaitPossible, { pro: prenom })}
+          </p>
         </section>
       ) : null}
 
@@ -191,6 +240,39 @@ export default async function PagePublique({ params }: Parametres) {
           </a>
         </p>
       ) : null}
+
+      {/*
+        Planche 15a : le CTA est COLLANT en bas d'écran, et il est réécrit.
+        « Réserver » sec en entrée de page ne dit ni quoi, ni avec qui, ni ce
+        qui se passe ensuite.
+      */}
+      <div
+        data-nav-fixe
+        className="sur-plein fixed inset-x-0 bottom-0 z-30 bg-prune px-6 py-4 text-texte-sur-plein"
+      >
+        <div className="mx-auto flex max-w-2xl flex-wrap items-center justify-between gap-3">
+          <span className="text-sm text-texte-sur-plein-doux">
+            {remplir(C.$aEcrire.ctaSousTitre, { pro: prenom })}
+          </span>
+          <a
+            href={`/${pro.slug}/reserver`}
+            className="tactile rounded-pilule bg-action px-8 font-bold text-texte-sur-plein hover:bg-action-survol active:bg-action-pressee"
+          >
+            {remplir(C.$aEcrire.ctaCollant, { pro: prenom })}
+          </a>
+        </div>
+      </div>
     </main>
   )
+}
+
+/**
+ * L'URL publique d'une réalisation.
+ *
+ * Le chemin est stocké, pas l'URL : le domaine du stockage n'a pas à se figer
+ * dans les données, et il changera le jour où l'on quittera Supabase.
+ */
+function urlRealisation(chemin: string): string {
+  const base = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
+  return `${base}/storage/v1/object/public/pro-realisations/${chemin}`
 }

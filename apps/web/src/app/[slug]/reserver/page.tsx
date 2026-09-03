@@ -5,6 +5,7 @@ import { formatEuros, formatDistance, ZONE } from '@wiggy/core'
 import { copy, remplir } from '@wiggy/copy'
 import { supabaseServer } from '@/lib/supabase/server'
 import { modeDuPro } from '@/lib/mode'
+import { ChampAdresse } from '@/components/champ-adresse'
 import { ChampGet } from '@/components/champ-get'
 import { supabaseConfigured } from '@/lib/supabase/admin'
 import { creneauxProposables } from '@/lib/creneaux'
@@ -150,11 +151,18 @@ export default async function Reserver({
           </p>
           <form method="get" className="mt-8">
             <input type="hidden" name="p" value={prestation.id} />
-            <ChampGet id="a" label="Votre adresse" defaultValue={q.a} />
-            <div className="grid gap-0 sm:grid-cols-2 sm:gap-5">
-              <ChampGet id="cp" label="Code postal" defaultValue={q.cp} inputMode="numeric" />
-              <ChampGet id="v" label="Votre ville" defaultValue={q.v} required={false} />
-            </div>
+            {/*
+              B12 : les résultats arrivent au fil de la frappe, et remplissent
+              les trois champs d'un coup. Une adresse pénible à saisir est une
+              réservation perdue, et c'est ici que le tunnel bascule.
+            */}
+            <ChampAdresse
+              id="adresse"
+              label="Votre adresse"
+              placeholder="12 rue des Lilas, Pau"
+              aide="Tapez les premiers caractères, les propositions arrivent toutes seules."
+              defaut={{ ligne: q.a, codePostal: q.cp, ville: q.v }}
+            />
             <button
               type="submit"
               className="tactile mt-8 w-full rounded-pilule bg-action px-8 text-lg font-bold text-texte-sur-plein hover:bg-action-survol active:bg-action-pressee"
@@ -467,11 +475,11 @@ async function EtapeSejour({
         */}
         <form method="get" className="mt-4">
           <input type="hidden" name="p" value={prestation.id} />
-          <ChampGet id="a" label="Adresse du séjour" />
-          <div className="grid gap-0 sm:grid-cols-2 sm:gap-5">
-            <ChampGet id="cp" label="Code postal" inputMode="numeric" />
-            <ChampGet id="v" label="Ville" required={false} />
-          </div>
+          <ChampAdresse
+            id="sejour"
+            label="Adresse du séjour"
+            placeholder="Hôtel, location, chez des proches"
+          />
           <div className="grid gap-0 sm:grid-cols-2 sm:gap-5">
             <ChampGet id="du" label={C.$aEcrire.sejourDu} defaultValue={recherche.du} type="date" />
             <ChampGet id="au" label={C.$aEcrire.sejourAu} defaultValue={recherche.au} type="date" />

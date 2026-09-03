@@ -67,7 +67,21 @@
     "blocagePose": "Plage bloquée.",
     "blocageLiberer": "Libérer",
     "blocageIndisponible": "Indisponible",
-    "terminer": "Terminé"
+    "terminer": "Terminé",
+    "retard": "Je suis en retard",
+    "retardTitre": "Prévenir ta prochaine cliente",
+    "retardAide": "Relis le message avant de l'envoyer. Rien ne part sans toi.",
+    "retardEnvoyer": "Envoyer",
+    "retardParti": "Ta cliente est prévenue.",
+    "retardSansCoordonnee": "Pas de numéro ni d'e-mail sur sa fiche : appelle-la.",
+    "caler": "On cale le prochain ?",
+    "calerAide": "Même prestation. Les créneaux tiennent compte de ta tournée.",
+    "aucunProchain": "C'était le dernier de la journée.",
+    "departDans": "Pars dans {min} min pour être à l'heure chez {cliente}.",
+    "departMaintenant": "Pars maintenant pour être à l'heure chez {cliente}.",
+    "departEnRetard": "Tu as {min} min de retard sur le départ chez {cliente}.",
+    "prochainRdv": "Prochain RDV : {cliente}, {heure}, {adresse}",
+    "retardSms": "Bonjour {cliente}, c'est {pro}. J'ai un peu de retard, je serai chez vous vers {heure}. À tout de suite. Vous pouvez me joindre au {telephone}."
   },
   "tournee": {
     "statement": "Ta tournée, {pro}.",

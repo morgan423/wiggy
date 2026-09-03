@@ -6,11 +6,19 @@ import {
   instantVersHeureLocale,
   formatDistance,
   formatEuros,
+  lienGps,
+  estAppGps,
+  minutesAvantDepart,
+  rappelDeDepartPertinent,
+  fenetreDeReprise,
+  rythmeDeRetourSemaines,
+  type AppGps,
 } from '@wiggy/core'
 import { copy, remplir } from '@wiggy/copy'
 import { requireCapability } from '@/lib/auth'
 import { supabaseServer } from '@/lib/supabase/server'
 import { trajetsDeLaJournee, type Trajets } from '@/lib/tournee'
+import { FormRetard } from './retard'
 import { EnteteEcran, CorpsEcran, RANGEE } from '@/components/composition'
 
 /**
@@ -51,10 +59,10 @@ type Etat = 'termine' | 'en-cours' | 'a-venir'
 export default async function MaTournee({
   searchParams,
 }: {
-  searchParams: Promise<{ le?: string }>
+  searchParams: Promise<{ le?: string; vient_de?: string }>
 }) {
   const { pro } = await requireCapability('tour_copilot')
-  const { le } = await searchParams
+  const { le, vient_de: vientDe } = await searchParams
 
   const jour = debutDeJour(ancreValide(le))
   const finJour = ajouterJours(jour, 1)
@@ -73,6 +81,23 @@ export default async function MaTournee({
 
   const journee = rdvs ?? []
   const trajets: Trajets = await trajetsDeLaJournee(journee)
+
+  // C3 : l'application de navigation que la pro utilise déjà, réglée une fois.
+  // C7 : la reprise du prochain rendez-vous, à la clôture. C'est LE geste
+  // métier réel : la coiffeuse recale presque toujours pendant que la cliente
+  // est encore là. On calcule la fenêtre d'après SON rythme, et quand le rythme
+  // ne dit rien (moins de trois visites), on propose sans fenêtre plutôt que
+  // d'inventer une régularité.
+  const reprise = vientDe ? await repriseApresCloture(supabase, vientDe) : null
+
+  const [{ data: reglages }, { data: fiche }] = await Promise.all([
+    supabase.from('pro_settings').select('gps_app').eq('pro_id', pro.id).maybeSingle(),
+    // G4 : le message de retard appelle une réponse, il porte donc le numéro
+    // de la pro. Un sender ID alphanumérique ne se répond pas.
+    supabase.from('pros').select('phone').eq('id', pro.id).maybeSingle(),
+  ])
+  const gpsChoisi = reglages?.gps_app ?? ''
+  const appGps: AppGps = estAppGps(gpsChoisi) ? gpsChoisi : 'system'
 
   const etatDe = (r: (typeof journee)[number]): Etat => {
     if (r.status === 'done') return 'termine'
@@ -117,13 +142,47 @@ export default async function MaTournee({
       )}
 
       <CorpsEcran serre>
+        {/* C2 : au retour d'une clôture, la première chose à savoir est où l'on
+            va maintenant. On le NOMME, plutôt que de laisser chercher. */}
+        {vientDe && prochain ? (
+          <p className="rounded-champ bg-prune px-3.5 py-2.5 text-[12.5px] font-bold text-texte-sur-plein">
+            {remplir(T.$aEcrire.prochainRdv, {
+              cliente: nomDe(prochain.clients),
+              heure: heure.format(new Date(prochain.starts_at)),
+              adresse: prochain.address_line1 ?? prochain.city ?? '',
+            })}
+          </p>
+        ) : null}
+        {vientDe && !prochain && !bouclee ? (
+          <p className="text-[12.5px] text-texte-attenue">{T.$aEcrire.aucunProchain}</p>
+        ) : null}
+
+        {/* C7 : « On cale le prochain ? », en un tap, même prestation. */}
+        {reprise ? (
+          <Link
+            href={reprise.lien}
+            className="flex flex-col gap-1 rounded-carte border-2 border-action bg-surface px-3.5 py-3 hover:bg-fond"
+          >
+            <span className="text-[13.5px] font-bold">{T.$aEcrire.caler}</span>
+            <span className="text-[11.5px] text-texte-attenue">{T.$aEcrire.calerAide}</span>
+          </Link>
+        ) : null}
+
         {bouclee ? (
           <Bouclee journee={journee} trajets={trajets} />
         ) : journee.length === 0 ? (
           <JourSansRdv jour={jour} lendemain={lendemain} />
         ) : (
           <>
-            {prochain ? <ProchainRdv rdv={prochain} trajets={trajets} /> : null}
+            {prochain ? (
+              <ProchainRdv
+                rdv={prochain}
+                trajets={trajets}
+                appGps={appGps}
+                prenomPro={prenom}
+                telephonePro={fiche?.phone ?? null}
+              />
+            ) : null}
             {ensuite.map((r) => (
               <div key={r.id} className={`${RANGEE} rounded-[14px] px-3.5 py-[11px] opacity-70`}>
                 <Link href={`/app/agenda/${r.id}`} className="text-[12.5px] font-bold">
@@ -196,6 +255,9 @@ function FilTrajet({ journee }: { journee: Etat[] }) {
 function ProchainRdv({
   rdv,
   trajets,
+  appGps,
+  prenomPro,
+  telephonePro,
 }: {
   rdv: {
     id: string
@@ -208,9 +270,22 @@ function ProchainRdv({
     clients: unknown
   }
   trajets: Trajets
+  appGps: AppGps
+  prenomPro: string
+  telephonePro: string | null
 }) {
   const trajet = trajets.get(rdv.id)
   const lieu = [rdv.address_line1, rdv.city].filter(Boolean).join(', ')
+  const maintenant = new Date()
+  const debut = new Date(rdv.starts_at)
+
+  // C4 — quand PARTIR, jamais combien de temps il reste. « Il reste 25 minutes »
+  // n'aide personne quand la route en prend 30.
+  const minutesAvant = trajet
+    ? minutesAvantDepart({ debutRdv: debut, minutesTrajet: trajet.minutes, maintenant })
+    : null
+  const departPertinent =
+    minutesAvant !== null && trajet ? rappelDeDepartPertinent(minutesAvant, trajet.minutes) : false
 
   return (
     <div className="flex flex-col gap-2 rounded-carte border-2 border-action bg-surface px-3.5 py-[13px]">
@@ -228,10 +303,29 @@ function ProchainRdv({
         {rdv.service_name}
         {lieu ? ` · ${lieu}` : ` · ${T.$aEcrire.sansAdresse}`}
       </p>
+      {/* C4 : le rappel de départ, lié au trajet réel. Il ne parle que dans sa
+          fenêtre : trop tôt il devient du bruit qu'on apprend à ignorer. */}
+      {departPertinent && minutesAvant !== null ? (
+        <p className="rounded-champ bg-celebration px-3 py-2 text-[12.5px] font-bold text-texte-sur-miel">
+          {minutesAvant > 0
+            ? remplir(T.$aEcrire.departDans, {
+                min: String(minutesAvant),
+                cliente: nomDe(rdv.clients),
+              })
+            : minutesAvant === 0
+              ? remplir(T.$aEcrire.departMaintenant, { cliente: nomDe(rdv.clients) })
+              : remplir(T.$aEcrire.departEnRetard, {
+                  min: String(-minutesAvant),
+                  cliente: nomDe(rdv.clients),
+                })}
+        </p>
+      ) : null}
       <div className="flex flex-col gap-1.5">
+        {/* C3 : un tap ouvre l'application que la pro utilise déjà. Aucune
+            navigation embarquée, jamais : c'est une règle de la ligne. */}
         {rdv.lat !== null && rdv.lng !== null ? (
           <a
-            href={lienGps(rdv.lat, rdv.lng)}
+            href={lienGps(appGps, { lat: rdv.lat, lng: rdv.lng }, nomDe(rdv.clients))}
             rel="noopener noreferrer"
             target="_blank"
             className="tactile w-full rounded-pilule bg-action py-3 text-center text-[13px] font-bold text-texte-sur-plein hover:bg-action-survol"
@@ -239,6 +333,14 @@ function ProchainRdv({
             {T.tournee.gps}
           </a>
         ) : null}
+        {/* C5 : le message se prévisualise et se valide. Il ne part jamais seul. */}
+        <FormRetard
+          id={rdv.id}
+          cliente={nomDe(rdv.clients)}
+          prenomPro={prenomPro}
+          telephonePro={telephonePro}
+          minutesTrajet={trajet?.minutes ?? null}
+        />
         <Link
           href={`/app/agenda/${rdv.id}`}
           className="tactile w-full rounded-pilule border-[1.5px] border-texte-principal/25 py-3 text-center text-[13px] font-bold hover:border-prune"
@@ -313,16 +415,6 @@ function JourSansRdv({ jour, lendemain }: { jour: Date; lendemain: string }) {
   )
 }
 
-/**
- * Lien de navigation. Sur cette surface web, l'URL universelle de Google Maps
- * est la seule qui s'ouvre partout, y compris dans l'application native quand
- * elle est installée. Le respect du réglage `gps_app` du pro (Waze, Plans)
- * demande des liens natifs : c'est C2/C4, dans l'app mobile.
- */
-function lienGps(lat: number, lng: number): string {
-  return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`
-}
-
 function nomDe(relation: unknown): string {
   const brut: unknown = Array.isArray(relation) ? relation[0] : relation
   if (typeof brut !== 'object' || brut === null) return 'Sans fiche'
@@ -337,4 +429,42 @@ function ancreValide(le: string | undefined): Date {
   if (!le || !/^\d{4}-\d{2}-\d{2}$/.test(le)) return new Date()
   const t = Date.parse(`${le}T12:00:00Z`)
   return Number.isNaN(t) ? new Date() : new Date(t)
+}
+
+/**
+ * C7 — ce qu'il faut pour reproposer un rendez-vous à la cliente qu'on vient de
+ * quitter.
+ *
+ * Le rythme vient de `fiche.ts` et ne se prononce pas avant trois visites. Sans
+ * lui, on ouvre la création sans date suggérée : la pro choisira, et c'est très
+ * bien. Ce qu'on ne fait pas, c'est proposer « dans cinq semaines » à quelqu'un
+ * qu'on a vu deux fois.
+ */
+async function repriseApresCloture(
+  supabase: Awaited<ReturnType<typeof supabaseServer>>,
+  rdvId: string,
+): Promise<{ lien: string } | null> {
+  const { data: rdv } = await supabase
+    .from('appointments')
+    .select('client_id, service_id, starts_at')
+    .eq('id', rdvId)
+    .maybeSingle()
+  if (!rdv?.client_id || !rdv.service_id) return null
+
+  const { data: historique } = await supabase
+    .from('appointments')
+    .select('starts_at, status')
+    .eq('client_id', rdv.client_id)
+  const visites = (historique ?? []).map((r) => ({
+    debut: new Date(r.starts_at),
+    annulee: r.status === 'cancelled',
+  }))
+
+  const fenetre = fenetreDeReprise({
+    rythmeSemaines: rythmeDeRetourSemaines(visites),
+    depuis: new Date(rdv.starts_at),
+  })
+  const params = new URLSearchParams({ cliente: rdv.client_id, prestation: rdv.service_id })
+  if (fenetre) params.set('vers', instantVersHeureLocale(fenetre.debut).slice(0, 10))
+  return { lien: `/app/agenda/nouveau?${params.toString()}` }
 }

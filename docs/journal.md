@@ -20,6 +20,158 @@ _Rien en attente : les trois questions ouvertes ont été tranchées le 03/09._
 
 ---
 
+## 2026-09-03 (5) Étape : B7 derrière un adaptateur, le copilote, B5, la page publique et B12
+
+**Fait :**
+
+### Chantier 1, B7 et l'adaptateur (D14, G4)
+
+- **L'interface d'envoi vit dans le cœur** (`packages/core/src/messagerie.ts`), l'adaptateur seul
+  connaît Brevo (`lib/messagerie/brevo.ts`). Même motif que le moteur de trajets, et pour la même
+  raison : la revoyure prévue vers 10 000 SMS par mois doit coûter un fichier voisin et une ligne
+  de configuration, pas une refonte. Aucun appel direct au fournisseur ailleurs, ni pour le SMS,
+  ni pour l'e-mail.
+- **D14 vérifié explicitement : le chemin SANS fournisseur est le chemin normal.** C'est
+  l'implémentation par défaut, écrite en premier, et elle renvoie `non-configure` plutôt que
+  `echec` : la nuance décide de la bascule au lieu de déclencher une alerte. Le tunnel de bout en
+  bout tourne dessus à chaque `verify`.
+- **La cascade en trois temps est complète** : compteur mensuel par pro (migration 0012, table
+  verrouillée par conception), alerte à 80 % UNE fois par mois, bascule automatique et gratuite au
+  plafond. **La remise à zéro du 1er n'est pas une tâche planifiée** : c'est une conséquence de la
+  clé mensuelle. Rien à faire tourner, donc rien qui puisse ne pas tourner.
+- **Le compteur n'est jamais affiché à la pro.** Pas de jauge, pas de décompte. Il est verrouillé
+  en base, à la fois pour qu'elle ne puisse pas s'accorder des SMS et pour qu'elle ne voie pas la
+  jauge que B7 refuse de montrer.
+- **Le plafond était codé en dur nulle part et lisible nulle part** : il est maintenant dans le
+  cœur, avec la date estimée d'atteinte que la notification des 80 % apporte. Sans cette date,
+  prévenir ne servirait qu'à inquiéter.
+- **La restriction de destination vaut pour TOUS les envois**, plus seulement les codes : elle
+  est tenue dans `envoyerSms`, un cran au-dessus de tous les appelants.
+- **La table `sms_usage` existait depuis 0001**, avec les colonnes de l'ancien modèle facturant
+  abandonné le 02/09. Elle est adaptée, pas dupliquée, et `included` est retirée : une colonne
+  morte finit toujours par être relue comme vivante.
+
+### Chantier 2, le copilote (C2 à C7)
+
+- **C3, le lien GPS** : `lienGps()` dans le cœur, trois applications, et le réglage enfin
+  réglable (voir plus bas). On passe les COORDONNÉES et non l'adresse : notre géocodage fait foi,
+  pas celui du GPS, et le piège « rue des Lilas à Pau qui répond dans les Landes » a déjà été payé
+  une fois. Aucune navigation embarquée, jamais.
+- **C4, le rappel de départ** : « Pars dans 10 min », lié au trajet réel, et jamais un compte à
+  rebours brut. Il ne parle que dans sa fenêtre, un quart d'heure avant le départ : trop tôt il
+  devient du bruit qu'on apprend à ignorer. Il dit aussi qu'il est trop tard, sans arrondir à
+  zéro : une pro en retard doit le savoir.
+- **C5, « Je suis en retard »** : le message est composé pour elle, avec l'heure d'arrivée tirée
+  du trajet EN COURS et le retard arrondi vers le haut. **Il se prévisualise et se valide**, et
+  c'est le geste de la pro qui l'envoie. Ce qui est automatisé, c'est l'écriture ; ce qui reste à
+  elle, c'est l'envoi. G4 : il ouvre par elle et porte son numéro, parce qu'il appelle une réponse
+  et qu'un sender ID alphanumérique ne se répond pas.
+- **C2, la clôture ramène sur la tournée** et NOMME le prochain rendez-vous. À la clôture, la
+  question suivante est déjà « où je vais maintenant » : on y répond au lieu de laisser sur un
+  écran qui vient de se vider.
+- **C7, « On cale le prochain ? »** : même prestation, même cliente, et la fenêtre calculée
+  d'après SON rythme. **Quand le rythme ne dit rien (moins de trois visites), on propose sans
+  fenêtre** plutôt que d'inventer une régularité : proposer « dans cinq semaines » à quelqu'un
+  qu'on a vu deux fois, c'est deviner à voix haute.
+
+### Chantier 3, B5
+
+- **Le tampon « nouvelle cliente » a enfin un écran.** Il existait en base et dans le schéma
+  depuis le début, et rien ne permettait de le régler. Une préférence qu'on ne peut pas régler
+  n'est pas une préférence. L'écran de réglages manquait entièrement : il porte aussi le paiement,
+  la confirmation, le SMS et le GPS de C3.
+- **Une correction manuelle pèse plus que l'apprentissage**, et le code le dit : elle n'est pas
+  une mesure parmi d'autres, c'est une instruction. Elle prime sur les deux niveaux, ne se moyenne
+  avec rien, et **n'est pas bornée par le catalogue** : la borne existe contre le rendez-vous clos
+  le lendemain, pas contre la pro. Elle sait qu'un lissage prend trois heures.
+- **Aucune colonne n'a été ajoutée pour le savoir** : une durée planifiée différente du catalogue
+  ne peut venir que d'une correction à la main. La donnée le disait déjà.
+
+### Chantier 4, A1
+
+Les cinq manques du 31/08 sont traités. La **bio** et l'**Instagram** étaient en fait présents ;
+ce qui manquait vraiment, c'est le reste.
+
+- **Les prestations deviennent des cartes d'information**, sur la surface, avec l'acompte annoncé
+  sur la carte. Une seule action sur la page : le bandeau collant. Taper une carte ne réserve pas.
+- **La durée disparaît côté cliente.** Elle n'aide pas à choisir, et elle engage la pro sur un
+  temps qui varie d'une tête à l'autre.
+- **Les réalisations ont leur place ET leur modèle** : migration 0013, `pro_photos`, lecture
+  anonyme limitée aux fiches publiées et justifiée dans la matrice d'accès. À ne pas confondre
+  avec `appointment_photos` (A4), qui sont les photos des CLIENTES : seau privé, aucune politique,
+  jamais publiques. Les deux ne partagent ni table, ni seau, ni règle.
+- **Le CTA est collant et réécrit** : « Trouver un moment avec Sophie », avec sa ligne de
+  rassurance. « Réserver » sec en entrée de page ne disait ni quoi, ni avec qui.
+- **A8 est tenu** : la page annonce qu'un forfait PEUT s'appliquer, jamais son montant.
+- **Sans réalisation ni Instagram, les sections disparaissent.** Une page trouée dessert plus
+  qu'une page courte, et c'est la page de quelqu'un qui débute.
+
+### Chantier 5, B12
+
+- **Un seul composant sert les trois écrans.** La zone d'intervention y était déjà ; l'adresse du
+  tunnel cliente, l'adresse de séjour et l'adresse d'un rendez-vous manuel y passent maintenant.
+- **L'asymétrie est traitée dans le composant, pas dans les écrans** : délai avant appel,
+  annulation des requêtes dépassées, chemin gracieux. À quoi s'ajoute, côté appel, une **échéance
+  courte** : une source qui met huit secondes a déjà perdu, la cliente a fini de taper.
+- **Le choix remplit les trois champs d'un coup.** C'est la différence entre « la saisie est
+  assistée » et « la saisie est plus rapide » : la cliente ne retape pas ce que la BAN vient de
+  lui donner.
+- **La saisie libre reste le repli.** En rural, un hameau peut n'être reconnu par aucun
+  référentiel, et rien ne doit bloquer.
+- **Le test de bout en bout passe par la saisie assistée**, propositions comprises. Si la BAN ne
+  répond pas, il tombe, et c'est exactement ce qu'on veut savoir.
+
+**Schéma :** **0012_usage_sms.sql** et **0013_realisations.sql**, EN ATTENTE d'application par
+Morgan. La 0011 est toujours en attente elle aussi.
+
+**Décisions :** D14, G4, B5, B7, B12, C2, C3, C4, C5, C7, A1, A8.
+
+**Écarts au brief :**
+
+- **Le pack SMS à prix coûtant n'a pas d'écran d'achat.** La bascule au plafond est automatique et
+  gratuite, ce qui est la partie qui protège la cliente ; l'achat d'un pack est un parcours de
+  paiement, donc G1, avec ses textes contractuels que je n'écris pas.
+- **La notification des 80 % est calculée mais n'a pas de destinataire** : il n'existe pas encore
+  de système de notification pro. La mécanique renvoie `alerteQuota`, prête à être branchée. Elle
+  ne se déclenchera de toute façon pas pendant la bêta, qui tourne sans SMS.
+- **Les réalisations n'ont pas d'écran d'envoi de photos.** La table, la politique et l'affichage
+  public existent ; l'envoi réutilisera le chemin d'URL signée d'A4, et je préférais livrer les
+  quatre autres corrections d'A1 bien plutôt que celle-ci à moitié.
+- **C7 propose la fenêtre, il ne calcule pas les créneaux dedans.** L'écran de création s'ouvre
+  sur la date suggérée, et les créneaux restent ceux du moteur. Proposer une liste de créneaux
+  géo-cohérents à l'intérieur de la fenêtre demanderait une variante du moteur ; la fenêtre suffit
+  à supprimer la friction du geste, qui est ce que C7 cherche.
+- **Le message de C5 part par la cascade B7**, donc en e-mail pendant la bêta (D14). La cliente
+  est prévenue, c'est ce qui compte pour elle.
+
+**Questions ouvertes :** aucune.
+
+**À recetter par Morgan :**
+
+1. Colle `0011`, `0012` et `0013`, dans l'ordre, puis coche les trois lignes de `supabase/ETAT.md`.
+2. Réserve un créneau sur une page publique : **tape les premiers caractères de l'adresse**, les
+   propositions arrivent seules, et le choix remplit tout. Coupe le réseau à mi-frappe : la saisie
+   reste possible à la main.
+3. Regarde la page publique : prestations en cartes, **plus aucune durée**, acompte annoncé sur la
+   carte, bandeau collant en bas, phrase sur le forfait sans montant. Sur une pro sans bio ni
+   Instagram, aucune section vide.
+4. « Ton activité » puis « Réglages » : choisis ton GPS, mets un temps en plus pour une première
+   visite, décoche les SMS.
+5. Sur ta tournée, à l'approche d'un rendez-vous : le bandeau miel **« Pars dans N min »** apparaît
+   dans le quart d'heure avant le départ, et pas avant.
+6. Tape « Lancer le GPS » : c'est l'application que tu viens de choisir qui s'ouvre.
+7. Tape « Je suis en retard » : le message est **écrit pour toi**, avec l'heure d'arrivée. Relis-le,
+   modifie-le, et c'est TON geste qui l'envoie. Rien ne part avant.
+8. Sur un rendez-vous en cours, tape « Terminé » : tu reviens sur la tournée, le **prochain
+   rendez-vous est nommé**, et « On cale le prochain ? » propose la suite avec la même prestation.
+9. Change la durée d'un rendez-vous à la main, clos-le, puis regarde les créneaux proposés pour
+   cette prestation : c'est TA durée qui prime, pas la moyenne.
+10. Ajoute une plage bloquée, puis vérifie sur ta page publique que le créneau n'est plus proposé.
+
+**Statut à reporter dans la roadmap :** B5, B7, B12, C2, C3, C4, C5, C7 : « Construit, recette à
+valider ». A1 : « Les cinq manques du 31/08 traités, recette à valider ; envoi des réalisations à
+construire ». D14 : « Chemin sans fournisseur vérifié ». G4 : « Adaptateur en place, Brevo isolé ».
+
 ## 2026-09-03 (4) Étape : D3, la fiche cliente (B1 B2 B3), le créneau et la clôture (B4 B6)
 
 **Fait :**

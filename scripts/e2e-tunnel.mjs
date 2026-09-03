@@ -240,15 +240,22 @@ async function jouer(base, page) {
   await page.goto(`${base}/${SLUG}`, { waitUntil: 'domcontentloaded' })
   await voir('pagePublique')
 
-  await page.getByRole('link', { name: /Choisir un créneau/i }).click()
+  // Planche 15a : le CTA est collant en bas d'écran et il est réécrit.
+  // « Réserver » sec en entrée de page ne disait ni quoi, ni avec qui.
+  await page.getByRole('link', { name: /Trouver un moment avec/i }).click()
   await voir('prestation')
 
   await page.getByText('Coupe E2E').click()
   await voir('adresse')
 
-  await page.locator('#a').fill(ADRESSE.ligne)
-  await page.locator('#cp').fill(ADRESSE.cp)
-  await page.locator('#v').fill(ADRESSE.ville)
+  // B12 : l'adresse passe par la saisie assistée. On tape, on attend les
+  // propositions de la BAN, et on choisit la première. C'est le parcours réel
+  // d'une cliente, y compris sa dépendance à un service tiers : si la BAN ne
+  // répond pas, ce test tombe, et c'est exactement ce qu'on veut savoir.
+  await page.locator('#adresse').fill(`${ADRESSE.ligne} ${ADRESSE.cp}`)
+  const proposition = page.locator('[role="option"]').first()
+  await proposition.waitFor({ state: 'visible', timeout: 15_000 })
+  await proposition.click()
   await page.getByRole('button', { name: /Voir les créneaux/i }).click()
   await voir('creneaux')
 

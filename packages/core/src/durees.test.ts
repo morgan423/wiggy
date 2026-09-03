@@ -58,3 +58,37 @@ test('une clôture du lendemain retombe sur la durée prévue', () => {
   assert.equal(dureeReelle(debut, new Date('2026-09-08T09:00:00Z'), 60), 60)
   assert.equal(dureeReelle(debut, new Date('2026-09-07T09:00:00Z'), 60), 60)
 })
+
+test('B5 — une correction manuelle est une instruction, pas une mesure', () => {
+  // La pro a écrit « chez elle, une heure et demie ». On ne moyenne pas sa
+  // phrase avec trois observations de machine.
+  const duree = dureeApprise({
+    dureeCatalogue: 60,
+    historiqueCliente: [{ minutes: 90, corrigee: true }],
+    historiquePro: m(60, 60, 60, 60, 60),
+  })
+  assert.equal(duree, 90)
+})
+
+test('B5 — une correction manuelle n’est pas bornée par le catalogue', () => {
+  // La borne existe contre le rendez-vous clos le lendemain, pas contre la pro.
+  // Elle sait qu'un lissage brésilien prend trois heures.
+  const duree = dureeApprise({
+    dureeCatalogue: 60,
+    historiqueCliente: [{ minutes: 180, corrigee: true }],
+  })
+  assert.equal(duree, 180)
+})
+
+test('B5 — la correction la plus récente remplace la précédente', () => {
+  // L'historique arrive du plus récent au plus ancien : une instruction plus
+  // neuve remplace une instruction plus ancienne.
+  const duree = dureeApprise({
+    dureeCatalogue: 60,
+    historiqueCliente: [
+      { minutes: 75, corrigee: true },
+      { minutes: 120, corrigee: true },
+    ],
+  })
+  assert.equal(duree, 75)
+})

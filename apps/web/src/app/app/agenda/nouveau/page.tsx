@@ -8,9 +8,9 @@ import { creerRdv } from '../actions'
 export default async function NouveauRdv({
   searchParams,
 }: {
-  searchParams: Promise<{ cliente?: string }>
+  searchParams: Promise<{ cliente?: string; prestation?: string; vers?: string }>
 }) {
-  const { cliente } = await searchParams
+  const { cliente, prestation, vers } = await searchParams
   await requirePro()
   const supabase = await supabaseServer()
 
@@ -51,7 +51,15 @@ export default async function NouveauRdv({
           prestations={prestations ?? []}
           clientes={await avecDerniereAdresse(supabase, clientes ?? [])}
           clientePreChoisie={cliente ?? null}
-          valeurs={{ debut: instantVersHeureLocale(prochaineHeure) }}
+          prestationPreChoisie={prestation ?? null}
+          valeurs={{
+            // C7 : quand la reprise propose une fenêtre, on ouvre dedans. La
+            // pro reste libre de la déplacer : c'est une suggestion, pas un
+            // verrou.
+            debut: vers
+              ? `${vers}T${instantVersHeureLocale(prochaineHeure).slice(11)}`
+              : instantVersHeureLocale(prochaineHeure),
+          }}
           action={creerRdv}
           libelle="Enregistrer le rendez-vous"
         />

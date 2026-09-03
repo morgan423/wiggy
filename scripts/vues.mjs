@@ -66,6 +66,7 @@ const VUES = [
   { nom: '08b-pro-clientes', compte: 'rempli', url: '/app/clientes' },
   { nom: '08c-pro-fiche-cliente', compte: 'rempli', url: '/app/clientes/{cliente}' },
   { nom: '08d-pro-bloquer', compte: 'rempli', url: '/app/agenda/bloquer' },
+  { nom: '08e-pro-reglages', compte: 'rempli', url: '/app/parametrage/reglages' },
   { nom: '09-pro-agenda-nouveau', compte: 'rempli', url: '/app/agenda/nouveau' },
   { nom: '10-pro-tournee', compte: 'rempli', url: '/app/tournee' },
   { nom: '11-pro-accueil', compte: 'rempli', url: '/app' },

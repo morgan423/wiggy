@@ -4,6 +4,7 @@ import { useActionState, useState } from 'react'
 import { copy } from '@wiggy/copy'
 import { Champ, Zone, Erreur, BoutonPrincipal } from '@/components/champs'
 import { ListeDeroulante } from '@/components/trousse'
+import { ChampAdresse } from '@/components/champ-adresse'
 import { VIDE, type EtatForm } from '@/lib/forms'
 
 type Prestation = { id: string; name: string; price_cents: number; duration_min: number }
@@ -48,6 +49,7 @@ export function FormRdv({
   libelle,
   edition = false,
   clientePreChoisie = null,
+  prestationPreChoisie = null,
 }: {
   prestations: Prestation[]
   clientes: Cliente[]
@@ -57,9 +59,13 @@ export function FormRdv({
   edition?: boolean
   /** Fiche pré-sélectionnée, quand on arrive depuis « Nouveau rendez-vous ». */
   clientePreChoisie?: string | null
+  /** C7 : la prestation du rendez-vous qu'on vient de clore. */
+  prestationPreChoisie?: string | null
 }) {
   const [etat, action, enCours] = useActionState<EtatForm, FormData>(actionServeur, VIDE)
-  const [prestation, setPrestation] = useState<Prestation | null>(null)
+  const [prestation, setPrestation] = useState<Prestation | null>(
+    prestations.find((p) => p.id === prestationPreChoisie) ?? null,
+  )
   // R2-7 bis ② : l'adresse est obligatoire, mais pour une cliente déjà connue
   // elle ne doit rien coûter. Choisir sa fiche remplit les trois champs avec
   // sa dernière adresse connue, et le pro reste libre de les corriger.
@@ -264,29 +270,26 @@ export function FormRdv({
           Une adresse que le référentiel ne reconnaît pas est conservée telle
           quelle et rattachée au centre de sa commune : rien ne bloque.
         */}
-        <Champ
-          id="address_line1"
-          key={`a-${adresse?.ligne ?? ''}`}
+        {/*
+          B12 : le même composant que le tunnel cliente et que la zone
+          d'intervention. C'est la saisie la plus fréquente de l'app côté pro :
+          la faire en trois champs à taper était la rendre laborieuse.
+        */}
+        <ChampAdresse
+          key={`adr-${adresse?.ligne ?? ''}`}
+          id="adresse_rdv"
           label="Adresse"
-          autoComplete="off"
-          defaultValue={adresse?.ligne ?? repris('address_line1', valeurs.address_line1)}
+          placeholder="12 rue des Lilas, Pau"
           aide="Où tu te déplaces. C’est ce qui fait entrer ce rendez-vous dans ta tournée."
+          nomLigne="address_line1"
+          nomCodePostal="postal_code"
+          nomVille="city"
+          defaut={{
+            ligne: adresse?.ligne ?? repris('address_line1', valeurs.address_line1),
+            codePostal: adresse?.cp ?? repris('postal_code', valeurs.postal_code),
+            ville: adresse?.ville ?? repris('city', valeurs.city),
+          }}
         />
-        <div className="grid gap-0 sm:grid-cols-2 sm:gap-5">
-          <Champ
-            id="postal_code"
-            key={`cp-${adresse?.cp ?? ''}`}
-            label="Code postal"
-            inputMode="numeric"
-            defaultValue={adresse?.cp ?? repris('postal_code', valeurs.postal_code)}
-          />
-          <Champ
-            id="city"
-            key={`v-${adresse?.ville ?? ''}`}
-            label="Ville"
-            defaultValue={adresse?.ville ?? repris('city', valeurs.city)}
-          />
-        </div>
         <Champ
           id="access_notes"
           label="Infos d’accès"

@@ -31,7 +31,15 @@ pourtant bien à cette enveloppe, et les déplacer serait une erreur.
   c'est là qu'est la décision partagée. Le fichier n'exprime que la façon de la dire en CSS.
 - `apps/web/src/lib/trajets/google.ts` — client de la Routes API de Google.
 - `apps/web/src/lib/lieux/index.ts` — client de la Places API.
-- `apps/web/src/lib/sms/index.ts` — interface d'envoi de SMS.
+- `apps/web/src/lib/sms/index.ts` — le SMS de vérification, écrit et confié à l'adaptateur.
+- `apps/web/src/lib/messagerie/brevo.ts` — l'adaptateur du fournisseur de SMS et d'e-mails.
+- `apps/web/src/lib/messagerie/index.ts` — le choix du fournisseur, et les gardes de destination.
+
+  **L'interface, elle, est bien dans le cœur** (`packages/core/src/messagerie.ts`, `Messagerie`),
+  comme G4 l'exige : c'est elle qui rend la bascule de fournisseur possible en une journée. Ce
+  qui reste ici, c'est l'ADAPTATEUR et le choix, qui portent la clé serveur. Les mettre dans un
+  package que le mobile embarquerait ferait voyager cette clé jusque dans un bundle : ce serait
+  l'inverse de la sécurité qu'on cherche.
 
   Ces trois-là sont l'**infrastructure serveur** de l'hôte d'API. `apps/web` n'est pas seulement
   une enveloppe : c'est aussi le backend des trois surfaces (roadmap, §Structure). Les clés ne

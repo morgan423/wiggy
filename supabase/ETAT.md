@@ -39,7 +39,9 @@ Rejouer un lot déjà appliqué échoue sur les types et les tables qui existent
 | `0008_communes.sql`            | D6 : référentiel des communes en base, créé **vide**. Alimenté par `npm run communes:import`.                                                 | Appliquée le 2026-08-31     | Projet inexistant |
 | `0009_auth_et_forfait.sql`     | D9 : téléphone vérifié du pro et de la cliente, table des codes verrouillée. A8 : `distance_fees` perd sa lecture publique.                   | Appliquée le 2026-09-03     | Projet inexistant |
 | `0010_mode_exercice.sql`       | D10 ① : colonne `mode` sur `pros`, itinerant par défaut ou fixe. Drapeau d'affichage, jamais un droit.                                        | Appliquée le 2026-09-03     | Projet inexistant |
-| `0011_blocages_et_cloture.sql` | B4 : `blocked_slots.created_at`, pour mesurer la fréquence de blocage (D2). B6 : index d'apprentissage des durées réelles.                    | En attente                  | Projet inexistant |
+| `0011_blocages_et_cloture.sql` | B4 : `blocked_slots.created_at`, pour mesurer la fréquence de blocage (D2). B6 : index d'apprentissage des durées réelles.                    | Appliquée le 2026-09-03     | Projet inexistant |
+| `0012_usage_sms.sql`           | B7 : compteur mensuel de SMS par pro, verrouillé par conception, avec `consommer_sms()`.                                                      | En attente                  | Projet inexistant |
+| `0013_realisations.sql`        | A1 : table `pro_photos`, les réalisations de la page publique. Lecture anonyme limitée aux fiches publiées.                                   | En attente                  | Projet inexistant |
 
 ## Notes
 

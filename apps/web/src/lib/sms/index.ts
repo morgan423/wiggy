@@ -1,9 +1,9 @@
 /**
- * L'envoi de SMS, vu par l'application.
+ * Le SMS de vérification (D9), écrit et envoyé.
  *
- * Aucun fournisseur n'est branché : B7, le modèle SMS complet, est en phase 2.
- * L'interface existe dès maintenant parce que D9 en dépend, et parce qu'une
- * abstraction posée après coup se plie toujours à la première implémentation.
+ * L'interface d'envoi vit dans le cœur commun (`@wiggy/core`, `Messagerie`) et
+ * son adaptateur dans `lib/messagerie` : ce module ne connaît aucun
+ * fournisseur, il connaît un message.
  *
  * ⚠️ Ceci ne contredit pas le principe non négociable n°1, « aucun envoi
  * automatique de SMS sans validation explicite du pro ». Ce principe protège
@@ -11,12 +11,6 @@
  * demandé par la personne qui le reçoit, pour elle-même, et ne part jamais sans
  * ce geste.
  */
-
-export type ResultatEnvoi =
-  | { statut: 'envoye' }
-  /** Aucun fournisseur configuré. En développement, le code est lisible. */
-  | { statut: 'non-configure'; codeDeDeveloppement?: string }
-  | { statut: 'echec' }
 
 /**
  * G4, tranché le 03/09 : **l'expéditeur est « Wiggy »**, sender ID
@@ -47,29 +41,29 @@ export type ResultatEnvoi =
  * décision vit dans ce commentaire, à l'endroit exact où elle s'appliquera, et
  * dans le copy deck (`notification-copilote.$aEcrire.$noteG4`).
  */
-const enDeveloppement = () => process.env.WIGGY_ENV === 'developpement'
+import { copy, remplir } from '@wiggy/copy'
+import { envoyerSms, codeVisibleEnDeveloppement } from '@/lib/messagerie'
 
 /**
  * Envoie un code de vérification.
  *
- * Sans fournisseur, le code est écrit dans le journal du serveur, et rendu à
- * l'écran EN DÉVELOPPEMENT SEULEMENT : sans cela, la vérification du téléphone
- * serait irrecettable tant que B7 n'existe pas. La garde est en liste blanche,
- * jamais en liste noire : une variable absente ferme le passage.
+ * Passe par l'adaptateur, comme tout le reste : ce module ne connaît aucun
+ * fournisseur, il connaît un message.
+ *
+ * Sans fournisseur, le code est écrit dans le journal du serveur et rendu à
+ * l'écran EN DÉVELOPPEMENT SEULEMENT. Sans cela, la vérification du téléphone
+ * serait irrecettable pendant toute la bêta, qui tourne sans SMS (D14).
  */
-export async function envoyerCode(numero: string, code: string): Promise<ResultatEnvoi> {
-  const fournisseur = process.env.SMS_FOURNISSEUR
-  if (!fournisseur) {
-    // Le numéro n'est pas journalisé : c'est une donnée personnelle, et il
-    // suffit de savoir qu'un code est parti pour suivre le parcours.
-    console.warn('sms_non_configure', enDeveloppement() ? `code=${code}` : '')
-    return {
-      statut: 'non-configure',
-      codeDeDeveloppement: enDeveloppement() ? code : undefined,
-    }
+export async function envoyerCode(
+  numero: string,
+  code: string,
+): Promise<{ statut: string; codeDeDeveloppement?: string }> {
+  const resultat = await envoyerSms(
+    { telephone: numero },
+    remplir(copy.authentification.$aEcrire.smsCode, { code }),
+  )
+  if (resultat.statut === 'non-configure') {
+    return { statut: 'non-configure', codeDeDeveloppement: codeVisibleEnDeveloppement(code) }
   }
-
-  // B7 branchera ici le fournisseur retenu. La forme du retour ne changera pas.
-  console.error('sms_fournisseur_inconnu', fournisseur)
-  return await Promise.resolve({ statut: 'echec' })
+  return { statut: resultat.statut }
 }

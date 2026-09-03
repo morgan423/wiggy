@@ -420,6 +420,30 @@ export type Database = {
         }
         Relationships: []
       }
+      pro_photos: {
+        Row: {
+        id: string
+        pro_id: string
+        chemin: string
+        position: number
+        created_at: string
+        }
+        Insert: {
+        id?: string
+        pro_id: string
+        chemin: string
+        position?: number
+        created_at?: string
+        }
+        Update: {
+        id?: string
+        pro_id?: string
+        chemin?: string
+        position?: number
+        created_at?: string
+        }
+        Relationships: []
+      }
       pro_settings: {
         Row: {
         pro_id: string
@@ -625,20 +649,20 @@ export type Database = {
         Row: {
         pro_id: string
         period_start: string
-        included: number
         sent: number
+        alerted_at: string | null
         }
         Insert: {
         pro_id: string
         period_start: string
-        included?: number
         sent?: number
+        alerted_at?: string | null
         }
         Update: {
         pro_id?: string
         period_start?: string
-        included?: number
         sent?: number
+        alerted_at?: string | null
         }
         Relationships: []
       }
@@ -737,6 +761,14 @@ export type Database = {
     Functions: {
       consommer_quota: {
         Args: { p_cle: string; p_limite: number; p_fenetre_sec: number }
+        Returns: boolean
+      }
+      consommer_sms: {
+        Args: { p_pro: string; p_mois: string }
+        Returns: number
+      }
+      marquer_alerte_sms: {
+        Args: { p_pro: string; p_mois: string }
         Returns: boolean
       }
     }

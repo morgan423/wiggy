@@ -48,7 +48,8 @@
     "telephoneBouton": "Recevoir le code",
     "plusCeNumero": "Je n’ai plus ce numéro",
     "pasDeCompte": "Pas encore de compte ?",
-    "essai": "Essaie 30 jours"
+    "essai": "Essaie 30 jours",
+    "smsCode": "Wiggy : ton code de vérification est {code}. Il expire dans 10 minutes."
   },
   "gabarits": {
     "codeEnvoye": "C’est lui qui reçoit tes demandes de rendez-vous. Code envoyé au {numero}.",

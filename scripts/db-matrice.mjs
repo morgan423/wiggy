@@ -36,6 +36,12 @@ const { rows: grants } = await db.query(`
  * politique n'a rien à faire là.
  */
 const POURQUOI = {
+  pro_photos_publiques:
+    'Les réalisations sont des photos de TRAVAUX que la pro choisit de montrer (A1, planche 15a) : ' +
+    "une coiffeuse se choisit d'abord sur ce qu'elle sait faire, et une page sans réalisation ne " +
+    'vend pas. Restreinte aux fiches `published`. À ne pas confondre avec `appointment_photos` ' +
+    '(A4), qui sont les photos des CLIENTES : seau privé, aucune politique, jamais publiques. ' +
+    'Les deux ne partagent ni table, ni seau, ni règle.',
   public_profile:
     'La page de réservation est publique par nature (A1) et doit être indexable par Google : ' +
     "c'est le moteur d'acquisition organique du pro (A2). Restreinte aux fiches `published` : " +

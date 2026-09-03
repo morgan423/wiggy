@@ -1,5 +1,6 @@
 import { canalRappel, type CanalRappel, type SubscriptionState } from '@wiggy/core'
 import { supabaseAdmin, supabaseConfigured } from '@/lib/supabase/admin'
+import { quotaSmsDuMois } from '@/lib/messagerie/quota'
 
 /**
  * Le canal de rappel d'un pro, lu en base.
@@ -15,9 +16,10 @@ export async function canalDeRappel(proId: string): Promise<CanalRappel> {
   if (!supabaseConfigured()) return 'email'
   const supabase = supabaseAdmin()
 
-  const [abonnement, reglages] = await Promise.all([
+  const [abonnement, reglages, quota] = await Promise.all([
     supabase.from('subscriptions').select('tier, status').eq('pro_id', proId).maybeSingle(),
     supabase.from('pro_settings').select('sms_enabled').eq('pro_id', proId).maybeSingle(),
+    quotaSmsDuMois(proId),
   ])
 
   const etat: SubscriptionState = abonnement.data
@@ -27,8 +29,10 @@ export async function canalDeRappel(proId: string): Promise<CanalRappel> {
   return canalRappel({
     abonnement: etat,
     smsActifs: reglages.data?.sms_enabled ?? false,
-    // B7 : le plafond du mois n'est pas encore compté. Le jour où il le sera,
-    // c'est la seule ligne à changer, et aucun texte à réécrire.
-    plafondAtteint: false,
+    // B7 : au plafond, la bascule est AUTOMATIQUE et GRATUITE. Aucune cliente
+    // ne se retrouve jamais sans rappel, et rien n'est facturé sans un tap
+    // explicite de la pro. C'est « l'app propose, le pro dispose » appliqué à
+    // l'argent.
+    plafondAtteint: quota.atteint,
   })
 }
