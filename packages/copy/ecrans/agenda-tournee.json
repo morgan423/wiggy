@@ -121,7 +121,13 @@
     "journeesEtConges": "Journées et congés",
     "abonnementResume": "Ton offre et tes SMS",
     "groupeLabel": "Groupe (facultatif)",
-    "groupeAide": "Suggérés : Coupe, Technique, Coiffage, Soins, Homme, Enfant. Sans groupe, ta liste reste simple."
+    "groupeAide": "Suggérés : Coupe, Technique, Coiffage, Soins, Homme, Enfant. Sans groupe, ta liste reste simple.",
+    "menuCompte": "Mon compte Wiggy",
+    "monCompte": "Mon compte",
+    "monCompteResume": "E-mail, mot de passe, téléphone",
+    "parametrage": "Paramétrage",
+    "parametrageResume": "Paiement, annulation, notifications",
+    "deconnexion": "Se déconnecter"
   },
   "tournee": {
     "statement": "Ta tournée, {pro}.",

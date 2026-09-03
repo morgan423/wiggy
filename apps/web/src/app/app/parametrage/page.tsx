@@ -3,6 +3,7 @@ import { copy, remplir } from '@wiggy/copy'
 import { requirePro } from '@/lib/auth'
 import { supabaseServer } from '@/lib/supabase/server'
 import { Cloche } from '@/components/cloche'
+import { MenuCompte } from '@/components/menu-compte'
 import {
   EnteteEcran,
   CorpsEcran,
@@ -12,7 +13,6 @@ import {
   PastilleEtat,
 } from '@/components/composition'
 import { Avatar } from '@/components/avatar'
-import { seDeconnecter } from '@/app/(pro)/actions'
 
 /**
  * Le hub « Ton activité », planche 14c.
@@ -94,7 +94,12 @@ export default async function Parametrage() {
       */}
       <EnteteEcran
         variante="hub"
-        cloche={<Cloche />}
+        cloche={
+          <>
+            <Cloche />
+            <MenuCompte />
+          </>
+        }
         vignette={<Avatar nom={pro.display_name} taille="sm" />}
         statement={pro.display_name.split(' ')[0]}
         sousTitre={
@@ -163,46 +168,17 @@ export default async function Parametrage() {
           chevron
           href="/app/parametrage/horaires"
         />
-        {/* 17c : le mode d'exercice et le GPS restent MÉTIER. Ils disent
-            comment la pro travaille, pas comment elle est facturée. */}
-        <RangeeEcran principal={T.$aEcrire.exercice} chevron href="/app/parametrage/exercice" />
-
-        <EtiquetteSection>{T.$aEcrire.groupeCompte}</EtiquetteSection>
         {/*
-          D17 : l'écran de réglages était un grenier, sept réglages sans rapport
-          les uns avec les autres. Ils sont répartis par sujet : le paiement et
-          la validation ici, le tampon nouvelle cliente avec les journées, le
-          GPS avec la zone, les SMS avec les notifications.
-        */}
-        <RangeeEcran principal={T.$aEcrire.paiement} chevron href="/app/parametrage/paiement" />
-        <RangeeEcran principal={T.$aEcrire.annulation} chevron href="/app/parametrage/annulation" />
-        {/* 17c : les SMS rejoignent l'abonnement, avec l'offre. Rattaché au
-            hub, aussi : il n'était atteignable que par une redirection de
-            capacité, donc jamais quand on le cherchait. */}
-        <RangeeEcran
-          principal={T.$aEcrire.abonnement}
-          resume={T.$aEcrire.abonnementResume}
-          chevron
-          href="/app/abonnement"
-        />
-        {/* B14 : la planche 17c ne montre pas cette rangée, mais le brief
-            demande de poser les bascules push dans Profil. Écart signalé. */}
-        <RangeeEcran
-          principal={T.$aEcrire.notifications}
-          chevron
-          href="/app/parametrage/notifications"
-        />
-        <RangeeAVenir principal={T.$aEcrire.statistiques} mention={T.$aEcrire.aVenir} />
-        <RangeeAVenir principal={T.$aEcrire.aide} mention={T.$aEcrire.aVenir} />
+          D17 ④ — le métier en bas, le compte en haut. Cet onglet garde ce qui
+          fait TOURNER l'activité ; le paiement, l'abonnement, le compte, le
+          paramétrage, l'aide et la déconnexion vivent dans le menu, en haut à
+          droite.
 
-        <form action={seDeconnecter} className="mt-auto pt-8 pb-3.5">
-          <button
-            type="submit"
-            className="tactile text-[12px] font-bold text-texte-attenue hover:text-erreur"
-          >
-            Se déconnecter
-          </button>
-        </form>
+          « Voir ma page publique » RESTE ici, et pas dans le menu : c'est un
+          geste fréquent et fier, on regarde sa vitrine, ça ne se cache pas
+          derrière une icône.
+        */}
+        <RangeeAVenir principal={T.$aEcrire.statistiques} mention={T.$aEcrire.aVenir} />
       </CorpsEcran>
     </>
   )

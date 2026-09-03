@@ -208,6 +208,25 @@ Côté cliente finale, tout reste web : zéro installation pour réserver.
 
 - Migrations : `supabase/migrations/NNNN_nom.sql`, jamais éditées après application : on ajoute une
   migration.
+- **Toute migration doit pouvoir être REJOUÉE sans erreur** (règle du 04/09, après incident).
+  `add column if not exists`, `create table if not exists`, `create index if not exists`,
+  `drop policy if exists` avant un `create policy`, et pour un type, un bloc `do $$` qui teste
+  `pg_type`, Postgres n'offrant pas de `create type if not exists`.
+  **Le motif** : les migrations s'appliquent **à la main** (D7), dans une interface web, sur des
+  **lots de plusieurs fichiers**. Une interruption au milieu d'un lot n'est pas un accident rare,
+  c'est le cas normal. Sans idempotence, la moitié d'un lot est passée, le reste refuse de
+  s'appliquer, et il faut un diagnostic manuel pour savoir où reprendre. Avec elle, on recolle le
+  lot entier et ça repart.
+  **Le contrôle est une PREUVE, pas une relecture** : `npm run db:rejeu` applique les migrations
+  puis **les rejoue une seconde fois** sur la même base. Un `if not exists` posé sur un
+  `create table` ne dit rien de ses index, de ses politiques ni de ses types ; seul un second
+  passage le dit. Le contrôle porte sur les migrations **à partir de 0017** : les précédentes sont
+  appliquées, et une migration appliquée ne se réécrit jamais.
+- **Chaque migration déclare une SONDE dans son en-tête** : `-- @sonde: table` ou
+  `-- @sonde: table.colonne`, un objet qui n'existe **qu'après elle**. C'est ce qui permet à
+  `npm run db:etat` de dire quelles migrations sont **réellement** appliquées, en interrogeant la
+  base. Les sondes des migrations 0001 à 0016 vivent dans le script, parce que ces fichiers sont
+  gelés. `db:rejeu` échoue si une migration non gelée n'en déclare pas.
 - **Deux environnements Supabase (D7)**, et `supabase/ETAT.md` suit les deux, une colonne par
   projet. **Une migration s'applique toujours au développement d'abord, à la production ensuite,
   jamais l'inverse.** **La production ne sert jamais à une recette** : elle porte les fiches de
@@ -264,6 +283,7 @@ La matrice complète est dans `docs/matrice-acces.md`, générée depuis le sch�
 npm run verify     # la chaîne complète, avant toute livraison
 npm run check      # format, lint strict, types stricts, code mort
 npm run db:check   # rejoue les migrations sur un Postgres jetable + garde-fou RLS
+npm run db:rejeu   # les rejoue UNE SECONDE FOIS : preuve d'idempotence
 npm run db:test    # cloisonnement prouvé, pas supposé
 npm run db:matrice # matrice d'accès, échoue sur une lecture anonyme non justifiée
 npm run design:check
@@ -316,6 +336,15 @@ Statut à reporter dans la roadmap : <ID : libellé exact à recopier>
 le duplique pas.
 
 ### État de la base
+
+**`npm run db:etat` est le CONSTAT, `supabase/ETAT.md` est la DÉCLARATION.** La commande
+interroge la base, dit quelles migrations sont réellement passées, et **nomme le projet
+interrogé** : avec deux projets (D7), un script qui annonce « tout est appliqué » sans dire où
+serait pire que pas de script du tout. **Quand les deux divergent, le constat a raison.**
+
+Elle est en **lecture seule par construction** et non par discipline (R2-4) : elle n'interroge la
+base que par des `GET` PostgREST, un protocole qui ne sait pas écrire. Aucune ligne de ce script
+ne peut modifier quoi que ce soit, même modifiée sans réfléchir.
 
 `supabase/ETAT.md` dit ce qui est réellement appliqué sur le projet Supabase. Y ajouter une
 ligne « en attente » dès qu'une migration est créée ; **ne jamais y écrire « appliquée »

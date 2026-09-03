@@ -1,4 +1,8 @@
 -- 0020 — B2 : la mémoire technique devient un JOURNAL, pas un champ.
+-- @sonde: client_notes
+--
+-- La SONDE dit comment savoir, en interrogeant la base, si cette migration est
+-- passée : un objet qui n'existe QU'APRÈS elle. `npm run db:etat` la vérifie.
 --
 -- LE DÉFAUT CORRIGÉ, et il touchait la promesse centrale du produit :
 -- `clients.technical_notes` est un champ texte unique, et chaque écriture
@@ -21,7 +25,8 @@
 -- produiraient une note et dix-neuf pertes. Avec un journal daté, chaque page
 -- devient une entrée à sa date. `appointment_id` est donc nullable : une page
 -- de carnet importée n'a pas de rendez-vous dans Wiggy, elle a une date.
-create table client_notes (
+-- ⚠️ IDEMPOTENTE : voir l'en-tête de 0017.
+create table if not exists client_notes (
   id             uuid primary key default gen_random_uuid(),
   pro_id         uuid not null references pros (id) on delete cascade,
   client_id      uuid not null references clients (id) on delete cascade,
@@ -34,7 +39,7 @@ create table client_notes (
   created_at     timestamptz not null default now()
 );
 
-create index client_notes_cliente_idx on client_notes (client_id, fait_le desc);
+create index if not exists client_notes_cliente_idx on client_notes (client_id, fait_le desc);
 
 comment on table client_notes is
   'B2 : le JOURNAL technique, une entree datee par visite. Jamais ecrase : '
@@ -48,6 +53,7 @@ comment on column clients.technical_notes is
 
 alter table client_notes enable row level security;
 
+drop policy if exists client_notes_self on client_notes;
 create policy client_notes_self on client_notes
   for all to authenticated
   using (pro_id = auth.uid())

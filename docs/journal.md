@@ -20,6 +20,67 @@ _Rien en attente : les trois questions ouvertes ont été tranchées le 03/09._
 
 ---
 
+## 2026-09-03 (10) Étape : D17 ④ et ⑤, le menu du compte et la cloche qui se referme
+
+**Fait :**
+
+- **D17 ⑤ — la cloche se referme sur elle-même.** Ouvrir le centre la transforme en croix, et la
+  croix revient à l'écran précédent. **Aucun lien de sortie, aucune navigation** : un panneau se
+  ferme là où il s'est ouvert, et la pro ne quitte pas l'écran sur lequel elle travaillait pour
+  avoir jeté un œil au journal. Un lien de sortie l'aurait renvoyée quelque part, ce qui n'est pas
+  la même chose que refermer.
+- **Le comptage reste serveur, la bascule est cliente** : elle dépend de la route affichée, que
+  seul le navigateur connaît. La cloche garde donc son décompte sans devenir un composant client.
+- **D17 ④ — le métier en bas, le compte en haut.** L'onglet ne garde que ce qui fait TOURNER
+  l'activité : voir ma page publique, prestations, zone, journées et congés, statistiques. Un
+  **menu à droite de la cloche** porte le compte : mon compte, abonnement, paramétrage, aide,
+  déconnexion.
+- **Le mot « Paramétrage » revient**, dans le menu, là où on le cherche. Il avait disparu du
+  produit, et une pro qui voulait régler quelque chose n'avait plus aucun mot auquel se
+  raccrocher. Ce n'est pas le grenier d'avant : chaque rangée mène à un écran d'un seul sujet.
+- **« Mon compte » existe enfin** : l'e-mail, le téléphone et leurs vérifications, le mot de
+  passe. Trois choses qu'on règle une fois par an et qui n'avaient nulle part où vivre, dispersées
+  entre l'écran de profil et les parcours de vérification.
+- **« Voir ma page publique » reste en tête de l'onglet**, pas dans le menu : c'est un geste
+  fréquent et fier, on regarde sa vitrine, ça ne se cache pas derrière une icône.
+- **La déconnexion quitte le bas de l'onglet pour le menu.** Elle concerne le compte, pas
+  l'activité.
+- **Les quatre onglets et leurs icônes n'ont pas bougé**, comme demandé.
+
+**Schéma :** aucun. Les migrations 0017 à 0020 restent EN ATTENTE.
+
+**Décisions :** D17 ④ et ⑤.
+
+**Écarts au brief :**
+
+- **« Journées et congés » reste UNE rangée**, alors que ta liste énumère « horaires, congés ».
+  J'ai lu ton énumération comme le contenu de l'onglet et non comme sa mise en page, et gardé la
+  rangée unique de la planche 17c. Si tu voulais deux rangées, c'est une ligne à changer, dis-le
+  moi.
+- **Le changement de mot de passe renvoie au parcours d'oubli** plutôt qu'à un écran dédié : c'est
+  le même geste, un code sur le téléphone vérifié et jamais un lien par e-mail. Un seul chemin,
+  donc un seul endroit où il peut être faux.
+- **« Aide » est dans le menu, mais inerte** (F1 n'existe pas). Elle est marquée comme telle plutôt
+  qu'omise, pour la même raison que « Statistiques » : une entrée absente laisse croire que le
+  produit s'arrête là.
+
+**Questions ouvertes :** aucune.
+
+**À recetter par Morgan :**
+
+1. Tape la cloche : le centre s'ouvre et **la cloche est devenue une croix**. Tape la croix : tu
+   reviens exactement à l'écran d'où tu venais, dans l'état où tu l'avais laissé. Aucun lien de
+   sortie nulle part.
+2. L'onglet Profil ne contient plus que l'activité. Compte, abonnement, paramétrage, aide et
+   déconnexion sont dans le **menu en haut à droite**, à droite de la cloche.
+3. Ouvre « Paramétrage » : quatre rangées, chacune vers un écran d'un seul sujet.
+4. Ouvre « Mon compte » : ton e-mail, ton téléphone, leurs pastilles de vérification, et le
+   changement de mot de passe.
+5. « Voir ma page publique » est toujours en tête de l'onglet, pas dans le menu.
+6. Déconnecte-toi depuis le menu.
+
+**Statut à reporter dans la roadmap :** D17 : « ④ et ⑤ construits, recette à valider ».
+
 ## 2026-09-03 (9) Étape : D17, B13, B14, A4, A11, et la mémoire technique corrigée
 
 **Fait :**

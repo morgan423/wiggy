@@ -3,6 +3,7 @@ import { ZONE } from '@wiggy/core'
 import { copy, remplir } from '@wiggy/copy'
 import { requirePro } from '@/lib/auth'
 import { supabaseServer } from '@/lib/supabase/server'
+import { Cloche } from '@/components/cloche'
 import { EnteteEcran, CorpsEcran, EtatVide, EtiquetteSection } from '@/components/composition'
 import { RETENTION_JOURS } from '@/lib/notifications'
 import { ToutMarquerLu } from './form'
@@ -53,7 +54,9 @@ export default async function Notifications() {
 
   return (
     <>
-      <EnteteEcran retour="/app/tournee" variante="jour" statement={N.cloche.titre} />
+      {/* D17 ⑤ : aucun lien de retour. La cloche est devenue une croix, et
+          c'est elle qui referme le panneau, là où il s'est ouvert. */}
+      <EnteteEcran variante="jour" statement={N.cloche.titre} cloche={<Cloche />} />
       <CorpsEcran serre>
         {/*
           L'épingle. Elle RENVOIE, elle ne duplique pas : ni carte, ni bouton.

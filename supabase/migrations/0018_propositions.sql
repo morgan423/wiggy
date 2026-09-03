@@ -1,4 +1,8 @@
 -- 0018 — A11 : la proposition en attente de réponse, généralisée.
+-- @sonde: propositions
+--
+-- La SONDE dit comment savoir, en interrogeant la base, si cette migration est
+-- passée : un objet qui n'existe QU'APRÈS elle. `npm run db:etat` la vérifie.
 --
 -- LE MOTIF DE GÉNÉRALISATION, et il vaut d'être écrit ici. Le patron « sous
 -- réserve » existe déjà dans les deux sens : le supplément de zone (A8) fait
@@ -10,10 +14,21 @@
 -- Une seule table, donc, avec un motif. Ce qui change d'un cas à l'autre est ce
 -- qui est proposé ; ce qui ne change jamais est le cycle : une pro propose, une
 -- cliente répond, et le rendez-vous ne bouge qu'après sa réponse.
-create type proposition_kind as enum ('contre_proposition', 'forfait', 'report');
-create type proposition_status as enum ('en_attente', 'acceptee', 'refusee', 'caduque');
+-- ⚠️ IDEMPOTENTE : voir l'en-tête de 0017. Postgres n'offre pas de
+-- « create type if not exists » : on teste `pg_type`, ce qui revient au même et
+-- se rejoue sans erreur.
+do $types$
+begin
+  if not exists (select 1 from pg_type where typname = 'proposition_kind') then
+    create type proposition_kind as enum ('contre_proposition', 'forfait', 'report');
+  end if;
+  if not exists (select 1 from pg_type where typname = 'proposition_status') then
+    create type proposition_status as enum ('en_attente', 'acceptee', 'refusee', 'caduque');
+  end if;
+end
+$types$;
 
-create table propositions (
+create table if not exists propositions (
   id             uuid primary key default gen_random_uuid(),
   appointment_id uuid not null references appointments (id) on delete cascade,
   pro_id         uuid not null references pros (id) on delete cascade,
@@ -39,7 +54,7 @@ create table propositions (
   responded_at   timestamptz
 );
 
-create index propositions_rdv_idx on propositions (appointment_id, created_at desc);
+create index if not exists propositions_rdv_idx on propositions (appointment_id, created_at desc);
 
 comment on table propositions is
   'A11, A8, A10 : une proposition de la pro en attente de reponse de la '
@@ -52,6 +67,7 @@ alter table propositions enable row level security;
 -- serveur avec son jeton : aucune politique anonyme ici, comme pour le suivi
 -- d'un rendez-vous. Un jeton dans une URL n'est pas une authentification, et il
 -- ne doit jamais ouvrir une table entière.
+drop policy if exists propositions_self on propositions;
 create policy propositions_self on propositions
   for all to authenticated
   using (pro_id = auth.uid())

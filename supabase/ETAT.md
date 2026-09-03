@@ -45,10 +45,10 @@ Rejouer un lot déjà appliqué échoue sur les types et les tables qui existent
 | `0014_journee_lancee.sql`      | D15 : table `journees`, le lancement de journée. Distingue « en cours » de « à clôturer ».                                                    | Appliquée le 2026-09-03     | Projet inexistant |
 | `0015_point_de_depart.sql`     | D16 : adresse de départ sur `pros`, jamais exposée publiquement. Donne un trajet au premier rendez-vous.                                      | Appliquée le 2026-09-03     | Projet inexistant |
 | `0016_duree_declaree.sql`      | D15 corrigée : `appointments.duration_declared`, pour distinguer une durée mesurée d'une durée écrite par la pro.                             | Appliquée le 2026-09-03     | Projet inexistant |
-| `0017_groupes_et_photos.sql`   | B13 : `services.category`, groupe optionnel. A4 : `services.photos_required`, par prestation.                                                 | En attente                  | Projet inexistant |
-| `0018_propositions.sql`        | A11 : table `propositions`, le patron « sous réserve » généralisé aux trois cas (contre-proposition, forfait, report).                        | En attente                  | Projet inexistant |
-| `0019_notifications.sql`       | B14 : journal des notifications et bascules push.                                                                                             | En attente                  | Projet inexistant |
-| `0020_journal_technique.sql`   | B2 : `client_notes`, le journal technique daté. L'existant n'est pas migré, à dessein.                                                        | En attente                  | Projet inexistant |
+| `0017_groupes_et_photos.sql`   | B13 : `services.category`, groupe optionnel. A4 : `services.photos_required`, par prestation.                                                 | Appliquée le 2026-09-03     | Projet inexistant |
+| `0018_propositions.sql`        | A11 : table `propositions`, le patron « sous réserve » généralisé aux trois cas (contre-proposition, forfait, report).                        | Appliquée le 2026-09-03     | Projet inexistant |
+| `0019_notifications.sql`       | B14 : journal des notifications et bascules push.                                                                                             | Appliquée le 2026-09-03     | Projet inexistant |
+| `0020_journal_technique.sql`   | B2 : `client_notes`, le journal technique daté. L'existant n'est pas migré, à dessein.                                                        | Appliquée le 2026-09-03     | Projet inexistant |
 
 ## Notes
 
@@ -63,5 +63,9 @@ Rejouer un lot déjà appliqué échoue sur les types et les tables qui existent
   d'intervention avec elle.
 - **Le référentiel des communes se réimporte une fois par an, en janvier** (décision D6). Le
   détail et la raison sont dans `docs/production.md`, section « Entretien récurrent ».
+- **Ce tableau est DÉCLARATIF, `npm run db:etat` est le CONSTAT.** La commande interroge la base
+  et dit quelles migrations sont réellement passées, en nommant le projet interrogé. **Quand les
+  deux divergent, c'est le constat qui a raison** : on corrige le tableau, pas l'inverse. Écrite
+  le 04/09, après une soirée passée à reconstituer l'état réel à la main.
 - `MIGRATIONS-A-COLLER*.sql` est un fichier de transit généré, ignoré par Git. Il ne fait pas
   foi : ce tableau, si.
