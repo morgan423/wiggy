@@ -104,6 +104,11 @@ export function FormPhotos({
       <p className="mt-3 text-texte-secondaire">
         {remplir(C.$aEcrire.photosAideEtape, { pro: prenomPro })}
       </p>
+      {/* A4 : une demande de photos SANS motif se lit comme une intrusion ;
+          avec son motif, elle se lit comme du soin. */}
+      <p className="mt-2 text-texte-secondaire">
+        {remplir(C.gabarits.photosRequises, { pro: prenomPro })}
+      </p>
 
       <ChampFichiers
         id="actuelles"

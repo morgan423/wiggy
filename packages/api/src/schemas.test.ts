@@ -3,7 +3,7 @@ import assert from 'node:assert/strict'
 import {
   PrestationInput,
   HoraireInput,
-  ReglagesInput,
+  PaiementInput,
   CommuneInput,
   CongeInput,
   ProfilInput,
@@ -67,20 +67,25 @@ test('le code INSEE corse (2A/2B) est accepté', () => {
   assert.equal(CommuneInput.safeParse({ insee_code: '644', name: 'Pau' }).success, false)
 })
 
-test('les réglages n’acceptent que les modes de paiement du modèle', () => {
+test('le paiement n’accepte que les modes du modèle', () => {
+  // D17 : l'ancien `ReglagesInput` couvrait sept réglages sans rapport les uns
+  // avec les autres. Chaque écran valide désormais ce qu'il montre, et rien
+  // d'autre : un formulaire qui envoie des champs qu'il n'affiche pas écrase
+  // des valeurs qu'il ne connaît pas.
   const base = {
     payment_mode: 'required',
     default_deposit_percent: '30',
     booking_confirmation_mode: 'manual',
     free_cancellation_hours: '48',
-    new_client_buffer_min: '15',
-    sms_enabled: true,
-    gps_app: 'waze',
   }
-  const r = ReglagesInput.parse(base)
+  const r = PaiementInput.parse(base)
   assert.equal(r.default_deposit_percent, 30)
-  assert.equal(ReglagesInput.safeParse({ ...base, payment_mode: 'gratuit' }).success, false)
-  assert.equal(ReglagesInput.safeParse({ ...base, default_deposit_percent: '0' }).success, false)
+  assert.equal(PaiementInput.safeParse({ ...base, payment_mode: 'gratuit' }).success, false)
+  assert.equal(PaiementInput.safeParse({ ...base, default_deposit_percent: '0' }).success, false)
+  assert.equal(
+    PaiementInput.safeParse({ ...base, booking_confirmation_mode: 'peut-etre' }).success,
+    false,
+  )
 })
 
 test('les champs facultatifs acceptent la chaîne vide des formulaires HTML', () => {
@@ -180,7 +185,7 @@ test('aucun message de validation n’échappe au français', () => {
     ['HoraireInput', { weekday: 9, starts_at: '25:00', ends_at: 'midi' }],
     ['HoraireInput', { weekday: 1, starts_at: '18:00', ends_at: '09:00' }],
     ['CongeInput', { starts_at: 'pas une date', ends_at: 'pas une date' }],
-    ['ReglagesInput', { payment_mode: 'gratuit', default_deposit_percent: 500 }],
+    ['PaiementInput', { payment_mode: 'gratuit', default_deposit_percent: 500 }],
     ['ProfilInput', { display_name: '', instagram_url: 'pas une url', years_experience: 900 }],
     ['ProfilInput', { display_name: 'Léa', pronoun: 'iel' }],
     ['RdvInput', { service_name: '', price_cents: 'zéro', debut: 'demain', duration_min: 1 }],
@@ -195,7 +200,7 @@ test('aucun message de validation n’échappe au français', () => {
     CommuneInput,
     HoraireInput,
     CongeInput,
-    ReglagesInput,
+    PaiementInput,
     ProfilInput,
     RdvInput,
     ReservationInput,

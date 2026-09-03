@@ -35,9 +35,7 @@ export default async function ACloturer() {
 
   const { data: ouverts } = await supabase
     .from('appointments')
-    .select(
-      'id, starts_at, ends_at, service_name, note, clients(first_name, last_name, technical_notes)',
-    )
+    .select('id, starts_at, ends_at, service_name, note, client_id, clients(first_name, last_name)')
     .lt('ends_at', new Date().toISOString())
     .not('status', 'in', '(done,cancelled)')
     .order('starts_at', { ascending: false })
@@ -47,6 +45,25 @@ export default async function ACloturer() {
     (ouverts ?? []).map((r) => ({ ...r, cloture: false, fin: new Date(r.ends_at) })),
     new Date(),
   )
+
+  /*
+    B2 — la dernière entrée du journal technique de chaque cliente, pour que la
+    clôture PROPOSE de repartir de ce qui a été fait la dernière fois. Une seule
+    lecture pour tout l'écran : une requête par rendez-vous ferait autant
+    d'allers-retours que de clôtures en retard.
+  */
+  const clientes = liste.map((r) => r.client_id).filter((v): v is string => v !== null)
+  const { data: entrees } = clientes.length
+    ? await supabase
+        .from('client_notes')
+        .select('client_id, contenu, fait_le')
+        .in('client_id', clientes)
+        .order('fait_le', { ascending: false })
+    : { data: [] }
+  const derniere = new Map<string, string>()
+  for (const e of entrees ?? []) {
+    if (!derniere.has(e.client_id)) derniere.set(e.client_id, e.contenu)
+  }
 
   return (
     <>
@@ -72,7 +89,7 @@ export default async function ACloturer() {
                 (new Date(r.ends_at).getTime() - new Date(r.starts_at).getTime()) / 60_000,
               )}
               note={r.note}
-              aRetenir={notesDe(r.clients)}
+              derniereEntree={derniere.get(r.client_id ?? '') ?? null}
             />
           ))
         )}
@@ -88,12 +105,4 @@ function nomDe(relation: unknown): string {
   if (typeof c.first_name !== 'string') return 'Sans fiche'
   const nom = typeof c.last_name === 'string' ? c.last_name : ''
   return `${c.first_name} ${nom}`.trim()
-}
-
-/** Les annotations techniques déjà posées sur la fiche, pour ne pas les effacer. */
-function notesDe(relation: unknown): string | null {
-  const brut: unknown = Array.isArray(relation) ? relation[0] : relation
-  if (typeof brut !== 'object' || brut === null) return null
-  const c = brut as Record<string, unknown>
-  return typeof c.technical_notes === 'string' ? c.technical_notes : null
 }

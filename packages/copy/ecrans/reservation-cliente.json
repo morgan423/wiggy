@@ -12,7 +12,9 @@
     "creneauxTitre": "{pro} est près de chez vous :",
     "aucunCreneauTitre": "{pro} n'est pas près de chez vous cette semaine.",
     "confirmationTitre": "Votre rendez-vous est confirmé, {cliente}.",
-    "demandeEnvoyee": "Demande envoyée à {pro}, réponse rapide"
+    "demandeEnvoyee": "Demande envoyée à {pro}, réponse rapide",
+    "photosRequises": "Ajoutez 2 photos de vos cheveux, de face et de dos, pour que {pro} prépare votre rendez-vous et prévoie le bon temps.",
+    "photosFacultatives": "Vous pouvez ajouter des photos pour aider {pro} à préparer votre rendez-vous. C'est facultatif."
   },
   "prestations": {
     "titre": "Que souhaitez-vous réserver ?"
@@ -81,7 +83,14 @@
     "ctaCollant": "Trouver un moment avec {pro}",
     "ctaSousTitre": "Vous choisissez, {pro} vient chez vous.",
     "forfaitPossible": "Un forfait de déplacement peut s'appliquer selon votre adresse. {pro} vous l'indique avant de confirmer.",
-    "acompteSurCarte": "acompte de {pourcent} % à la réservation"
+    "acompteSurCarte": "acompte de {pourcent} % à la réservation",
+    "badgeImmediate": "Réservation immédiate",
+    "badgeValidation": "Sur validation",
+    "confirmationAide": "Ce choix s'affiche sur ta page : tes clientes savent avant de réserver si c'est confirmé tout de suite ou si tu valides.",
+    "propositionDejaAcceptee": "Vous avez déjà accepté cette proposition. Votre rendez-vous est confirmé.",
+    "propositionClose": "Cette proposition n'est plus d'actualité.",
+    "propositionAcceptee": "C'est noté, votre rendez-vous est confirmé.",
+    "propositionDeclinee": "C'est noté. Vous serez recontactée."
   },
   "rappel": {
     "$note": "Livrées par Design le 02/09. La cliente ne doit jamais pouvoir deviner l'offre de sa coiffeuse ni qu'une limite a été atteinte : le texte dit comment elle sera prévenue, jamais pourquoi.",

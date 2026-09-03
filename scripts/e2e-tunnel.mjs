@@ -131,7 +131,18 @@ async function semer(client) {
     method: 'POST',
     headers: { Prefer: 'return=representation' },
     body: JSON.stringify([
-      { pro_id: COMPTE, name: 'Coupe E2E', price_cents: 4200, duration_min: 45, active: true },
+      {
+        pro_id: COMPTE,
+        name: 'Coupe E2E',
+        price_cents: 4200,
+        duration_min: 45,
+        active: true,
+        // A4 : les photos sont désormais un réglage PAR PRESTATION, et l'étape
+        // n'existe que si la prestation la demande. On la coche ici pour que le
+        // parcours de bout en bout continue de traverser cette étape : c'est
+        // le chemin le plus long, et c'est celui qu'un test doit tenir.
+        photos_required: true,
+      },
     ]),
   })
 

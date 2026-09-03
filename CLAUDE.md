@@ -92,6 +92,7 @@ Côté cliente finale, tout reste web : zéro installation pour réserver.
   « nous ». Wiggy reste discret sur la page de la pro, la cliente reste la cliente de la pro.
 - **Aucun tiret cadratin** dans les textes destinés aux humains (UI, SMS, e-mails, site, documents
   du dépôt). Le code lui-même n'est pas concerné. Contrôlé par `design:check`.
+  **Et le board n'y échappe pas.** Les planches antérieures à l'itération 17 sont pleines de cadratins, y compris dans du copy destiné aux clientes : on ne les recopie JAMAIS tels quels. Rappel du partage des rôles, qui règle le cas : **le board fait foi pour la composition, le copy deck fait foi pour les textes**. Un texte lu sur une planche se vérifie dans `packages/copy/ecrans/*.json` avant d'être posé, et la ponctuation se corrige au passage sans attendre que Design repasse.
 - **Le prénom est le héros** : confirmations, célébrations et fiches nomment la personne.
 - **Un texte destiné à la cliente suit le CANAL réellement utilisé, jamais le palier** (B7).
   Palier 1, option SMS désactivée par la pro, plafond d'usage atteint : trois causes, un seul
@@ -110,6 +111,14 @@ Côté cliente finale, tout reste web : zéro installation pour réserver.
   devient « Nouvelle fiche », « Son nom » devient « Prénom », une section se titre par le prénom.
   Un libellé structurel n'a pas besoin de genre. En communication, le doublet : « coiffeuses et
   coiffeurs à domicile ».
+- **Le genre des clientes n'est JAMAIS collecté ni déduit** (tranché le 03/09). Pas de champ, pas
+  d'inférence sur le prénom, pas de bascule dynamique du libellé. **Minimisation RGPD** : il
+  n'existe aucune finalité de service à connaître le genre d'une cliente, donc la donnée ne se
+  collecte pas, et une donnée qu'on ne collecte pas ne fuit pas. En conséquence, **« Clientes »
+  reste au féminin, statique et assumé** : c'est un choix éditorial, pas une supposition sur les
+  personnes. La règle ci-dessus (supprimer le nom commun plutôt que le genrer) reste la voie
+  normale partout où c'est possible ; « Clientes » est l'exception nommée, parce que l'onglet a
+  besoin d'un nom.
 
 ## Design
 

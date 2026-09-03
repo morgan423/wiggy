@@ -89,7 +89,7 @@ export default async function Reserver({
   const modePro = await modeDuPro(supabase, pro.id)
   const { data: prestations } = await supabase
     .from('services')
-    .select('id, name, price_cents, duration_min')
+    .select('id, name, price_cents, duration_min, category, photos_required')
     .eq('pro_id', pro.id)
     .eq('active', true)
     .order('position')
@@ -124,20 +124,36 @@ export default async function Reserver({
       {!prestation ? (
         <>
           <h1 className="display mt-6 tracking-tight">{C.prestations.titre}</h1>
-          <ul className="mt-8 space-y-3">
-            {(prestations ?? []).map((p) => (
-              <li key={p.id}>
-                <Link
-                  href={lien({ p: p.id })}
-                  className="flex flex-wrap items-baseline gap-x-4 rounded-carte border-2 border-trait-discret p-5 hover:border-prune"
-                >
-                  <span className="text-lg font-bold">{p.name}</span>
-                  <span className="text-texte-attenue">{p.duration_min} min</span>
-                  <span className="ml-auto text-lg font-bold">{formatEuros(p.price_cents)}</span>
-                </Link>
-              </li>
+          {/*
+            B13 — sélection par FAMILLE quand la pro a catégorisé. Sans
+            catégorie, une seule liste, et rien ne change pour elle.
+          */}
+          <div className="mt-8 flex flex-col gap-8">
+            {parFamille(prestations ?? []).map(([famille, liste]) => (
+              <section key={famille ?? 'sans-famille'}>
+                {famille ? (
+                  <h2 className="text-sm font-bold tracking-widest text-texte-secondaire uppercase">
+                    {famille}
+                  </h2>
+                ) : null}
+                <ul className={`space-y-3 ${famille ? 'mt-4' : ''}`}>
+                  {liste.map((p) => (
+                    <li key={p.id}>
+                      <Link
+                        href={lien({ p: p.id })}
+                        className="flex flex-wrap items-baseline gap-x-4 rounded-carte border-2 border-trait-discret p-5 hover:border-prune"
+                      >
+                        <span className="text-lg font-bold">{p.name}</span>
+                        <span className="ml-auto text-lg font-bold">
+                          {formatEuros(p.price_cents)}
+                        </span>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </section>
             ))}
-          </ul>
+          </div>
         </>
       ) : q.etape === 'sejour' ? (
         /* A5 : la cliente sera sur place. L'adresse de séjour remplace la sienne. */
@@ -182,8 +198,15 @@ export default async function Reserver({
           recherche={q}
           lien={lien}
         />
-      ) : !q.ph ? (
-        /* Étape 4 : les photos, envoyées avant et non avec la réservation. */
+      ) : prestation.photos_required && !q.ph ? (
+        /*
+          Étape 4 : les photos, envoyées avant et non avec la réservation.
+
+          A4 — elle n'existe QUE si la prestation le demande. Imposer les photos
+          partout fait abandonner des réservations simples ; ne les imposer
+          nulle part laisse arriver des prestations mal qualifiées. C'est la pro
+          qui coche, prestation par prestation.
+        */
         <FormPhotos prenomPro={prenom} chemin={chemin} parametres={parametres} />
       ) : (
         /* Étape 5 : les coordonnées, puis la célébration. */
@@ -493,5 +516,19 @@ async function EtapeSejour({
         </form>
       </section>
     </>
+  )
+}
+
+/** B13 — les prestations par famille. Une seule liste quand rien n'est rangé. */
+function parFamille<T extends { category: string | null }>(
+  prestations: T[],
+): [string | null, T[]][] {
+  const familles = new Map<string | null, T[]>()
+  for (const p of prestations) {
+    const cle = p.category ?? null
+    familles.set(cle, [...(familles.get(cle) ?? []), p])
+  }
+  return [...familles.entries()].sort(([a], [b]) =>
+    a === null ? 1 : b === null ? -1 : a.localeCompare(b),
   )
 }

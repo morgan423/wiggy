@@ -21,6 +21,8 @@ const CHEMIN = '/app/parametrage/prestations'
 
 export async function creerPrestation(precedent: EtatForm, donnees: FormData): Promise<EtatForm> {
   const saisie = PrestationInput.safeParse({
+    category: champ(donnees, 'category'),
+    photos_required: donnees.get('photos_required') !== null,
     name: champ(donnees, 'name'),
     description: champ(donnees, 'description'),
     price_cents: champ(donnees, 'price_cents'),

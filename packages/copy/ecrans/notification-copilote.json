@@ -15,6 +15,21 @@
     "bouton": "Ouvrir le trajet"
   },
   "$aEcrire": {
-    "$noteG4": "G4, tranché le 03/09 : l'EXPÉDITEUR de tous les SMS est « Wiggy », sender ID alphanumérique unique. Le CORPS parle au nom de la pro et ouvre par elle (« Bonjour Mme Riva, c'est Sophie… »). Les messages qui appellent une réponse (retard C5, relance B8) portent le NUMÉRO DE LA PRO dans le texte : l'expéditeur ne se répond pas. Le principe : la relation vit dans le texte, l'infrastructure dans l'en-tête."
+    "$noteG4": "G4, tranché le 03/09 : l'EXPÉDITEUR de tous les SMS est « Wiggy », sender ID alphanumérique unique. Le CORPS parle au nom de la pro et ouvre par elle (« Bonjour Mme Riva, c'est Sophie… »). Les messages qui appellent une réponse (retard C5, relance B8) portent le NUMÉRO DE LA PRO dans le texte : l'expéditeur ne se répond pas. Le principe : la relation vit dans le texte, l'infrastructure dans l'en-tête.",
+    "pushReponse": "Quand une cliente répond",
+    "pushReponseAide": "À une contre-proposition, à un forfait, à un report. Coché par défaut : tu attends cette réponse.",
+    "pushAvis": "Quand tu reçois un avis",
+    "pushAvisAide": "Un avis n'attend rien de toi. À toi de voir si tu veux le savoir tout de suite.",
+    "epingleADecider": "{n} demandes t'attendent dans « À décider »",
+    "journalAcceptee": "{cliente} a accepté ta proposition.",
+    "journalRefusee": "{cliente} a décliné ta proposition."
+  },
+  "cloche": {
+    "titre": "Pendant que tu coiffais",
+    "videTitre": "Tout est calme.",
+    "videDetail": "Ici tu retrouveras ce qui s'est passé pendant tes rendez-vous : réponses, acomptes, avis, annulations.",
+    "toutLu": "Tout marquer comme lu",
+    "aujourdhui": "Aujourd'hui",
+    "hier": "Hier"
   }
 }

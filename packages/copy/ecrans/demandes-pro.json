@@ -9,7 +9,11 @@
     "refuser": "Refuser"
   },
   "gabarits": {
-    "horsZoneApresRdv": "Hors zone : +{km} après ton dernier rendez-vous."
+    "horsZoneApresRdv": "Hors zone : +{km} après ton dernier rendez-vous.",
+    "ajusterPour": "Ajuster pour {prenom}",
+    "ajusterAide": "{prenom} verra ta proposition et le nouveau total. Rien n'est réservé sans son accord.",
+    "propositionTitre": "{pro} a préparé votre rendez-vous.",
+    "propositionDe": "La proposition de {pro}"
   },
   "$aEcrire": {
     "$note": "Absent du board : à faire ratifier.",
@@ -19,6 +23,19 @@
     "prevenir": "Préviens ta cliente : elle ne reçoit pas encore de SMS automatique.",
     "adresseApprochee": "Rendez-vous enregistré. L’adresse n’est pas reconnue par le référentiel : le trajet est calculé depuis le centre de la commune, donc approché. Corrige-la depuis la fiche si tu veux un trajet juste.",
     "adresseInconnue": "Rendez-vous enregistré, mais ni l’adresse ni la commune n’ont été reconnues : aucun trajet ne sera calculé pour celui-ci. Vérifie le code postal depuis la fiche.",
-    "adresseAComplete": "Ce rendez-vous a été créé sans adresse, avant qu’elle ne devienne obligatoire. Renseigne-la pour qu’il compte dans ta tournée."
+    "adresseAComplete": "Ce rendez-vous a été créé sans adresse, avant qu’elle ne devienne obligatoire. Renseigne-la pour qu’il compte dans ta tournée.",
+    "propositionEnvoyee": "Proposition envoyée. Tu seras prévenue de sa réponse.",
+    "propositionMot": "Ton mot pour elle",
+    "propositionMotAide": "C'est lui qui fait accepter. Dis ce que tu as vu sur ses photos."
+  },
+  "proposition": {
+    "ajuster": "Ajuster la prestation",
+    "envoyer": "Envoyer la proposition",
+    "votreDemande": "Votre demande",
+    "accepter": "J'accepte ce rendez-vous",
+    "decliner": "Je décline",
+    "rienReserve": "Rien n'est réservé tant que vous n'avez pas accepté.",
+    "badgeImmediate": "Réservation immédiate",
+    "badgeValidation": "Sur validation"
   }
 }

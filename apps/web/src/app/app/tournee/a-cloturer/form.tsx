@@ -29,7 +29,7 @@ export function FormCloture({
   quand,
   dureePrevueMin,
   note,
-  aRetenir,
+  derniereEntree,
 }: {
   id: string
   cliente: string
@@ -38,8 +38,11 @@ export function FormCloture({
   dureePrevueMin: number
   /** B3 : ce qui reste attaché à CE rendez-vous. */
   note: string | null
-  /** B2 : ce qui se réaffichera à chacune de ses visites. */
-  aRetenir: string | null
+  /**
+   * B2 : ce qui a été fait la DERNIÈRE fois. Proposé pour repartir de là, et
+   * enregistrer crée une NOUVELLE entrée datée : rien n'est jamais écrasé.
+   */
+  derniereEntree: string | null
 }) {
   const [ouvert, setOuvert] = useState(false)
   const T = copy.agendaTournee
@@ -100,12 +103,12 @@ export function FormCloture({
         aide={T.$aEcrire.noteDuJourAide}
       />
       <Zone
-        id={`retenir-${id}`}
-        name="technical_notes"
-        label={T.$aEcrire.aRetenir}
-        defaultValue={aRetenir ?? ''}
+        id={`fait-${id}`}
+        name="fait_aujourdhui"
+        label={copy.ficheCliente.$aEcrire.faitAujourdhui}
+        defaultValue={derniereEntree ?? ''}
         rows={2}
-        aide={T.$aEcrire.aRetenirAide}
+        aide={copy.ficheCliente.$aEcrire.faitAujourdhuiAide}
       />
       <button
         type="submit"

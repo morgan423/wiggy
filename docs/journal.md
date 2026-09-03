@@ -20,6 +20,162 @@ _Rien en attente : les trois questions ouvertes ont été tranchées le 03/09._
 
 ---
 
+## 2026-09-03 (9) Étape : D17, B13, B14, A4, A11, et la mémoire technique corrigée
+
+**Fait :**
+
+### Les deux correctifs rapides
+
+- **Le mode d'exercice n'était en fait éditable qu'à UN endroit**, `/parametrage/profil` : je l'ai
+  vérifié avant de corriger. Ce qui était vrai, c'est que l'écran `reglages` était le grenier
+  décrit, et la répartition ci-dessous fait disparaître l'ambiguïté. Le mode vit désormais dans
+  « Mode d'exercice et GPS », et nulle part ailleurs.
+- **`/app/abonnement` est rattaché au hub.** Il n'était atteignable que par une redirection de
+  capacité, donc jamais quand on le cherchait.
+
+### D17, planche 17c — « Activité » devient « Profil »
+
+- **L'onglet s'appelle Profil**, et se structure autour de la pro : avatar et prénom en tête, puis
+  « Voir ma page publique » en PREMIER accès. Elle était la dernière rangée et s'affichait comme
+  une URL, alors que c'est ce qu'on vient montrer et partager.
+- **Le grenier est réparti par sujet, pas déplacé en bloc**, et la planche 17c a corrigé ma
+  première répartition sur trois points : « Journées et congés » est UNE rangée, le mode
+  d'exercice et le GPS restent MÉTIER (ils disent comment la pro travaille), et **les SMS
+  rejoignent l'Abonnement** parce que c'est l'offre qui les contient. Le délai d'annulation part
+  avec le tampon nouvelle cliente dans « Annulation et majorations » : les deux répondent à la
+  même question, ce qui change le montant ou le créneau après coup.
+- **Statistiques et Aide sont posées avec la mention « Bientôt »** plutôt qu'omises. Une rangée
+  absente laisse croire que le produit s'arrête là ; une rangée qui mène nulle part est pire.
+- **La règle des icônes est inscrite dans la barre** : icône ET libellé, jamais icône seule, et la
+  zone tactile de 44 px est déjà tenue par la classe `tactile`. Les icônes viendront de Design.
+
+### B13, planche 17d — les groupes de prestations
+
+- **Optionnels, et le code le tient à trois endroits** : liste plate sur la page publique, liste
+  plate dans le parcours de réservation, et un libellé « Groupe (facultatif) » avec la liste
+  suggérée en simple exemple. Une pro avec six prestations n'a rien à ranger, et rien à l'écran ne
+  lui dit le contraire.
+- Câblé dans B11 et A1 pendant que les deux écrans sont ouverts, comme demandé.
+
+### A4, planche 17e — les photos requises par prestation
+
+- **Réglage par prestation**, et **les trois textes de la planche** : celui qui demande, celui qui
+  propose, et l'aide du réglage côté pro. Le copy dit POURQUOI, parce que sans motif une demande
+  de photos se lit comme une intrusion et qu'avec son motif elle se lit comme du soin.
+- L'étape photos du tunnel n'existe plus que si la prestation la demande.
+
+### A11, planche 17b — la validation et la contre-proposition
+
+- **Le mode de confirmation a enfin son écran.** La colonne existait depuis la première migration.
+- **Il est affiché sur la page publique**, badge « Réservation immédiate » ou « Sur validation »,
+  sous le prénom. La cliente sait avant de réserver ce qui l'attend.
+- **La contre-proposition RÉUTILISE le patron « sous réserve »** plutôt que d'en créer un
+  troisième : une table `propositions` avec une sorte (contre-proposition, forfait, report), parce
+  que ce qui change d'un cas à l'autre est ce qui est proposé, et que le cycle, lui, est le même.
+  Trois mécaniques séparées, ce seraient trois façons de dire non et trois endroits où oublier un
+  cas.
+- **La cliente répond par un lien sans compte**, et **le rendez-vous ne bouge qu'à son accord**.
+- **LA RÈGLE DE PAIEMENT EST GRAVÉE AVANT B9**, dans `packages/core/src/proposition.ts` et
+  rappelée dans la route de réponse : autorisation à la demande, **capture à la confirmation
+  finale et sur le montant final**, jamais de capture suivie d'un remboursement. Elle est là où
+  celui qui construira B9 la lira forcément, et pas dans un document qu'on oublie d'ouvrir.
+- **Les deux protections d'A11 ⑥, vérifiées comme demandé** : le tampon nouvelle cliente
+  (`new_client_buffer_min`) est bien appliqué dans le calcul des créneaux et il a désormais un
+  écran ; l'apprentissage des durées **par cliente** existe dans `dureeApprise` mais **n'est pas
+  branché dans le tunnel**, parce qu'au moment où les créneaux se calculent la cliente n'est pas
+  encore identifiée. Le niveau pro, lui, est branché. C'est un manque réel et je le dis.
+
+### B14, planche 17a — le centre de notifications
+
+- **Une cloche dans l'en-tête**, pas un cinquième onglet. Un onglet dirait « va ici
+  régulièrement » ; une cloche dit « il s'est passé quelque chose ».
+- **On n'agit jamais depuis la cloche.** L'épingle abricot RENVOIE vers « À décider » de l'agenda,
+  elle ne duplique ni carte ni bouton. Les lignes du journal n'ont **aucun bouton d'action** : au
+  mieux un lien vers ce dont elles parlent.
+- **Badge plafonné à « 9+ », et aucun badge quand il n'y a rien** : une pastille permanente
+  apprend à être ignorée. **Purge à trente jours**, faite à la lecture plutôt qu'en tâche
+  planifiée : une tâche qui ne tourne pas laisse grossir la table sans que personne le voie.
+- **Les bascules push sont dans Profil** : réponse d'une cliente cochée par défaut, avis au choix.
+
+### B2 corrigé — la mémoire technique devient un journal
+
+- **Le défaut touchait la promesse centrale** : `technical_notes` était un champ unique, et chaque
+  écriture écrasait la précédente. La formule de Noël d'il y a trois ans était perdue dès la
+  visite suivante. On faisait moins bien que le carnet papier qu'on prétend remplacer.
+- **Trois niveaux, séparés** : le PROFIL technique (permanent, sur `clients.technical_notes`), le
+  JOURNAL technique (daté, `client_notes`, jamais écrasé), et la note du rendez-vous (B3,
+  inchangée).
+- **La clôture crée une ENTRÉE DATÉE.** Le pré-remplissage change de sens : il ne s'agit plus
+  d'écraser en connaissance de cause, mais de repartir de ce qui a été fait la dernière fois. On
+  ne devrait jamais avoir à écraser une formule, même en le sachant.
+- **La fiche montre les trois niveaux** dans l'ordre où ils servent, historique daté déroulable
+  compris. Le rendez-vous, lui, affiche le profil ET la dernière entrée.
+
+### Les trois corrections d'interface de Morgan
+
+- **Le « + » flottant de l'agenda disparaît**, remplacé par deux boutons qui portent leur libellé,
+  du plus fréquent au moins fréquent : « Ajouter un rendez-vous » en plein, « + Bloquer une
+  plage » en pointillés.
+- **La recherche de cliente passe en placeholder**, le libellé restant dans le DOM pour les
+  lecteurs d'écran : le masquer n'est pas le supprimer.
+- **L'alerte du téléphone manquant passe en abricot.** Elle se noyait parmi les réglages alors
+  qu'elle bloque la mise en ligne de la page publique. Les autres rangées d'invite du produit
+  (« À décider », « à clôturer », l'épingle de la cloche) étaient déjà en abricot : elles sont
+  donc alignées.
+
+**Schéma :** **0017** (groupes et photos), **0018** (propositions), **0019** (notifications),
+**0020** (journal technique). Toutes EN ATTENTE.
+
+**Décisions :** D17, B13, B14, A4, A11, B2 corrigé, et les trois corrections d'interface du 03/09.
+
+**Écarts au brief et aux planches :**
+
+- **Le bouton flottant de l'agenda (planche 16a) est remplacé** par deux boutons en pleine
+  largeur, sur demande directe de Morgan. **La hiérarchie s'applique : une décision de Morgan
+  passe devant une planche.** Signalé ici pour que Design en soit informé.
+- **La planche 17c ne montre pas de rangée « Notifications »**, mais le brief de B14 demande de
+  poser les bascules push dans Profil. J'ai gardé la rangée : la planche est muette, pas
+  contradictoire.
+- **L'apprentissage par cliente n'est toujours pas branché dans le tunnel** (voir A11 ⑥
+  ci-dessus).
+- **Le mot d'un ajustement passe par la mécanique B7**, donc en e-mail pendant la bêta (D14).
+- **Les `technical_notes` existantes ne sont pas migrées vers le journal**, et c'est délibéré :
+  elles n'ont pas de date, personne ne sait de quelle visite elles viennent, et une date inventée
+  dans un carnet est pire qu'une note non datée. Elles deviennent le profil technique, ce qu'elles
+  sont déjà en pratique.
+- **Le test de bout en bout coche `photos_required` sur sa prestation**, pour continuer de
+  traverser l'étape photos : c'est le chemin le plus long, et c'est celui qu'un test doit tenir.
+
+**Questions ouvertes :** aucune.
+
+**À recetter par Morgan :**
+
+1. Colle `0017`, `0018`, `0019` et `0020`, dans l'ordre, puis coche les quatre lignes de
+   `supabase/ETAT.md`.
+2. L'onglet s'appelle **Profil**. Avatar et prénom en tête, « Voir ma page publique » en premier,
+   puis les quatre rangées d'activité, Paiement, Abonnement, Notifications, et Statistiques et
+   Aide en « Bientôt ».
+3. La rangée « Il te reste ton téléphone à vérifier » est **abricot**, plus blanche.
+4. Agenda, vue jour : **plus de « + » flottant**, deux boutons qui portent leur libellé.
+5. Clientes : le texte de recherche est **dans** le champ.
+6. Range deux prestations dans « Coupe » et laisse-en une sans groupe : ta page publique et le
+   parcours de réservation les groupent, la dernière ferme la liste. Enlève tous les groupes : la
+   liste redevient plate, et rien ne réclame de rangement.
+7. Coche « Photos requises » sur une prestation, décoche sur une autre. Réserve les deux : l'étape
+   photos n'apparaît que sur la première, avec son motif.
+8. Paiement en ligne, passe en « Sur validation ». Ta page publique porte le badge.
+9. Sur une demande en attente, tape **« Ajuster la prestation »**, change le prix, écris un mot,
+   envoie. Ouvre le lien reçu : tu vois ta demande, la proposition, et deux boutons. Accepte : le
+   rendez-vous prend les nouvelles valeurs, et **la cloche te le dit**.
+10. La cloche : badge framboise quand il y a du non-lu, **aucun badge quand il n'y a rien**.
+    L'épingle abricot **renvoie** vers « À décider », elle ne propose aucun bouton.
+11. Clôture un rendez-vous en écrivant « formule 6.35 ». Clôtures-en un autre de la même cliente
+    en écrivant autre chose. Ouvre sa fiche : **les deux sont là, datées**. Rien n'a été écrasé.
+
+**Statut à reporter dans la roadmap :** D17, B13, B14, A11 : « Construit, recette à valider ».
+A4 : « Réglage par prestation construit, recette à valider ». B2 : « Journal technique daté,
+recette à valider ».
+
 ## 2026-09-03 (8) Étape : la page tournée le soir, trois correctifs
 
 **Fait :**

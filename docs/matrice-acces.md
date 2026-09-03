@@ -21,17 +21,20 @@ Trois rôles interviennent :
 | `blocked_slots` | `pro_owns` : pro authentifié peut **lire/écrire/modifier/supprimer** | `(pro_id = auth.uid())` |
 | `city_waitlist` | 🔒 RLS active, **aucune politique** | Verrouillée par conception : écriture via route serveur uniquement (service_role). |
 | `client_addresses` | `addr_via_client` : pro authentifié peut **lire/écrire/modifier/supprimer** | `(EXISTS ( SELECT 1 FROM clients c WHERE ((c.id = client_addresses.client_id) AND (c.pro_id = auth.uid()))))` |
+| `client_notes` | `client_notes_self` : pro authentifié peut **lire/écrire/modifier/supprimer** | `(pro_id = auth.uid())` |
 | `clients` | `pro_owns` : pro authentifié peut **lire/écrire/modifier/supprimer** | `(pro_id = auth.uid())` |
 | `communes` | `communes_publiques` : visiteuse anonyme, pro authentifié peut **lire** | `true` |
 | `communes_import` | 🔒 RLS active, **aucune politique** | Verrouillée par conception : écriture via route serveur uniquement (service_role). |
 | `distance_fees` | `pro_owns` : pro authentifié peut **lire/écrire/modifier/supprimer** | `(pro_id = auth.uid())` |
 | `geocodage_refus` | 🔒 RLS active, **aucune politique** | Verrouillée par conception : écriture via route serveur uniquement (service_role). |
 | `journees` | `journees_self` : pro authentifié peut **lire/écrire/modifier/supprimer** | `(pro_id = auth.uid())` |
+| `notifications` | `notifications_self` : pro authentifié peut **lire/écrire/modifier/supprimer** | `(pro_id = auth.uid())` |
 | `phone_verifications` | 🔒 RLS active, **aucune politique** | Verrouillée par conception : écriture via route serveur uniquement (service_role). |
 | `pro_photos` | `pro_photos_self` : pro authentifié peut **lire/écrire/modifier/supprimer** | `(pro_id = auth.uid())` |
 | `pro_photos` | `pro_photos_publiques` : visiteuse anonyme peut **lire** | `(EXISTS ( SELECT 1 FROM pros p WHERE ((p.id = pro_photos.pro_id) AND p.published)))` |
 | `pro_settings` | `pro_owns` : pro authentifié peut **lire/écrire/modifier/supprimer** | `(pro_id = auth.uid())` |
 | `pro_settings` | `public_booking_settings` : visiteuse anonyme peut **lire** | `(EXISTS ( SELECT 1 FROM pros p WHERE ((p.id = pro_settings.pro_id) AND p.published)))` |
+| `propositions` | `propositions_self` : pro authentifié peut **lire/écrire/modifier/supprimer** | `(pro_id = auth.uid())` |
 | `pros` | `pro_self` : pro authentifié peut **lire/écrire/modifier/supprimer** | `(id = auth.uid())` |
 | `pros` | `public_profile` : visiteuse anonyme peut **lire** | `published` |
 | `rate_limits` | 🔒 RLS active, **aucune politique** | Verrouillée par conception : écriture via route serveur uniquement (service_role). |
@@ -60,7 +63,7 @@ base, quelle qu'en soit la provenance.
 | `pros` | `bio`, `city`, `display_name`, `headline`, `id`, `instagram_url`, `mode`, `photo_url`, `pronoun`, `published`, `slug`, `years_experience` |
 | `service_area_communes` | `insee_code`, `lat`, `lng`, `name`, `postal_code`, `pro_id` |
 | `service_areas` | `mode`, `pro_id` |
-| `services` | `active`, `deposit_percent`, `description`, `duration_min`, `id`, `name`, `position`, `price_cents`, `pro_id` |
+| `services` | `active`, `category`, `deposit_percent`, `description`, `duration_min`, `id`, `name`, `photos_required`, `position`, `price_cents`, `pro_id` |
 
 ## Pourquoi chaque lecture anonyme existe
 

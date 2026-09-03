@@ -8,6 +8,7 @@ import { photosDuRendezVous } from '@/lib/photos'
 import { EnteteEcran, CorpsEcran } from '@/components/composition'
 import { annulerRdv, validerDemande, refuserDemande, terminerRdv } from '../actions'
 import { FormNoteRdv } from './note-form'
+import { FormProposition } from './proposer/form'
 
 /**
  * Le rendez-vous, EN LECTURE. Planche 16b, colonne « CONSULTATION ».
@@ -62,6 +63,17 @@ export default async function RendezVous({ params }: { params: Promise<{ id: str
   const photos = await photosDuRendezVous(rdv.id)
 
   const cliente = clienteDe(rdv.clients)
+
+  // B2 : la dernière entrée du journal technique, celle qui sert aujourd'hui.
+  const { data: derniereEntree } = cliente
+    ? await supabase
+        .from('client_notes')
+        .select('contenu')
+        .eq('client_id', cliente.id)
+        .order('fait_le', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+    : { data: null }
   const maintenant = new Date()
   const aDecider = rdv.status === 'pending' || rdv.status === 'conditional'
   const annule = rdv.status === 'cancelled'
@@ -110,7 +122,20 @@ export default async function RendezVous({ params }: { params: Promise<{ id: str
             href={`/app/clientes/${cliente.id}`}
             className="block rounded-[14px] bg-surface px-3 py-2.5 text-[12.5px] leading-[1.5] hover:bg-fond"
           >
-            <span className="font-extrabold">{F.notes.titre}</span> · {cliente.technical_notes}
+            <span className="font-extrabold">{F.$aEcrire.profilTechnique}</span> ·{' '}
+            {cliente.technical_notes}
+          </Link>
+        ) : null}
+
+        {/* B2 niveau 2 : ce qui a été FAIT la dernière fois. C'est ce qui sert
+            la prestation d'aujourd'hui, plus que le profil permanent. */}
+        {derniereEntree ? (
+          <Link
+            href={`/app/clientes/${cliente?.id ?? ''}`}
+            className="block rounded-[14px] bg-surface px-3 py-2.5 text-[12.5px] leading-[1.5] hover:bg-fond"
+          >
+            <span className="font-extrabold">{F.$aEcrire.journalDerniere}</span> ·{' '}
+            {derniereEntree.contenu}
           </Link>
         ) : null}
 
@@ -141,6 +166,22 @@ export default async function RendezVous({ params }: { params: Promise<{ id: str
           le détail qui permet de décider, et non dans la liste : décider sans
           avoir lu où c'est et quand, c'est décider à l'aveugle.
         */}
+        {/*
+          A11 — en mode validation, la pro peut CONTRE-PROPOSER avant
+          d'accepter. Le rendez-vous ne bouge qu'après l'accord de sa cliente.
+        */}
+        {aDecider ? (
+          <FormProposition
+            id={rdv.id}
+            prenom={cliente?.first_name ?? ''}
+            serviceNom={rdv.service_name}
+            prix={(rdv.price_cents / 100).toFixed(2).replace('.', ',')}
+            dureeMin={Math.round(
+              (new Date(rdv.ends_at).getTime() - new Date(rdv.starts_at).getTime()) / 60_000,
+            )}
+          />
+        ) : null}
+
         {aDecider ? (
           <div className="flex gap-2">
             <form action={validerDemande} className="flex-1">

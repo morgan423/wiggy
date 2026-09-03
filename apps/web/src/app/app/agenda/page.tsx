@@ -19,9 +19,11 @@ import { zoneDuPro } from '@/lib/zone'
 import { libererPlage } from './actions'
 import { journeeEstLancee } from '@/lib/journee'
 import { trajetsDeLaJournee, type Trajets } from '@/lib/tournee'
+import { Cloche } from '@/components/cloche'
 import {
   EnteteEcran,
   CorpsEcran,
+  ActionPrincipale,
   BoutonPointille,
   RANGEE,
   PastilleEtat,
@@ -169,6 +171,7 @@ export default async function Agenda({
     <>
       <EnteteEcran
         variante="jour"
+        cloche={<Cloche />}
         statement={
           vue === 'jour'
             ? capitale(jourLong.format(debut))
@@ -296,8 +299,21 @@ export default async function Agenda({
             })}
           </ul>
         )}
+        {/*
+          Correctif du 03/09, demandé par Morgan : le « + » flottant disparaît.
+          Un cercle qui flotte n'est pas intuitif pour la cible, et il ne dit
+          pas ce qu'il fait. Deux boutons qui portent leur libellé, du plus
+          fréquent au moins fréquent : créer en plein, bloquer en pointillés.
+
+          ⚠️ Écart à la planche 16a, qui prescrit le bouton flottant. La
+          hiérarchie s'applique : une décision de Morgan passe devant une
+          planche. Signalé à Design.
+        */}
         {vue === 'jour' ? (
-          <BoutonPointille href="/app/agenda/bloquer">+ {T.$aEcrire.bloquer}</BoutonPointille>
+          <>
+            <ActionPrincipale href="/app/agenda/nouveau">{T.agenda.ajouter}</ActionPrincipale>
+            <BoutonPointille href="/app/agenda/bloquer">+ {T.$aEcrire.bloquer}</BoutonPointille>
+          </>
         ) : null}
 
         <nav className="flex justify-between pt-2 text-[12px] font-bold text-texte-attenue">
@@ -309,23 +325,6 @@ export default async function Agenda({
           </Link>
         </nav>
       </CorpsEcran>
-
-      {/*
-        Le bouton flottant de la planche : framboise, au-dessus de la barre de
-        navigation. C'est le chemin des rendez-vous pris par téléphone, et il ne
-        doit jamais demander de descendre au bas d'une liste. Il s'efface quand
-        l'écran est vide : l'état vide porte déjà l'action, et deux affordances
-        d'ajout côte à côte ont déjà été relevées comme un défaut à la recette 6.
-      */}
-      {duJour.length > 0 || vue === 'semaine' ? (
-        <Link
-          href="/app/agenda/nouveau"
-          aria-label={T.agenda.ajouter}
-          className="tactile sticky bottom-3 z-20 ml-auto size-14 min-h-14 min-w-14 rounded-pilule bg-action text-2xl font-bold text-texte-sur-plein shadow-lg hover:bg-action-survol"
-        >
-          <span aria-hidden>+</span>
-        </Link>
-      ) : null}
     </>
   )
 }

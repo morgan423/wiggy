@@ -55,7 +55,7 @@
   },
   "$aEcrire": {
     "$note": "Absent du board : à faire ratifier.",
-    "aVenir": "À venir",
+    "aVenir": "Bientôt",
     "photosCliente": "Ce que ta cliente a envoyé",
     "sansAdresse": "Adresse non reconnue : pas de trajet calculé.",
     "voirLendemain": "Voir le lendemain",
@@ -103,7 +103,25 @@
     "noteDuJour": "Comment ça s'est passé (facultatif)",
     "noteDuJourAide": "Reste sur ce rendez-vous.",
     "aRetenir": "À retenir pour la prochaine fois (facultatif)",
-    "aRetenirAide": "Se réaffiche à chacune de ses visites. Formule, dosage, produits, préférences."
+    "aRetenirAide": "Se réaffiche à chacune de ses visites. Formule, dosage, produits, préférences.",
+    "navProfil": "Profil",
+    "navClientes": "Clientes",
+    "profilStatement": "Ton profil.",
+    "voirMaPage": "Voir ma page publique",
+    "pasEnLigne": "Pas encore en ligne",
+    "groupeActivite": "Ton activité",
+    "groupeCompte": "Paiement",
+    "paiement": "Paiement en ligne",
+    "abonnement": "Abonnement",
+    "notifications": "Notifications",
+    "statistiques": "Statistiques",
+    "aide": "Aide",
+    "annulation": "Annulation et majorations",
+    "exercice": "Mode d'exercice et GPS",
+    "journeesEtConges": "Journées et congés",
+    "abonnementResume": "Ton offre et tes SMS",
+    "groupeLabel": "Groupe (facultatif)",
+    "groupeAide": "Suggérés : Coupe, Technique, Coiffage, Soins, Homme, Enfant. Sans groupe, ta liste reste simple."
   },
   "tournee": {
     "statement": "Ta tournée, {pro}.",
@@ -120,5 +138,9 @@
     "ajouter": "Ajouter un rendez-vous",
     "pret": "Ton agenda est prêt.",
     "pretInvitation": "Partage ton lien : la première réservation arrive souvent dans les 48 h. Tu peux aussi ajouter toi-même les rendez-vous pris par téléphone."
+  },
+  "prestation": {
+    "photosRequises": "Photos requises",
+    "photosRequisesAide": "Coche quand l'état du cheveu change la durée ou le prix : couleur, technique, coupe longue. Ta cliente saura que c'est pour préparer son rendez-vous."
   }
 }

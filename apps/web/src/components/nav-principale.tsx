@@ -28,7 +28,10 @@ const ENTREES = [
   { href: '/app/tournee', texte: 'Tournée' },
   { href: '/app/agenda', texte: 'Agenda' },
   { href: '/app/clientes', texte: 'Clientes' },
-  { href: '/app/parametrage', texte: 'Activité' },
+  // D17 : l'onglet se structure autour de la PRO, plus autour de ses
+  // réglages. « Activité » descend d'un niveau et nomme le groupe des réglages
+  // métier, à l'intérieur.
+  { href: '/app/parametrage', texte: 'Profil' },
 ]
 
 export function NavPrincipale() {

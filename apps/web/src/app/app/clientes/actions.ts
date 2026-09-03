@@ -8,6 +8,10 @@ import { erreur, erreurBase, ok, champ, type EtatForm } from '@/lib/forms'
 /**
  * B2 — les annotations techniques d'une cliente.
  *
+ * **Niveau 1 des trois** (B2, corrigé le 03/09) : le PROFIL technique, vrai en
+ * permanence. Ce qui a été FAIT à chaque visite vit dans le journal daté
+ * (`client_notes`), et ne s'écrase jamais.
+ *
  * ⚠️ Garde-fou de `CLAUDE.md` : **pas de données de santé, jamais.** Le champ
  * est métier, et c'est l'INTERFACE qui tient cette frontière : le texte d'aide
  * oriente vers la formule, le dosage, le produit et le geste, jamais vers la
@@ -77,4 +81,39 @@ export async function enregistrerNoteRdv(
 
   revalidatePath(`/app/agenda/${id}`)
   return ok(precedent, 'Note enregistrée.', enregistre)
+}
+
+/**
+ * B2 niveau 2 — une entrée du JOURNAL technique.
+ *
+ * **Elle s'ajoute, elle n'écrase jamais.** C'est tout le correctif du 03/09 :
+ * un champ unique perdait la formule de Noël d'il y a trois ans dès la visite
+ * suivante, et faisait moins bien que le carnet papier qu'on prétend
+ * remplacer. Un carnet garde toutes ses pages, et elles sont datées.
+ *
+ * La date est celle de la PRESTATION et non de la saisie : une pro qui clôture
+ * le soir a fait le travail dans la journée.
+ */
+export async function ajouterAuJournal({
+  proId,
+  clientId,
+  appointmentId,
+  contenu,
+  faitLe,
+}: {
+  proId: string
+  clientId: string
+  appointmentId?: string | null
+  contenu: string
+  faitLe?: Date
+}): Promise<void> {
+  const supabase = await supabaseServer()
+  const { error } = await supabase.from('client_notes').insert({
+    pro_id: proId,
+    client_id: clientId,
+    appointment_id: appointmentId ?? null,
+    contenu,
+    ...(faitLe ? { fait_le: faitLe.toISOString().slice(0, 10) } : {}),
+  })
+  if (error) console.error('journal_technique_failed', error.code)
 }

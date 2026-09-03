@@ -33,6 +33,14 @@
     "jamaisVenue": "Aucun rendez-vous pour l'instant",
     "noteDuRdv": "Note de ce rendez-vous",
     "noteDuRdvAide": "Ce qui vaut pour CE rendez-vous seulement. Ce qui vaut pour toutes ses visites va dans ses notes de fiche.",
-    "notesAide": "Formule, dosage, temps de pose, produits, préférences. Reste sur le geste et le produit : Wiggy n'est pas un dossier médical."
+    "notesAide": "Formule, dosage, temps de pose, produits, préférences. Reste sur le geste et le produit : Wiggy n'est pas un dossier médical.",
+    "profilTechnique": "Ce qu'il faut savoir",
+    "profilTechniqueAide": "Ce qui est vrai à chaque fois : sensibilités, préférences, ce qu'elle n'aime pas. Reste sur le geste et le produit : Wiggy n'est pas un dossier médical.",
+    "journalTitre": "Ce que tu as fait",
+    "journalDerniere": "La dernière fois",
+    "journalVide": "Rien de noté pour l'instant. Ce que tu écris en clôturant se retrouvera ici, daté.",
+    "journalTout": "Tout l'historique technique",
+    "faitAujourdhui": "Ce que tu as fait aujourd'hui (facultatif)",
+    "faitAujourdhuiAide": "Formule, dosage, temps de pose, produits. Repris de la dernière fois : corrige ce qui change. Chaque enregistrement crée une entrée datée, rien n'est écrasé."
   }
 }

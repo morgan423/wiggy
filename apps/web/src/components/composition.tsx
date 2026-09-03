@@ -44,6 +44,7 @@ export function EnteteEcran({
   sousTitre,
   variante = 'section',
   vignette,
+  cloche,
   action,
   children,
 }: {
@@ -52,6 +53,12 @@ export function EnteteEcran({
   statement: string
   sousTitre?: string
   variante?: 'hub' | 'section' | 'jour'
+  /**
+   * B14 — la cloche s'ajoute à droite du titre, sur chaque écran pro. Elle
+   * n'est pas un onglet : un onglet dirait « va ici régulièrement », une cloche
+   * dit « il s'est passé quelque chose ».
+   */
+  cloche?: React.ReactNode
   /**
    * Ce qui accompagne le statement À SA GAUCHE : l'avatar d'une fiche cliente
    * (planche 16c). Il fait corps avec le nom, il ne flotte ni au-dessus ni
@@ -91,7 +98,10 @@ export function EnteteEcran({
             ) : null}
           </div>
         </div>
-        {action}
+        <span className="flex shrink-0 items-center gap-1">
+          {action}
+          {cloche}
+        </span>
       </div>
       {sousTitre && !vignette ? (
         <p className="mt-1 text-[12.5px] text-texte-sur-plein-doux">{sousTitre}</p>
@@ -152,6 +162,7 @@ export function RangeeEcran({
   chevron = false,
   href,
   attenue = false,
+  invite = false,
   children,
 }: {
   principal: string
@@ -165,6 +176,15 @@ export function RangeeEcran({
   href?: string
   /** Une prestation masquée reste lisible, à 55 % comme sur la planche. */
   attenue?: boolean
+  /**
+   * La rangée ATTEND quelque chose de la pro : elle passe en abricot.
+   *
+   * C'est déjà la sémantique du système, celle du bloc « À décider » de
+   * l'agenda : l'abricot dit « quelque chose t'attend ». Une rangée qui bloque
+   * la mise en ligne d'une page publique ne peut pas ressembler à un réglage
+   * parmi d'autres, elle s'y noie.
+   */
+  invite?: boolean
   /** Ce qui remplace la droite : une pastille miel, un interrupteur. */
   children?: React.ReactNode
 }) {
@@ -188,9 +208,13 @@ export function RangeeEcran({
       {children}
     </>
   )
-  const classes = `${RANGEE} ${attenue ? 'opacity-55' : ''} ${secondaire ? 'items-start' : ''}`
+  // On REMPLACE le fond au lieu d'en ajouter un second : deux classes de fond
+  // dans le même attribut, c'est l'ordre du CSS généré qui tranche et non celui
+  // de la chaîne. La rangée d'invite restait blanche.
+  const base = invite ? RANGEE.replace('bg-surface', 'bg-attente') : RANGEE
+  const classes = `${base} ${attenue ? 'opacity-55' : ''} ${secondaire ? 'items-start' : ''}`
   return href ? (
-    <Link href={href} className={`${classes} hover:bg-fond`}>
+    <Link href={href} className={`${classes} ${invite ? 'hover:opacity-90' : 'hover:bg-fond'}`}>
       {contenu}
     </Link>
   ) : (
@@ -378,4 +402,23 @@ export function PiedAuth({ children }: { children: React.ReactNode }) {
  */
 export function Prix({ centimes }: { centimes: number }) {
   return <span className="prix shrink-0">{formatEuros(centimes)}</span>
+}
+
+/**
+ * Une rangée qui annonce ce qui n'existe pas encore.
+ *
+ * D17 demande de POSER les rangées Statistiques et Aide plutôt que de les
+ * omettre : la pro doit voir que ça existera, sans tomber sur un 404. Une
+ * rangée absente laisse croire que le produit s'arrête là ; une rangée qui
+ * mène nulle part est pire encore.
+ */
+export function RangeeAVenir({ principal, mention }: { principal: string; mention: string }) {
+  return (
+    <div className={`${RANGEE} opacity-55`}>
+      <span className="text-[13.5px] font-bold">{principal}</span>
+      <span className="shrink-0 rounded-pilule border-[1.5px] border-texte-principal/25 px-2 py-1 text-[10px] font-extrabold whitespace-nowrap">
+        {mention}
+      </span>
+    </div>
+  )
 }

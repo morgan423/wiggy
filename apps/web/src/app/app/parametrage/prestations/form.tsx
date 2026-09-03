@@ -5,6 +5,7 @@ import { creerPrestation } from './actions'
 import { Champ, Erreur, Succes, BoutonPrincipal } from '@/components/champs'
 import { CaseACocher } from '@/components/trousse'
 import { ActionPrincipale, BoutonPointille } from '@/components/composition'
+import { copy } from '@wiggy/copy'
 import { VIDE, type EtatForm } from '@/lib/forms'
 
 /**
@@ -19,6 +20,7 @@ import { VIDE, type EtatForm } from '@/lib/forms'
 export function FormPrestation({ premiere = false }: { premiere?: boolean }) {
   const [etat, action, enCours] = useActionState<EtatForm, FormData>(creerPrestation, VIDE)
   const [ouvert, setOuvert] = useState(false)
+  const T = copy.agendaTournee
 
   // Une erreur ne doit pas effacer la saisie : React 19 réinitialise le
   // formulaire après chaque action, on le repeuple avec ce qui a été soumis.
@@ -81,6 +83,27 @@ export function FormPrestation({ premiere = false }: { premiere?: boolean }) {
         required={false}
         defaultValue={repris('deposit_percent')}
         aide="En %. Laisse vide pour suivre ton réglage général."
+      />
+      {/* B13 — le groupe est un confort, jamais une étape. Une pro avec six
+          prestations n'a rien à ranger, et l'écran ne doit pas lui donner
+          l'impression qu'il lui manque quelque chose : d'où « facultatif » dans
+          le libellé, et la liste suggérée en simple exemple. */}
+      <Champ
+        id="category"
+        label={T.$aEcrire.groupeLabel}
+        required={false}
+        defaultValue={repris('category')}
+        aide={T.$aEcrire.groupeAide}
+        placeholder="Coupe, Technique, Coiffage, Soins, Homme, Enfant"
+      />
+      {/* A4 — imposer les photos partout fait abandonner des réservations
+          simples ; ne les imposer nulle part laisse arriver des prestations mal
+          qualifiées. La pro coche là où ça compte. */}
+      <CaseACocher
+        id="photos_required"
+        name="photos_required"
+        label={T.prestation.photosRequises}
+        aide={T.prestation.photosRequisesAide}
       />
       <CaseACocher
         id="active"

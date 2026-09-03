@@ -58,23 +58,35 @@ export default async function FicheCliente({ params }: { params: Promise<{ id: s
 
   // La RLS fait le filtrage : une fiche appartenant à un autre pro ne renvoie
   // simplement rien.
-  const [{ data: cliente }, { data: rdvs }, { data: adresses }] = await Promise.all([
-    supabase
-      .from('clients')
-      .select('id, first_name, last_name, phone, email, technical_notes')
-      .eq('id', id)
-      .maybeSingle(),
-    supabase
-      .from('appointments')
-      .select('id, starts_at, service_name, price_cents, status, address_line1, city, access_notes')
-      .eq('client_id', id)
-      .order('starts_at', { ascending: false }),
-    supabase
-      .from('client_addresses')
-      .select('line1, postal_code, city, access_notes, is_primary')
-      .eq('client_id', id)
-      .order('is_primary', { ascending: false }),
-  ])
+  const [{ data: cliente }, { data: rdvs }, { data: adresses }, { data: journal }] =
+    await Promise.all([
+      supabase
+        .from('clients')
+        .select('id, first_name, last_name, phone, email, technical_notes')
+        .eq('id', id)
+        .maybeSingle(),
+      supabase
+        .from('appointments')
+        .select(
+          'id, starts_at, service_name, price_cents, status, address_line1, city, access_notes',
+        )
+        .eq('client_id', id)
+        .order('starts_at', { ascending: false }),
+      supabase
+        .from('client_addresses')
+        .select('line1, postal_code, city, access_notes, is_primary')
+        .eq('client_id', id)
+        .order('is_primary', { ascending: false }),
+      // B2 niveau 2 — le JOURNAL technique, daté et jamais écrasé. C'est le
+      // carnet, page après page : on peut y retrouver la formule d'il y a trois
+      // ans, avec sa date.
+      supabase
+        .from('client_notes')
+        .select('id, contenu, fait_le')
+        .eq('client_id', id)
+        .order('fait_le', { ascending: false })
+        .limit(50),
+    ])
 
   if (!cliente) notFound()
 
@@ -144,8 +156,19 @@ export default async function FicheCliente({ params }: { params: Promise<{ id: s
       />
 
       <CorpsEcran serre>
-        {/* B2 — la mémoire technique, en tête : c'est ce qu'on vient chercher. */}
+        {/*
+          B2 — les trois niveaux, dans l'ordre où ils servent.
+
+          ① Le PROFIL technique, vrai en permanence, en tête : c'est ce qu'on
+             relit avant de commencer.
+          ② La DERNIÈRE entrée du journal, mise en avant, parce que c'est elle
+             qui sert la prochaine prestation.
+          ③ L'HISTORIQUE DATÉ, déroulable, où l'on retrouve une formule d'il y a
+             trois ans avec sa date.
+        */}
         <FormNotes id={cliente.id} notes={cliente.technical_notes} />
+
+        <JournalTechnique entrees={journal ?? []} />
 
         {(adresse ?? cliente.phone) ? (
           <p className="rounded-[14px] bg-surface px-3 py-2.5 text-[12.5px] leading-[1.5]">
@@ -218,6 +241,55 @@ export default async function FicheCliente({ params }: { params: Promise<{ id: s
           </ActionPrincipale>
         </div>
       </CorpsEcran>
+    </>
+  )
+}
+
+/**
+ * B2 niveau 2 et 3 — le journal technique.
+ *
+ * La dernière entrée est mise en avant : c'est elle qui sert la prochaine
+ * prestation. Le reste se déroule, parce qu'on y va rarement mais qu'on doit
+ * pouvoir y aller. **Rien n'est jamais écrasé** : c'est tout le correctif du
+ * 03/09, et c'est ce qui rend Wiggy au moins aussi bon qu'un carnet papier.
+ */
+function JournalTechnique({
+  entrees,
+}: {
+  entrees: { id: string; contenu: string; fait_le: string }[]
+}) {
+  if (entrees.length === 0) {
+    return (
+      <p className="text-[11.5px] leading-[1.5] text-texte-attenue">{F.$aEcrire.journalVide}</p>
+    )
+  }
+  const [derniere, ...precedentes] = entrees
+
+  return (
+    <>
+      <div className="rounded-[14px] bg-surface px-3 py-2.5 text-[12.5px] leading-[1.5]">
+        <span className="font-extrabold">{F.$aEcrire.journalDerniere}</span>
+        {' · '}
+        {jourCourt.format(new Date(derniere.fait_le))}
+        <br />
+        {derniere.contenu}
+      </div>
+
+      {precedentes.length > 0 ? (
+        <details className="rounded-[14px] bg-surface px-3 py-2.5">
+          <summary className="cursor-pointer text-[12px] font-extrabold text-texte-secondaire">
+            {F.$aEcrire.journalTout}
+          </summary>
+          <ul className="mt-2 flex flex-col gap-2 text-[12.5px] leading-[1.5]">
+            {precedentes.map((e) => (
+              <li key={e.id}>
+                <span className="font-bold">{jourCourt.format(new Date(e.fait_le))}</span> ·{' '}
+                {e.contenu}
+              </li>
+            ))}
+          </ul>
+        </details>
+      ) : null}
     </>
   )
 }

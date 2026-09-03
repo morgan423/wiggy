@@ -9,6 +9,7 @@ import { requirePro } from '@/lib/auth'
 import { supabaseServer } from '@/lib/supabase/server'
 import { prevenirCliente } from '@/lib/messagerie/prevenance'
 import { lancerJournee, jourDe, retenirDepartDuJour } from '@/lib/journee'
+import { ajouterAuJournal } from '@/app/app/clientes/actions'
 import { geocoder } from '@/lib/adresse'
 import { centreDeCommune } from '@/lib/lieu-approche'
 import { erreur, erreurBase, ok, champ, type EtatForm, champTexte } from '@/lib/forms'
@@ -242,7 +243,7 @@ export async function terminerRdv(donnees: FormData) {
   const id = champ(donnees, 'id')
   if (typeof id !== 'string') return
 
-  await requirePro()
+  const { pro } = await requirePro()
   const supabase = await supabaseServer()
 
   const { data: rdv } = await supabase
@@ -299,22 +300,26 @@ export async function terminerRdv(donnees: FormData) {
   if (error) console.error('cloture_rdv_failed', error.code)
 
   /*
-    B2 — « à retenir pour la prochaine fois » va sur la FICHE, pas sur le
-    rendez-vous. Les deux champs de l'écran de clôture ne sont pas deux façons
-    de dire la même chose : l'un reste attaché à ce rendez-vous, l'autre se
-    réaffiche à chacune de ses visites. Le soir est le seul moment où la pro
-    écrira quoi que ce soit ; il faut que le bon texte aille au bon endroit.
+    B2 corrigé le 03/09 — « ce que tu as fait aujourd'hui » crée une ENTRÉE
+    DATÉE dans le journal technique. Elle ne remplace rien.
 
-    Le champ arrive pré-rempli de ses notes existantes : on écrase donc en
-    connaissance de cause, jamais en silence.
+    Le champ arrive pré-rempli de la dernière entrée, et c'est le sens qui a
+    changé : il ne s'agit plus d'écraser en connaissance de cause, mais de
+    REPARTIR de ce qui a été fait la dernière fois. On ne devrait jamais avoir à
+    écraser une formule, même en le sachant.
   */
-  const aRetenir = champ(donnees, 'technical_notes')
-  if (rdv.client_id && aRetenir !== null) {
-    const { error: erreurFiche } = await supabase
-      .from('clients')
-      .update({ technical_notes: aRetenir })
-      .eq('id', rdv.client_id)
-    if (erreurFiche) console.error('cloture_notes_fiche_failed', erreurFiche.code)
+  const faitAujourdhui = champ(donnees, 'fait_aujourdhui')
+  if (rdv.client_id && faitAujourdhui !== null) {
+    await ajouterAuJournal({
+      proId: pro.id,
+      clientId: rdv.client_id,
+      appointmentId: id,
+      contenu: faitAujourdhui,
+      // La date de la PRESTATION, pas celle de la saisie : une clôture du soir
+      // porte sur le travail du jour, et une clôture de rattrapage sur le
+      // travail de son jour à lui.
+      faitLe: debut,
+    })
   }
 
   revalidatePath('/app/agenda')

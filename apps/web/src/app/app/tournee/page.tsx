@@ -29,6 +29,7 @@ import { FormRetard } from './retard'
 import { journeeEstLancee, departDuJour } from '@/lib/journee'
 import { LienGps } from './lien-gps'
 import { Lancement } from './lancement'
+import { Cloche } from '@/components/cloche'
 import { EnteteEcran, CorpsEcran, RANGEE } from '@/components/composition'
 
 /**
@@ -214,6 +215,7 @@ export default async function MaTournee({
       {bouclee ? null : (
         <EnteteEcran
           variante="jour"
+          cloche={<Cloche />}
           statement={remplir(T.tournee.statement, { pro: prenom })}
           sousTitre={
             prochain

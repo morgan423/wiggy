@@ -40,11 +40,15 @@ Rejouer un lot déjà appliqué échoue sur les types et les tables qui existent
 | `0009_auth_et_forfait.sql`     | D9 : téléphone vérifié du pro et de la cliente, table des codes verrouillée. A8 : `distance_fees` perd sa lecture publique.                   | Appliquée le 2026-09-03     | Projet inexistant |
 | `0010_mode_exercice.sql`       | D10 ① : colonne `mode` sur `pros`, itinerant par défaut ou fixe. Drapeau d'affichage, jamais un droit.                                        | Appliquée le 2026-09-03     | Projet inexistant |
 | `0011_blocages_et_cloture.sql` | B4 : `blocked_slots.created_at`, pour mesurer la fréquence de blocage (D2). B6 : index d'apprentissage des durées réelles.                    | Appliquée le 2026-09-03     | Projet inexistant |
-| `0012_usage_sms.sql`           | B7 : compteur mensuel de SMS par pro, verrouillé par conception, avec `consommer_sms()`.                                                      | En attente                  | Projet inexistant |
-| `0013_realisations.sql`        | A1 : table `pro_photos`, les réalisations de la page publique. Lecture anonyme limitée aux fiches publiées.                                   | En attente                  | Projet inexistant |
-| `0014_journee_lancee.sql`      | D15 : table `journees`, le lancement de journée. Distingue « en cours » de « à clôturer ».                                                    | En attente                  | Projet inexistant |
-| `0015_point_de_depart.sql`     | D16 : adresse de départ sur `pros`, jamais exposée publiquement. Donne un trajet au premier rendez-vous.                                      | En attente                  | Projet inexistant |
-| `0016_duree_declaree.sql`      | D15 corrigée : `appointments.duration_declared`, pour distinguer une durée mesurée d'une durée écrite par la pro.                             | En attente                  | Projet inexistant |
+| `0012_usage_sms.sql`           | B7 : compteur mensuel de SMS par pro, verrouillé par conception, avec `consommer_sms()`.                                                      | Appliquée le 2026-09-03     | Projet inexistant |
+| `0013_realisations.sql`        | A1 : table `pro_photos`, les réalisations de la page publique. Lecture anonyme limitée aux fiches publiées.                                   | Appliquée le 2026-09-03     | Projet inexistant |
+| `0014_journee_lancee.sql`      | D15 : table `journees`, le lancement de journée. Distingue « en cours » de « à clôturer ».                                                    | Appliquée le 2026-09-03     | Projet inexistant |
+| `0015_point_de_depart.sql`     | D16 : adresse de départ sur `pros`, jamais exposée publiquement. Donne un trajet au premier rendez-vous.                                      | Appliquée le 2026-09-03     | Projet inexistant |
+| `0016_duree_declaree.sql`      | D15 corrigée : `appointments.duration_declared`, pour distinguer une durée mesurée d'une durée écrite par la pro.                             | Appliquée le 2026-09-03     | Projet inexistant |
+| `0017_groupes_et_photos.sql`   | B13 : `services.category`, groupe optionnel. A4 : `services.photos_required`, par prestation.                                                 | En attente                  | Projet inexistant |
+| `0018_propositions.sql`        | A11 : table `propositions`, le patron « sous réserve » généralisé aux trois cas (contre-proposition, forfait, report).                        | En attente                  | Projet inexistant |
+| `0019_notifications.sql`       | B14 : journal des notifications et bascules push.                                                                                             | En attente                  | Projet inexistant |
+| `0020_journal_technique.sql`   | B2 : `client_notes`, le journal technique daté. L'existant n'est pas migré, à dessein.                                                        | En attente                  | Projet inexistant |
 
 ## Notes
 

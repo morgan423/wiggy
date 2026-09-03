@@ -16,6 +16,10 @@ import { enregistrerNotes } from '../actions'
  * jamais à saisir une allergie médicale, et on ne filtre pas la saisie, ce qui
  * reviendrait à lire les notes de la pro.
  *
+ * **Niveau 1 des trois** (B2, corrigé le 03/09) : ce qui est vrai EN
+ * PERMANENCE. Ce qui a été fait à chaque visite vit dans le journal daté, en
+ * dessous, et ne s'écrase jamais.
+ *
  * Repliées, les notes s'affichent sur quatre lignes au plus, avec « Tout lire »
  * (planche 16c). Jamais de fondu : c'est son outil, pas une vitrine.
  */
@@ -41,7 +45,7 @@ export function FormNotes({ id, notes }: { id: string; notes: string | null }) {
     }
     return (
       <div className="rounded-[14px] bg-surface px-3 py-2.5 text-[12.5px] leading-[1.5]">
-        <span className="font-extrabold">{F.notes.titre}</span> ·{' '}
+        <span className="font-extrabold">{F.$aEcrire.profilTechnique}</span> ·{' '}
         <span className={tout ? '' : 'line-clamp-4'}>{valeur}</span>
         <span className="mt-1 flex gap-3">
           {!tout && valeur.length > 160 ? (
@@ -74,10 +78,10 @@ export function FormNotes({ id, notes }: { id: string; notes: string | null }) {
       <input type="hidden" name="id" value={id} />
       <Zone
         id="technical_notes"
-        label={F.notes.titre}
+        label={F.$aEcrire.profilTechnique}
         defaultValue={valeur}
         rows={5}
-        aide={F.$aEcrire.notesAide}
+        aide={F.$aEcrire.profilTechniqueAide}
       />
       <p className="mt-1 text-[11px] text-texte-attenue">{F.notes.exemple}</p>
       <Erreur message={etat.statut === 'erreur' ? etat.message : undefined} />

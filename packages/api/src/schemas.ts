@@ -55,6 +55,12 @@ const PourcentageFacultatif = z.preprocess(
 
 /** B11 ① — une prestation. */
 export const PrestationInput = z.object({
+  // B13 — le groupe est OPTIONNEL et le reste. Texte libre : la liste suggérée
+  // est une aide à la saisie, pas une grille. Une pro qui travaille les cheveux
+  // bouclés rangera autrement, et elle a raison.
+  category: facultatif(z.string().trim().max(60).nullable()),
+  // A4 — les photos deviennent un réglage PAR PRESTATION.
+  photos_required: z.preprocess((v) => v === 'on' || v === true, z.boolean()),
   name: z.string().trim().min(1, V.proPrestationNom).max(80),
   description: facultatif(z.string().trim().max(500).nullable()),
   price_cents: PrixSaisi,
@@ -115,15 +121,21 @@ export const CongeInput = z
   .refine((c) => c.ends_at > c.starts_at, { message: V.finAvantDebut, path: ['ends_at'] })
 
 /** Réglages d'activité (B9 paiement, A10 annulation, A11 confirmation, B7 SMS). */
-export const ReglagesInput = z.object({
+/**
+ * D17 — le paiement et les réservations, séparés du reste.
+ *
+ * `ReglagesInput` couvrait sept réglages sans rapport les uns avec les autres.
+ * Chaque écran valide désormais ce qu'il montre, et rien d'autre : un
+ * formulaire qui envoie des champs qu'il n'affiche pas est un formulaire qui
+ * écrase des valeurs qu'il ne connaît pas.
+ */
+export const PaiementInput = z.object({
   payment_mode: z.enum(['off', 'client_choice', 'required']),
   default_deposit_percent: z.coerce.number().int().min(1).max(100),
   booking_confirmation_mode: z.enum(['auto', 'manual']),
-  free_cancellation_hours: z.coerce.number().int().min(0).max(168),
-  new_client_buffer_min: z.coerce.number().int().min(0).max(120),
-  sms_enabled: z.boolean(),
-  gps_app: z.enum(['system', 'waze', 'google_maps']),
 })
+
+export type PaiementInput = z.infer<typeof PaiementInput>
 
 /** Identité publique du pro (A1). Le slug porte l'URL partageable. */
 /**
@@ -180,7 +192,6 @@ export type PrestationInput = z.infer<typeof PrestationInput>
 export type CommuneInput = z.infer<typeof CommuneInput>
 export type HoraireInput = z.infer<typeof HoraireInput>
 export type CongeInput = z.infer<typeof CongeInput>
-export type ReglagesInput = z.infer<typeof ReglagesInput>
 export type ProfilInput = z.infer<typeof ProfilInput>
 
 /**

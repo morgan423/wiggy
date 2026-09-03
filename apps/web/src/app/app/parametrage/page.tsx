@@ -1,16 +1,17 @@
-import Link from 'next/link'
-import { formatEuros, ZONE } from '@wiggy/core'
+import { formatEuros } from '@wiggy/core'
 import { copy, remplir } from '@wiggy/copy'
 import { requirePro } from '@/lib/auth'
 import { supabaseServer } from '@/lib/supabase/server'
+import { Cloche } from '@/components/cloche'
 import {
   EnteteEcran,
   CorpsEcran,
   RangeeEcran,
+  RangeeAVenir,
   EtiquetteSection,
   PastilleEtat,
-  RANGEE,
 } from '@/components/composition'
+import { Avatar } from '@/components/avatar'
 import { seDeconnecter } from '@/app/(pro)/actions'
 
 /**
@@ -32,12 +33,7 @@ import { seDeconnecter } from '@/app/(pro)/actions'
  */
 
 const A = copy.authentification
-
-const jourCourt = new Intl.DateTimeFormat('fr-FR', {
-  timeZone: ZONE,
-  day: 'numeric',
-  month: 'long',
-})
+const T = copy.agendaTournee
 
 export default async function Parametrage() {
   const { pro } = await requirePro()
@@ -90,9 +86,17 @@ export default async function Parametrage() {
 
   return (
     <>
+      {/*
+        D17 — l'onglet se structure autour de la PRO, plus autour de ses
+        réglages : avatar et prénom en tête, puis « Voir ma page publique » en
+        PREMIER accès. Elle était la dernière rangée et s'affichait comme une
+        URL ; c'est pourtant ce que la pro vient montrer, partager et vérifier.
+      */}
       <EnteteEcran
         variante="hub"
-        statement="Ton activité."
+        cloche={<Cloche />}
+        vignette={<Avatar nom={pro.display_name} taille="sm" />}
+        statement={pro.display_name.split(' ')[0]}
         sousTitre={
           pret
             ? 'Tout est modifiable, à tout moment.'
@@ -100,11 +104,6 @@ export default async function Parametrage() {
         }
       />
       <CorpsEcran>
-        {/*
-          D9 : tant qu'une vérification manque, l'invite reste en tête du hub.
-          La planche 14b la prescrit (« rangée d'invite dans le hub 14c ») sans
-          la dessiner : rangée ordinaire, en tête, jamais un bandeau d'alerte.
-        */}
         {aVerifier.length > 0 ? (
           <RangeeEcran
             principal={
@@ -113,109 +112,89 @@ export default async function Parametrage() {
                 : remplir(A.$aEcrire.invitePartielle, { reste: aVerifier[0] })
             }
             chevron
+            invite
             href={verifs?.phone_verified_at ? '/verification/email' : '/verification/telephone'}
           />
         ) : null}
 
-        {pret ? (
-          <>
-            <EtiquetteSection>Prestations</EtiquetteSection>
-            <RangeeEcran
-              principal={`${String(listePrestations.length)} prestation${listePrestations.length > 1 ? 's' : ''}`}
-              resume={fourchette(listePrestations)}
-              chevron
-              href="/app/parametrage/prestations"
-            />
+        <RangeeEcran
+          principal={T.$aEcrire.voirMaPage}
+          resume={pro.published ? undefined : T.$aEcrire.pasEnLigne}
+          chevron={!pro.published}
+          href="/app/parametrage/profil"
+        >
+          {pro.published ? <PastilleEtat>En ligne</PastilleEtat> : null}
+        </RangeeEcran>
 
-            <EtiquetteSection>Zone d’intervention</EtiquetteSection>
-            <RangeeEcran
-              principal={nomsDeCommunes(listeCommunes)}
-              resume={forfait ? `hors zone : base ${formatEuros(forfait.fee_cents)}` : undefined}
-              chevron
-              href="/app/parametrage/zone"
-            />
+        {/* Le mot « Activité » descend d'un niveau : il nomme le groupe des
+            réglages métier, plus l'onglet. */}
+        <EtiquetteSection>{T.$aEcrire.groupeActivite}</EtiquetteSection>
+        <RangeeEcran
+          principal="Prestations"
+          resume={
+            listePrestations.length > 0
+              ? fourchette(listePrestations)
+              : 'Ajoute ta première prestation'
+          }
+          chevron
+          href="/app/parametrage/prestations"
+        />
+        <RangeeEcran
+          principal="Zone d’intervention"
+          resume={
+            listeCommunes.length > 0
+              ? forfait
+                ? `${nomsDeCommunes(listeCommunes)} · base ${formatEuros(forfait.fee_cents)}`
+                : nomsDeCommunes(listeCommunes)
+              : '2-3 communes, ta tournée reste logique'
+          }
+          chevron
+          href="/app/parametrage/zone"
+        />
+        <RangeeEcran
+          principal={T.$aEcrire.journeesEtConges}
+          resume={
+            listeHoraires.length > 0
+              ? listeConges.length > 0
+                ? `${joursTravailles(listeHoraires)} · ${String(listeConges.length)} congé${listeConges.length > 1 ? 's' : ''}`
+                : joursTravailles(listeHoraires)
+              : 'Choisis tes jours et tes heures'
+          }
+          chevron
+          href="/app/parametrage/horaires"
+        />
+        {/* 17c : le mode d'exercice et le GPS restent MÉTIER. Ils disent
+            comment la pro travaille, pas comment elle est facturée. */}
+        <RangeeEcran principal={T.$aEcrire.exercice} chevron href="/app/parametrage/exercice" />
 
-            <EtiquetteSection>Journées &amp; congés</EtiquetteSection>
-            <RangeeEcran
-              principal={`${joursTravailles(listeHoraires)} · ${plageCommune(listeHoraires)}`}
-              chevron
-              href="/app/parametrage/horaires"
-            />
-            <RangeeEcran
-              principal={
-                listeConges.length > 0
-                  ? `Congés : ${jourCourt.format(new Date(listeConges[0].starts_at))} au ${jourCourt.format(new Date(listeConges[0].ends_at))}`
-                  : 'Aucun congé posé'
-              }
-              resume={
-                listeConges.length > 1 ? `+ ${String(listeConges.length - 1)} autres` : undefined
-              }
-              chevron
-              href="/app/parametrage/conges"
-            />
-
-            <EtiquetteSection>Réglages</EtiquetteSection>
-            <RangeeEcran
-              principal="Paiement, confirmation, GPS"
-              chevron
-              href="/app/parametrage/reglages"
-            />
-
-            <EtiquetteSection>Ma Page</EtiquetteSection>
-            <RangeeEcran
-              principal={pro.published ? `wiggy.fr/${pro.slug}` : 'Ma Page'}
-              href="/app/parametrage/profil"
-              chevron={!pro.published}
-              resume={pro.published ? undefined : 'prête à être mise en ligne'}
-            >
-              {pro.published ? <PastilleEtat>En ligne</PastilleEtat> : null}
-            </RangeeEcran>
-          </>
-        ) : (
-          <>
-            <RangeeInvite
-              titre="Ce que tu proposes"
-              invitation="Ajoute ta première prestation"
-              href="/app/parametrage/prestations"
-              fait={listePrestations.length > 0}
-              resume={
-                listePrestations.length > 0
-                  ? `${String(listePrestations.length)} prestation${listePrestations.length > 1 ? 's' : ''}`
-                  : undefined
-              }
-            />
-            <RangeeInvite
-              titre="Où tu te déplaces"
-              invitation="2-3 communes, ta tournée reste logique"
-              href="/app/parametrage/zone"
-              fait={listeCommunes.length > 0}
-              resume={listeCommunes.length > 0 ? nomsDeCommunes(listeCommunes) : undefined}
-            />
-            <RangeeInvite
-              titre="Tes journées de travail"
-              invitation="Choisis tes jours et tes heures"
-              href="/app/parametrage/horaires"
-              fait={listeHoraires.length > 0}
-              resume={listeHoraires.length > 0 ? joursTravailles(listeHoraires) : undefined}
-            />
-            {/* Ma Page reste atténuée tant que les trois étapes ne sont pas
-                posées : la planche la montre à 55 %, sans chevron. */}
-            <div className={`${RANGEE} items-start opacity-55`}>
-              <span className="flex flex-col gap-0.5">
-                <span className="text-[14px] font-bold">Ma Page</span>
-                <span className="text-[12px] text-texte-attenue">
-                  S’ouvre après tes 3 premières étapes
-                </span>
-              </span>
-            </div>
-          </>
-        )}
-
+        <EtiquetteSection>{T.$aEcrire.groupeCompte}</EtiquetteSection>
         {/*
-          La déconnexion vivait dans la barre du haut, supprimée par D12. Sa
-          place est ici : le hub est l'écran du compte, et la planche 14c n'en
-          montre aucune autre. Discrète, en fin de colonne.
+          D17 : l'écran de réglages était un grenier, sept réglages sans rapport
+          les uns avec les autres. Ils sont répartis par sujet : le paiement et
+          la validation ici, le tampon nouvelle cliente avec les journées, le
+          GPS avec la zone, les SMS avec les notifications.
         */}
+        <RangeeEcran principal={T.$aEcrire.paiement} chevron href="/app/parametrage/paiement" />
+        <RangeeEcran principal={T.$aEcrire.annulation} chevron href="/app/parametrage/annulation" />
+        {/* 17c : les SMS rejoignent l'abonnement, avec l'offre. Rattaché au
+            hub, aussi : il n'était atteignable que par une redirection de
+            capacité, donc jamais quand on le cherchait. */}
+        <RangeeEcran
+          principal={T.$aEcrire.abonnement}
+          resume={T.$aEcrire.abonnementResume}
+          chevron
+          href="/app/abonnement"
+        />
+        {/* B14 : la planche 17c ne montre pas cette rangée, mais le brief
+            demande de poser les bascules push dans Profil. Écart signalé. */}
+        <RangeeEcran
+          principal={T.$aEcrire.notifications}
+          chevron
+          href="/app/parametrage/notifications"
+        />
+        <RangeeAVenir principal={T.$aEcrire.statistiques} mention={T.$aEcrire.aVenir} />
+        <RangeeAVenir principal={T.$aEcrire.aide} mention={T.$aEcrire.aVenir} />
+
         <form action={seDeconnecter} className="mt-auto pt-8 pb-3.5">
           <button
             type="submit"
@@ -226,46 +205,6 @@ export default async function Parametrage() {
         </form>
       </CorpsEcran>
     </>
-  )
-}
-
-/**
- * La rangée du jour un : le libellé, ce qu'elle attend, et la pastille
- * framboise « + » de 26 px à droite (planche 14c). Une fois l'étape faite, la
- * pastille cède la place au résumé : c'est la même rangée qui se remplit.
- */
-function RangeeInvite({
-  titre,
-  invitation,
-  href,
-  fait,
-  resume,
-}: {
-  titre: string
-  invitation: string
-  href: string
-  fait: boolean
-  resume?: string
-}) {
-  return (
-    <Link href={href} className={`${RANGEE} items-start hover:bg-fond`}>
-      <span className="flex min-w-0 flex-col gap-0.5">
-        <span className="text-[14px] font-bold">{titre}</span>
-        <span className="text-[12px] text-texte-attenue">{fait ? resume : invitation}</span>
-      </span>
-      {fait ? (
-        <span aria-hidden className="shrink-0 text-[12px] text-texte-attenue">
-          ›
-        </span>
-      ) : (
-        <span
-          aria-hidden
-          className="flex size-[26px] shrink-0 items-center justify-center rounded-pilule bg-action font-extrabold text-texte-sur-plein"
-        >
-          +
-        </span>
-      )}
-    </Link>
   )
 }
 
@@ -300,12 +239,4 @@ function joursTravailles(horaires: { weekday: number }[]): string {
     return `${ABREGE[jours[0]]} à ${ABREGE[jours[jours.length - 1]]}`
   }
   return jours.map((j) => ABREGE[j]).join(', ')
-}
-
-/** La plage commune, ou le nombre de plages différentes s'il y en a plusieurs. */
-function plageCommune(horaires: { starts_at: string; ends_at: string }[]): string {
-  const plages = [
-    ...new Set(horaires.map((h) => `${h.starts_at.slice(0, 5)} à ${h.ends_at.slice(0, 5)}`)),
-  ]
-  return plages.length === 1 ? plages[0] : `${String(plages.length)} plages différentes`
 }

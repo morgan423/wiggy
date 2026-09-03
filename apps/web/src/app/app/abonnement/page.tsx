@@ -1,5 +1,7 @@
 import { requiredTierFor, TIERS, type Capability, type Tier } from '@wiggy/core'
 import { requirePro } from '@/lib/auth'
+import { supabaseServer } from '@/lib/supabase/server'
+import { FormSms } from './form'
 import { EnteteEcran, CorpsEcran, ActionPrincipale, RANGEE } from '@/components/composition'
 
 /**
@@ -42,7 +44,13 @@ export default async function Abonnement({
 }: {
   searchParams: Promise<{ requiert?: string }>
 }) {
-  const { abonnement } = await requirePro()
+  const { pro, abonnement } = await requirePro()
+  const supabase = await supabaseServer()
+  const { data: reglages } = await supabase
+    .from('pro_settings')
+    .select('sms_enabled')
+    .eq('pro_id', pro.id)
+    .maybeSingle()
   const { requiert } = await searchParams
 
   const capacite = requiert as Capability | undefined
@@ -74,6 +82,11 @@ export default async function Abonnement({
           contractuels. Promettre ici un parcours qui n'existe pas ferait perdre
           un tap et un peu de confiance.
         */}
+        {/* 17c : les SMS vivent avec l'offre, parce que c'est l'offre qui les
+            contient. B7 : décoché, les clientes sont prévenues par e-mail et
+            notification, gratuitement. Elles sont prévenues dans les deux cas. */}
+        <FormSms actif={reglages?.sms_enabled ?? false} />
+
         <p className="text-[12px] leading-[1.5] text-texte-attenue">
           Le changement d’offre depuis l’app arrive bientôt. En attendant, écris-nous : on te
           bascule le jour même.

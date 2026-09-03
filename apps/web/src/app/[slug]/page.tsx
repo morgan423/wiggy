@@ -39,7 +39,7 @@ async function chargerFiche(slug: string) {
   const [prestations, reglages, communes, realisations] = await Promise.all([
     supabase
       .from('services')
-      .select('id, name, description, price_cents, duration_min, deposit_percent')
+      .select('id, name, description, price_cents, duration_min, deposit_percent, category')
       .eq('pro_id', pro.id)
       .eq('active', true)
       // Tri sur `position` seulement : `created_at` n'est pas dans les colonnes
@@ -161,24 +161,45 @@ export default async function PagePublique({ params }: Parametres) {
             n'aide pas la cliente à choisir, et elle engage la pro sur un temps
             qui varie d'une tête à l'autre.
           */
-          <ul className="mt-6 space-y-3">
-            {prestations.map((p) => (
-              <li key={p.id} className="rounded-carte bg-surface p-5">
-                <span className="flex flex-wrap items-baseline gap-x-4">
-                  <span className="text-lg font-bold">{p.name}</span>
-                  <span className="ml-auto text-lg font-bold">{formatEuros(p.price_cents)}</span>
-                </span>
-                {p.description ? (
-                  <span className="mt-2 block text-texte-secondaire">{p.description}</span>
+          /*
+            B13 — affichage GROUPÉ quand la pro a catégorisé, LISTE PLATE
+            sinon. Le groupe est un confort : une pro avec six prestations n'a
+            rien à ranger, et sa page ne doit pas donner l'impression qu'il lui
+            manque quelque chose.
+          */
+          <div className="mt-6 flex flex-col gap-8">
+            {grouper(prestations).map(([groupe, liste]) => (
+              <section key={groupe ?? 'sans-groupe'}>
+                {groupe ? (
+                  <h3 className="text-sm font-bold tracking-widest text-texte-secondaire uppercase">
+                    {groupe}
+                  </h3>
                 ) : null}
-                {p.deposit_percent ? (
-                  <span className="mt-2 block text-sm text-texte-secondaire">
-                    {remplir(C.$aEcrire.acompteSurCarte, { pourcent: String(p.deposit_percent) })}
-                  </span>
-                ) : null}
-              </li>
+                <ul className={`space-y-3 ${groupe ? 'mt-4' : ''}`}>
+                  {liste.map((p) => (
+                    <li key={p.id} className="rounded-carte bg-surface p-5">
+                      <span className="flex flex-wrap items-baseline gap-x-4">
+                        <span className="text-lg font-bold">{p.name}</span>
+                        <span className="ml-auto text-lg font-bold">
+                          {formatEuros(p.price_cents)}
+                        </span>
+                      </span>
+                      {p.description ? (
+                        <span className="mt-2 block text-texte-secondaire">{p.description}</span>
+                      ) : null}
+                      {p.deposit_percent ? (
+                        <span className="mt-2 block text-sm text-texte-secondaire">
+                          {remplir(C.$aEcrire.acompteSurCarte, {
+                            pourcent: String(p.deposit_percent),
+                          })}
+                        </span>
+                      ) : null}
+                    </li>
+                  ))}
+                </ul>
+              </section>
             ))}
-          </ul>
+          </div>
         )}
       </section>
 
@@ -275,4 +296,24 @@ export default async function PagePublique({ params }: Parametres) {
 function urlRealisation(chemin: string): string {
   const base = process.env.NEXT_PUBLIC_SUPABASE_URL ?? ''
   return `${base}/storage/v1/object/public/pro-realisations/${chemin}`
+}
+
+/**
+ * B13 — les prestations par groupe, dans l'ordre de la pro.
+ *
+ * Sans aucune catégorie, un seul groupe sans titre : la liste est plate, et
+ * rien à l'écran ne suggère qu'il manque un rangement. C'est la contrainte qui
+ * compte dans B13, et elle se tient ici plutôt que dans l'écran.
+ */
+function grouper<T extends { category: string | null }>(prestations: T[]): [string | null, T[]][] {
+  const groupes = new Map<string | null, T[]>()
+  for (const p of prestations) {
+    const cle = p.category ?? null
+    groupes.set(cle, [...(groupes.get(cle) ?? []), p])
+  }
+  // Les prestations sans groupe ferment la liste : elles ne s'effacent pas, et
+  // elles ne prennent pas la tête devant celles que la pro a rangées.
+  return [...groupes.entries()].sort(([a], [b]) =>
+    a === null ? 1 : b === null ? -1 : a.localeCompare(b),
+  )
 }

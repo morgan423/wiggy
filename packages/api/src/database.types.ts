@@ -10,7 +10,10 @@
 export type AppointmentSource = 'online' | 'manual'
 export type AppointmentStatus = 'pending' | 'conditional' | 'confirmed' | 'in_progress' | 'done' | 'cancelled'
 export type BookingConfirmationMode = 'auto' | 'manual'
+export type NotificationKind = 'reponse_proposition' | 'annulation' | 'acompte_recu' | 'avis_recu' | 'demande_traitee'
 export type PaymentMode = 'off' | 'client_choice' | 'required'
+export type PropositionKind = 'contre_proposition' | 'forfait' | 'report'
+export type PropositionStatus = 'en_attente' | 'acceptee' | 'refusee' | 'caduque'
 export type ServiceAreaMode = 'communes' | 'radius'
 export type SubscriptionStatus = 'trialing' | 'active' | 'past_due' | 'canceled'
 export type Tier = 'tier_1' | 'tier_2' | 'tier_3'
@@ -243,6 +246,36 @@ export type Database = {
         }
         Relationships: []
       }
+      client_notes: {
+        Row: {
+        id: string
+        pro_id: string
+        client_id: string
+        appointment_id: string | null
+        fait_le: string
+        contenu: string
+        created_at: string
+        }
+        Insert: {
+        id?: string
+        pro_id: string
+        client_id: string
+        appointment_id?: string | null
+        fait_le?: string
+        contenu: string
+        created_at?: string
+        }
+        Update: {
+        id?: string
+        pro_id?: string
+        client_id?: string
+        appointment_id?: string | null
+        fait_le?: string
+        contenu?: string
+        created_at?: string
+        }
+        Relationships: []
+      }
       clients: {
         Row: {
         id: string
@@ -405,6 +438,39 @@ export type Database = {
         }
         Relationships: []
       }
+      notifications: {
+        Row: {
+        id: string
+        pro_id: string
+        kind: NotificationKind
+        titre: string
+        detail: string | null
+        lien: string | null
+        lu_le: string | null
+        created_at: string
+        }
+        Insert: {
+        id?: string
+        pro_id: string
+        kind: NotificationKind
+        titre: string
+        detail?: string | null
+        lien?: string | null
+        lu_le?: string | null
+        created_at?: string
+        }
+        Update: {
+        id?: string
+        pro_id?: string
+        kind?: NotificationKind
+        titre?: string
+        detail?: string | null
+        lien?: string | null
+        lu_le?: string | null
+        created_at?: string
+        }
+        Relationships: []
+      }
       phone_verifications: {
         Row: {
         id: string
@@ -476,6 +542,8 @@ export type Database = {
         sms_enabled: boolean
         gps_app: string
         updated_at: string
+        push_reponse_cliente: boolean
+        push_avis: boolean
         }
         Insert: {
         pro_id: string
@@ -487,6 +555,8 @@ export type Database = {
         sms_enabled?: boolean
         gps_app?: string
         updated_at?: string
+        push_reponse_cliente?: boolean
+        push_avis?: boolean
         }
         Update: {
         pro_id?: string
@@ -498,6 +568,59 @@ export type Database = {
         sms_enabled?: boolean
         gps_app?: string
         updated_at?: string
+        push_reponse_cliente?: boolean
+        push_avis?: boolean
+        }
+        Relationships: []
+      }
+      propositions: {
+        Row: {
+        id: string
+        appointment_id: string
+        pro_id: string
+        kind: PropositionKind
+        status: PropositionStatus
+        service_id: string | null
+        service_name: string | null
+        price_cents: number | null
+        duration_min: number | null
+        starts_at: string | null
+        message: string | null
+        public_token: string
+        created_at: string
+        responded_at: string | null
+        }
+        Insert: {
+        id?: string
+        appointment_id: string
+        pro_id: string
+        kind: PropositionKind
+        status?: PropositionStatus
+        service_id?: string | null
+        service_name?: string | null
+        price_cents?: number | null
+        duration_min?: number | null
+        starts_at?: string | null
+        message?: string | null
+        public_token?: string
+        created_at?: string
+        responded_at?: string | null
+        }
+        Update: {
+        id?: string
+        appointment_id?: string
+        pro_id?: string
+        kind?: PropositionKind
+        status?: PropositionStatus
+        service_id?: string | null
+        service_name?: string | null
+        price_cents?: number | null
+        duration_min?: number | null
+        starts_at?: string | null
+        message?: string | null
+        public_token?: string
+        created_at?: string
+        responded_at?: string | null
         }
         Relationships: []
       }
@@ -654,6 +777,8 @@ export type Database = {
         active: boolean
         position: number
         created_at: string
+        category: string | null
+        photos_required: boolean
         }
         Insert: {
         id?: string
@@ -666,6 +791,8 @@ export type Database = {
         active?: boolean
         position?: number
         created_at?: string
+        category?: string | null
+        photos_required?: boolean
         }
         Update: {
         id?: string
@@ -678,6 +805,8 @@ export type Database = {
         active?: boolean
         position?: number
         created_at?: string
+        category?: string | null
+        photos_required?: boolean
         }
         Relationships: []
       }
@@ -812,7 +941,10 @@ export type Database = {
       appointment_source: AppointmentSource
       appointment_status: AppointmentStatus
       booking_confirmation_mode: BookingConfirmationMode
+      notification_kind: NotificationKind
       payment_mode: PaymentMode
+      proposition_kind: PropositionKind
+      proposition_status: PropositionStatus
       service_area_mode: ServiceAreaMode
       subscription_status: SubscriptionStatus
       tier: Tier

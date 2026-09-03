@@ -19,6 +19,8 @@ export function ChampGet({
   inputMode,
   type = 'text',
   aide,
+  placeholder,
+  libelleCache = false,
 }: {
   id: string
   label: string
@@ -27,10 +29,18 @@ export function ChampGet({
   inputMode?: 'numeric'
   type?: string
   aide?: string
+  placeholder?: string
+  /**
+   * Le libellé reste dans le DOM pour les lecteurs d'écran, mais sort de la
+   * vue : une barre de recherche dit déjà ce qu'elle est par sa forme. Le
+   * masquer n'est pas le supprimer, et cette nuance décide de qui peut se
+   * servir du champ.
+   */
+  libelleCache?: boolean
 }) {
   return (
-    <div className="mt-3">
-      <label htmlFor={id} className={LIBELLE}>
+    <div className={libelleCache ? undefined : 'mt-3'}>
+      <label htmlFor={id} className={libelleCache ? 'sr-only' : LIBELLE}>
         {label}
       </label>
       <input
@@ -40,6 +50,7 @@ export function ChampGet({
         defaultValue={defaultValue}
         required={required}
         inputMode={inputMode}
+        placeholder={placeholder}
         className={`${SURFACE_CHAMP} border-transparent`}
       />
       {aide ? <p className={AIDE}>{aide}</p> : null}
