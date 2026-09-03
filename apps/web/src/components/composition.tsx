@@ -43,6 +43,7 @@ export function EnteteEcran({
   statement,
   sousTitre,
   variante = 'section',
+  vignette,
   action,
   children,
 }: {
@@ -51,6 +52,12 @@ export function EnteteEcran({
   statement: string
   sousTitre?: string
   variante?: 'hub' | 'section' | 'jour'
+  /**
+   * Ce qui accompagne le statement À SA GAUCHE : l'avatar d'une fiche cliente
+   * (planche 16c). Il fait corps avec le nom, il ne flotte ni au-dessus ni
+   * en dessous du résumé.
+   */
+  vignette?: React.ReactNode
   action?: React.ReactNode
   children?: React.ReactNode
 }) {
@@ -71,12 +78,22 @@ export function EnteteEcran({
         </Link>
       ) : null}
       <div className="flex items-center justify-between gap-2.5">
-        <h1 className={`titre font-bold tracking-tight ${retour ? 'mt-1' : ''} ${taille ?? ''}`}>
-          {statement}
-        </h1>
+        <div className="flex min-w-0 items-center gap-3">
+          {vignette}
+          <div className="flex min-w-0 flex-col">
+            <h1
+              className={`titre font-bold tracking-tight ${retour && !vignette ? 'mt-1' : ''} ${taille ?? ''}`}
+            >
+              {statement}
+            </h1>
+            {vignette && sousTitre ? (
+              <p className="text-[12.5px] text-texte-sur-plein-doux">{sousTitre}</p>
+            ) : null}
+          </div>
+        </div>
         {action}
       </div>
-      {sousTitre ? (
+      {sousTitre && !vignette ? (
         <p className="mt-1 text-[12.5px] text-texte-sur-plein-doux">{sousTitre}</p>
       ) : null}
       {children}

@@ -126,6 +126,10 @@ R3-1.
   identifiée. Il se branchera sur la création manuelle d'un rendez-vous, où la fiche est connue.
 - **Le blocage se pose sur une journée**, pas sur plusieurs jours d'affilée. Une absence longue
   est un congé (14f), et il existe déjà.
+- **L'avatar de la fiche est à GAUCHE du prénom**, pas au-dessus. Il était sous le résumé, ce que
+  Morgan a relevé sur la capture en proposant deux issues : au-dessus, ou pas d'avatar. La
+  planche 16c en donne une troisième, et c'est la sienne : avatar et nom font corps, sur une même
+  ligne, dans le bandeau prune. La règle dit que la planche gagne, l'écart est ici.
 
 **Questions ouvertes :** aucune. Les trois qui restaient ont été tranchées.
 

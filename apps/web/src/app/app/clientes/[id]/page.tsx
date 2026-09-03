@@ -121,6 +121,7 @@ export default async function FicheCliente({ params }: { params: Promise<{ id: s
         retour="/app/clientes"
         retourLibelle={F.liste.titre}
         variante="jour"
+        vignette={<Avatar nom={nom} taille="sm" />}
         statement={cliente.first_name}
         sousTitre={
           depuis
@@ -140,11 +141,7 @@ export default async function FicheCliente({ params }: { params: Promise<{ id: s
                 })
               : F.$aEcrire.jamaisVenue
         }
-      >
-        <span className="mt-2 flex">
-          <Avatar nom={nom} taille="sm" />
-        </span>
-      </EnteteEcran>
+      />
 
       <CorpsEcran serre>
         {/* B2 — la mémoire technique, en tête : c'est ce qu'on vient chercher. */}
