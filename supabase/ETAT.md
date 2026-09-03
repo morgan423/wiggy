@@ -44,6 +44,7 @@ Rejouer un lot déjà appliqué échoue sur les types et les tables qui existent
 | `0013_realisations.sql`        | A1 : table `pro_photos`, les réalisations de la page publique. Lecture anonyme limitée aux fiches publiées.                                   | En attente                  | Projet inexistant |
 | `0014_journee_lancee.sql`      | D15 : table `journees`, le lancement de journée. Distingue « en cours » de « à clôturer ».                                                    | En attente                  | Projet inexistant |
 | `0015_point_de_depart.sql`     | D16 : adresse de départ sur `pros`, jamais exposée publiquement. Donne un trajet au premier rendez-vous.                                      | En attente                  | Projet inexistant |
+| `0016_duree_declaree.sql`      | D15 corrigée : `appointments.duration_declared`, pour distinguer une durée mesurée d'une durée écrite par la pro.                             | En attente                  | Projet inexistant |
 
 ## Notes
 

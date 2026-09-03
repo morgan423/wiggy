@@ -47,16 +47,33 @@ test('la durée est arrondie vers le haut, jamais rognée', () => {
   assert.equal(dureeApprise({ dureeCatalogue: 60, historiquePro: m(61, 62, 63) }), 65)
 })
 
-test('la clôture mesure le temps réel', () => {
+test('la clôture mesure le temps réel quand elle a lieu au moment de finir', () => {
   const debut = new Date('2026-09-07T10:00:00Z')
-  assert.equal(dureeReelle(debut, new Date('2026-09-07T11:15:00Z'), 60), 75)
+  const finPrevue = new Date('2026-09-07T11:00:00Z')
+  assert.equal(dureeReelle(debut, new Date('2026-09-07T11:15:00Z'), finPrevue), 75)
 })
 
-test('une clôture du lendemain retombe sur la durée prévue', () => {
-  // Ni zéro, ni vingt heures : la pro a oublié de clore, on ne l'invente pas.
+test('une clôture du soir ne mesure RIEN, et ne retombe pas sur la prévision', () => {
+  // C'est la correction du 03/09. Retomber sur la durée prévue ferait que
+  // l'apprentissage se nourrirait de sa propre sortie : au bout de vingt
+  // rendez-vous il « saurait » qu'une couleur dure exactement ce qu'il avait
+  // prévu, parce que c'est lui qui aurait fourni la réponse.
+  const debut = new Date('2026-09-07T14:00:00Z')
+  const finPrevue = new Date('2026-09-07T15:30:00Z')
+  assert.equal(dureeReelle(debut, new Date('2026-09-07T22:00:00Z'), finPrevue), null)
+})
+
+test('une clôture juste après la fin mesure encore', () => {
+  // « J'ai fini, je range, je clôture en partant » reste une mesure.
   const debut = new Date('2026-09-07T10:00:00Z')
-  assert.equal(dureeReelle(debut, new Date('2026-09-08T09:00:00Z'), 60), 60)
-  assert.equal(dureeReelle(debut, new Date('2026-09-07T09:00:00Z'), 60), 60)
+  const finPrevue = new Date('2026-09-07T11:00:00Z')
+  assert.equal(dureeReelle(debut, new Date('2026-09-07T11:40:00Z'), finPrevue), 100)
+})
+
+test('une clôture antérieure au début ne mesure rien', () => {
+  const debut = new Date('2026-09-07T10:00:00Z')
+  const finPrevue = new Date('2026-09-07T11:00:00Z')
+  assert.equal(dureeReelle(debut, new Date('2026-09-07T09:00:00Z'), finPrevue), null)
 })
 
 test('B5 — une correction manuelle est une instruction, pas une mesure', () => {
@@ -91,4 +108,19 @@ test('B5 — la correction la plus récente remplace la précédente', () => {
     ],
   })
   assert.equal(duree, 75)
+})
+
+test('sans mesure ni saisie, l’apprentissage n’a rien à se mettre sous la dent', () => {
+  // La conséquence de la correction, dite en une ligne : un rendez-vous clos
+  // le soir sans saisie ne produit AUCUNE mesure, donc n'entre pas dans
+  // l'historique, donc ne peut pas faire converger l'apprentissage vers la
+  // prévision. C'est la même prudence que « rien avant trois visites ».
+  const debut = new Date('2026-09-07T14:00:00Z')
+  const finPrevue = new Date('2026-09-07T15:30:00Z')
+  const mesure = dureeReelle(debut, new Date('2026-09-07T22:00:00Z'), finPrevue)
+  assert.equal(mesure, null)
+
+  // L'historique reste vide, donc le catalogue continue de faire foi. Il ne se
+  // met pas à « savoir » qu'une couleur dure exactement 90 minutes.
+  assert.equal(dureeApprise({ dureeCatalogue: 90, historiquePro: [] }), 90)
 })

@@ -99,14 +99,37 @@ export function dureeApprise({
 }
 
 /**
- * La durée réellement passée sur un rendez-vous, à la clôture.
+ * Combien de temps a réellement duré un rendez-vous, `null` quand on ne peut
+ * pas le savoir honnêtement.
  *
- * Bornée à douze heures : au-delà, la pro a oublié de clore et a tapé le
- * lendemain. On ne veut pas de cette mesure dans l'apprentissage, et on ne
- * veut pas non plus perdre la clôture : on retient la durée prévue.
+ * **`null` et surtout pas la durée prévue.** C'est la correction du 03/09, et
+ * elle vaut d'être expliquée : retomber sur la prévision ferait que
+ * l'apprentissage se nourrirait de sa propre sortie. Au bout de vingt
+ * rendez-vous il « saurait » qu'une couleur dure exactement ce qu'il avait
+ * prévu, parce que c'est lui qui aurait fourni la réponse. Il afficherait de la
+ * confiance sans avoir rien appris.
+ *
+ * C'est la même règle que le rythme de retour, qui ne se prononce pas avant
+ * trois visites : **mieux vaut ne rien savoir que croire savoir.**
+ *
+ * Quand la mesure n'est pas crédible, l'agenda et l'affichage continuent
+ * d'utiliser la durée prévue. C'est seulement l'APPRENTISSAGE qui ignore ce
+ * rendez-vous.
  */
-export function dureeReelle(debut: Date, cloture: Date, dureePrevue: number): number {
+export function dureeReelle(debut: Date, cloture: Date, finPrevue: Date): number | null {
   const minutes = Math.round((cloture.getTime() - debut.getTime()) / 60_000)
-  if (minutes <= 0 || minutes > 12 * 60) return dureePrevue
+  if (minutes <= 0) return null
+  // Au-delà de la fin prévue plus une heure, la pro fait du rattrapage : le
+  // temps écoulé ne dit plus rien de la prestation. Une clôture à 22 h d'un
+  // rendez-vous de 14 h ne mesure pas huit heures de couleur.
+  if (cloture.getTime() > finPrevue.getTime() + GRACE_MESURE_MIN * 60_000) return null
   return minutes
 }
+
+/**
+ * Le délai après la fin prévue au-delà duquel une clôture cesse de mesurer.
+ *
+ * Une heure : assez pour couvrir « j'ai fini, je range, je clôture en partant »,
+ * trop court pour couvrir « je clôture ma journée le soir ».
+ */
+export const GRACE_MESURE_MIN = 60

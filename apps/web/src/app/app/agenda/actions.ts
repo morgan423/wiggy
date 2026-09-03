@@ -254,24 +254,34 @@ export async function terminerRdv(donnees: FormData) {
 
   const cloture = new Date()
   const debut = new Date(rdv.starts_at)
-  const prevue = Math.round((new Date(rdv.ends_at).getTime() - debut.getTime()) / 60_000)
+  const finPrevue = new Date(rdv.ends_at)
 
   /*
-    D15 — le rattrapage du soir est un usage de PLEIN DROIT, pas un cas
-    dégradé : la pro coiffe toute la journée et remplit ses fiches le soir.
+    D15 corrigée le 03/09 — **la durée réelle n'est jamais obligatoire et ne
+    bloque jamais la clôture.** Une pro qui ferme sa journée à 22 h doit pouvoir
+    le faire d'un tap. Un geste de clôture ne se refuse pas pour une donnée
+    d'optimisation.
 
-    Mesurer « maintenant moins le début » n'a alors aucun sens, et retomber sur
-    la durée prévue ferait que B6 n'apprendrait jamais rien des soirées, c'est
-    à dire de l'usage normal. Quand elle clôture tard, on lui DEMANDE combien
-    de temps ça a pris, et sa réponse fait foi : c'est une correction manuelle
-    au sens de B5, donc une instruction, pas une mesure.
+    Mais on ne retombe pas en silence sur la durée prévue pour autant : sans
+    saisie et sans mesure crédible, **aucune mesure n'est enregistrée**. La
+    colonne reste vide, et l'apprentissage ignore ce rendez-vous.
+
+    Le motif est celui du rythme de retour, « rien avant trois visites » :
+    retomber sur la prévision ferait que l'apprentissage se nourrirait de sa
+    propre sortie et convergerait vers elle. Il afficherait de la confiance sans
+    avoir rien appris. Mieux vaut ne rien savoir que croire savoir.
+
+    L'agenda et l'affichage, eux, continuent d'utiliser la durée prévue : c'est
+    seulement l'apprentissage qui s'abstient.
   */
   const saisie = champ(donnees, 'duree_min')
   const declaree = saisie === null ? null : Number.parseInt(saisie, 10)
-  const reelle =
-    declaree !== null && Number.isFinite(declaree) && declaree > 0 && declaree <= 12 * 60
-      ? declaree
-      : dureeReelle(debut, cloture, prevue)
+  const valide = declaree !== null && Number.isFinite(declaree) && declaree > 0 && declaree <= 720
+
+  // Une durée ÉCRITE par la pro est une instruction (B5), pas une observation.
+  // On l'enregistre comme telle plutôt que de le deviner plus tard.
+  const mesuree = valide ? null : dureeReelle(debut, cloture, finPrevue)
+  const duree = valide ? declaree : mesuree
 
   const note = champ(donnees, 'note')
   const { error } = await supabase
@@ -279,7 +289,8 @@ export async function terminerRdv(donnees: FormData) {
     .update({
       status: 'done',
       completed_at: cloture.toISOString(),
-      actual_duration_min: reelle,
+      actual_duration_min: duree,
+      duration_declared: valide,
       // B3 : la note du rendez-vous se pose dans le même geste que la clôture.
       // Le soir, c'est le seul moment où elle sera écrite.
       ...(note === null ? {} : { note }),

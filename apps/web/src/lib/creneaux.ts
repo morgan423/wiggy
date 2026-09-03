@@ -115,7 +115,7 @@ export async function creneauxProposables(options: {
     // interrogeable ici : dans le tunnel, on ne sait pas encore qui réserve.
     supabase
       .from('appointments')
-      .select('actual_duration_min, starts_at, ends_at')
+      .select('actual_duration_min, duration_declared')
       .eq('pro_id', options.proId)
       .eq('service_id', options.serviceId)
       .not('actual_duration_min', 'is', null)
@@ -224,16 +224,11 @@ export async function creneauxProposables(options: {
           (r): r is typeof r & { actual_duration_min: number } =>
             typeof r.actual_duration_min === 'number',
         )
-        .map((r) => ({
-          minutes: r.actual_duration_min,
-          // B5 — une durée PLANIFIÉE différente du catalogue ne peut venir que
-          // d'une correction à la main de la pro : rien d'autre ne l'écrit.
-          // Pas besoin d'une colonne pour le savoir, la donnée le dit déjà.
-          corrigee:
-            Math.round(
-              (new Date(r.ends_at).getTime() - new Date(r.starts_at).getTime()) / 60_000,
-            ) !== dureeCatalogue,
-        })),
+        // B5 — une durée ÉCRITE par la pro est une instruction, pas une
+        // observation. Le drapeau vient de la clôture : on ne le devine pas,
+        // parce que deviner marcherait jusqu'au jour où elle saisit une durée
+        // en clôturant à l'heure.
+        .map((r) => ({ minutes: r.actual_duration_min, corrigee: r.duration_declared })),
     }) + (reglages.data?.new_client_buffer_min ?? 0)
 
   const proposables: JourProposable[] = []

@@ -20,6 +20,63 @@ _Rien en attente : les trois questions ouvertes ont été tranchées le 03/09._
 
 ---
 
+## 2026-09-03 (7) Étape : D15 corrigée, la clôture ne se refuse jamais
+
+**Fait :**
+
+- **La durée réelle n'est plus jamais obligatoire.** J'en avais fait une condition de fait de la
+  clôture tardive : le champ était pré-rempli avec la durée prévue et occupait le formulaire. Une
+  pro qui ferme sa journée à 22 h doit pouvoir le faire d'un tap. **Un geste de clôture ne se
+  refuse pas pour une donnée d'optimisation.** Le champ est proposé, il part VIDE, et il porte
+  « facultatif » dans son libellé.
+- **Et surtout : sans saisie, AUCUNE mesure n'est enregistrée.** La colonne reste vide, et
+  l'apprentissage ignore ce rendez-vous. `dureeReelle()` renvoie désormais `null` au lieu de
+  retomber sur la durée prévue.
+- **Le motif, parce qu'il vaut au-delà de ce cas.** Retomber sur la prévision ferait que
+  l'apprentissage se nourrirait de sa propre sortie et convergerait vers elle : au bout de vingt
+  rendez-vous il « saurait » qu'une couleur dure exactement ce qu'il avait prévu, parce que c'est
+  lui qui aurait fourni la réponse. Il afficherait de la confiance sans avoir rien appris. C'est
+  la règle que j'avais moi-même posée sur le rythme de retour, « rien avant trois visites », et
+  que je n'avais pas appliquée ici : **mieux vaut ne rien savoir que croire savoir.**
+- **La mesure a maintenant une fenêtre de crédibilité** : jusqu'à une heure après la fin prévue.
+  « J'ai fini, je range, je clôture en partant » reste une mesure ; une clôture à 22 h d'un
+  rendez-vous de 14 h n'en est pas une, et mon code précédent l'aurait enregistrée comme huit
+  heures de couleur.
+- **Une durée écrite par la pro ne se devine plus, elle se marque** (migration 0016,
+  `duration_declared`). L'ancien code l'inférait d'un écart au catalogue : ça marchait jusqu'au
+  jour où elle saisit une durée en clôturant à l'heure, et ce jour-là son instruction aurait été
+  traitée comme une observation sans que personne s'en aperçoive.
+- **`Champ` accepte un placeholder** : un exemple, jamais une valeur. Un champ pré-rempli est une
+  réponse que personne n'a donnée.
+- **L'agenda et l'affichage ne changent pas** : ils continuent d'utiliser la durée prévue. C'est
+  seulement l'apprentissage qui s'abstient.
+
+**Schéma :** **0016_duree_declaree.sql**, EN ATTENTE. Les 0011 à 0015 le sont toujours.
+
+**Décisions :** D15 corrigée par Morgan le 03/09, et sa conséquence sur B5 et B6.
+
+**Écarts au brief :** aucun. La correction est appliquée telle qu'elle a été formulée, et la
+fenêtre de crédibilité d'une heure est la seule décision que j'ai eu à prendre seul : le brief
+disait « aucune mesure » sans dire à partir de quand une clôture cesse de mesurer.
+
+**Questions ouvertes :** aucune.
+
+**À recetter par Morgan :**
+
+1. Colle `0016` après les autres, puis coche la ligne dans `supabase/ETAT.md`.
+2. Sur « Ce qui reste à clôturer », ouvre un rendez-vous : le champ de durée est **vide** et marqué
+   facultatif. Tape « Clôturer » sans rien remplir : **ça marche**.
+3. Clôture plusieurs rendez-vous de la même prestation sans jamais saisir de durée, puis regarde
+   les créneaux proposés : ils n'ont **pas bougé**. L'apprentissage n'a rien appris, et c'est
+   exactement ce qu'on veut.
+4. Clôture-en un en **saisissant** une durée franchement différente : là, les créneaux suivent ta
+   valeur, et pas une moyenne.
+5. Clôture un rendez-vous **pendant** son créneau, sans rien saisir : la durée réelle est mesurée
+   et enregistrée.
+
+**Statut à reporter dans la roadmap :** D15 : « Corrigée, recette à valider ». B6 : « L'apprentissage
+ne se nourrit plus de ses propres prévisions, recette à valider ».
+
 ## 2026-09-03 (6) Étape : D15, l'état d'un rendez-vous, et D16, le point de départ
 
 **Fait :**

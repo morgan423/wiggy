@@ -9,13 +9,18 @@ import { terminerRdv } from '@/app/app/agenda/actions'
 /**
  * D15 — clôturer plus tard, en complétant la fiche dans le même geste.
  *
- * Le soir, c'est le seul moment où la durée réelle et la note seront écrites.
- * Les demander ici n'est pas de la saisie en plus : c'est la seule saisie qui
- * aura lieu.
+ * ⚠️ **Rien n'est obligatoire ici, et surtout pas la durée.** Une pro qui ferme
+ * sa journée à 22 h doit pouvoir le faire d'un tap. Un geste de clôture ne se
+ * refuse pas pour une donnée d'optimisation : le champ est proposé, jamais
+ * imposé, et il part VIDE.
  *
- * La durée déclarée fait foi, et pas la mesure : quand la pro clôture à 22 h un
- * rendez-vous de 14 h, « maintenant moins le début » ne veut rien dire. Sa
- * réponse est une correction manuelle au sens de B5, donc une instruction.
+ * Vide, il ne se remplit pas tout seul de la durée prévue : sans saisie, aucune
+ * mesure n'est enregistrée et l'apprentissage ignore ce rendez-vous. Le
+ * pré-remplir avec la prévision ferait converger l'apprentissage vers sa propre
+ * sortie, et il afficherait de la confiance sans avoir rien appris.
+ *
+ * Quand la pro SAISIT une durée, en revanche, sa réponse fait foi : c'est une
+ * instruction au sens de B5, pas une mesure parmi d'autres.
  */
 export function FormCloture({
   id,
@@ -68,7 +73,7 @@ export function FormCloture({
         label={T.$aEcrire.dureeReelle}
         type="number"
         required={false}
-        defaultValue={String(dureePrevueMin)}
+        placeholder={String(dureePrevueMin)}
         aide={T.$aEcrire.dureeReelleAide}
       />
       <Zone id={`note-${id}`} name="note" label={copy.ficheCliente.$aEcrire.noteDuRdv} rows={2} />

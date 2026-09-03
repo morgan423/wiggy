@@ -73,6 +73,7 @@ export type Database = {
         stay_from: string | null
         stay_to: string | null
         public_token: string
+        duration_declared: boolean
         }
         Insert: {
         id?: string
@@ -104,6 +105,7 @@ export type Database = {
         stay_from?: string | null
         stay_to?: string | null
         public_token?: string
+        duration_declared?: boolean
         }
         Update: {
         id?: string
@@ -135,6 +137,7 @@ export type Database = {
         stay_from?: string | null
         stay_to?: string | null
         public_token?: string
+        duration_declared?: boolean
         }
         Relationships: []
       }

@@ -14,6 +14,7 @@ export function Champ({
   defaultValue,
   aide,
   inputMode,
+  placeholder,
   fautif = false,
   desactive = false,
 }: {
@@ -27,6 +28,12 @@ export function Champ({
   defaultValue?: string
   aide?: string
   inputMode?: 'numeric' | 'tel'
+  /**
+   * Un exemple, jamais une valeur. Un champ pré-rempli est une réponse que
+   * personne n'a donnée ; un placeholder montre l'ordre de grandeur et laisse
+   * le champ vide.
+   */
+  placeholder?: string
   /** Champ refusé par la validation : on y pose le curseur et on le signale. */
   fautif?: boolean
   desactive?: boolean
@@ -45,6 +52,7 @@ export function Champ({
         autoComplete={autoComplete}
         defaultValue={defaultValue}
         inputMode={inputMode}
+        placeholder={placeholder}
         // Le curseur va sur le champ refusé : c'est une réponse à une action
         // de la personne, pas un vol de focus à l'ouverture d'un écran.
         autoFocus={fautif}
