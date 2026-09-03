@@ -1,5 +1,6 @@
 import { requirePro } from '@/lib/auth'
 import { supabaseServer } from '@/lib/supabase/server'
+import { modeDuPro } from '@/lib/mode'
 import { EnteteEcran, CorpsEcran } from '@/components/composition'
 import { Avatar } from '@/components/avatar'
 import { FormProfil, BoutonPublication, LienPage } from './form'
@@ -36,6 +37,9 @@ export default async function Profil() {
   const profil = profilLu.data
   if (!profil) return null
 
+  // Lu à part, et sans jamais tomber : voir `lib/mode.ts`.
+  const mode = await modeDuPro(supabase, pro.id)
+
   // Les trois étapes de la planche 14c, relues ici : c'est ce qui arme la mise
   // en ligne. Aucun chiffre inventé, aucune supposition.
   const pret =
@@ -58,7 +62,7 @@ export default async function Profil() {
           </span>
         </div>
 
-        <FormProfil profil={profil} />
+        <FormProfil profil={{ ...profil, mode }} />
 
         <BoutonPublication publiee={profil.published} pret={pret} slug={profil.slug} />
       </CorpsEcran>

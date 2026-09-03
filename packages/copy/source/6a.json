@@ -26,9 +26,8 @@
     "· · · 12 min de trajet",
     "14:30",
     "Amélie · Centre-ville",
-    "29,90 €",
+    "34,90 €",
     "TTC par mois, tout compris.",
-    "Sans engagement, sans commission sur tes rendez-vous. Ta page de réservation, ton agenda, ton copilote.",
     "Programme Ambassadrices",
     "50 places",
     "pour les Ambassadrices.",
@@ -45,5 +44,9 @@
     "Réserver une démo",
     "Itération 5 · La tournée, cliquable",
     "Prototype de l'agenda du pro"
+  ],
+  "revisions": [
+    "Prix révisés le 03/09 (S8) : la grille passe à 19,90 € Essentielle, 34,90 € Tournée, 49 € Intelligence. Le board portait 19 € et 29,90 €. La révision est de Morgan, postérieure au board, et c'est elle qui fait foi.",
+    "Mention de commission retirée le 03/09 (S5) : il n'y a pas de commission, donc on n'en parle pas. Dire « sans commission » installe l'idée qu'il pourrait y en avoir une."
   ]
 }

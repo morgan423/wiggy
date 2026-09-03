@@ -4,6 +4,7 @@ import type { Metadata } from 'next'
 import { formatEuros, formatDistance, ZONE } from '@wiggy/core'
 import { copy, remplir } from '@wiggy/copy'
 import { supabaseServer } from '@/lib/supabase/server'
+import { modeDuPro } from '@/lib/mode'
 import { supabaseConfigured } from '@/lib/supabase/admin'
 import { creneauxProposables } from '@/lib/creneaux'
 import { canalDeRappel } from '@/lib/rappel'
@@ -81,6 +82,9 @@ export default async function Reserver({
   if (!pro) notFound()
 
   const prenom = pro.display_name.split(' ')[0] ?? pro.display_name
+  // D10 ① — en mode fixe, la cliente se déplace : l'étape adresse n'existe
+  // pas. Aucune adresse n'est demandée, ni collectée, ni enregistrée.
+  const modePro = await modeDuPro(supabase, pro.id)
   const { data: prestations } = await supabase
     .from('services')
     .select('id, name, price_cents, duration_min')
@@ -136,8 +140,8 @@ export default async function Reserver({
       ) : q.etape === 'sejour' ? (
         /* A5 : la cliente sera sur place. L'adresse de séjour remplace la sienne. */
         <EtapeSejour proId={pro.id} prestation={prestation} recherche={q} lien={lien} />
-      ) : !q.a || !q.cp ? (
-        /* Étape 2 : l'adresse. */
+      ) : modePro !== 'fixe' && (!q.a || !q.cp) ? (
+        /* Étape 2 : l'adresse. Absente en mode fixe (D10 ①). */
         <>
           <h1 className="display mt-6 tracking-tight">{C.$aEcrire.adresseTitre}</h1>
           <p className="mt-3 text-texte-secondaire">
@@ -164,6 +168,7 @@ export default async function Reserver({
           proId={pro.id}
           prenom={prenom}
           pronom={pro.pronoun}
+          modePro={modePro}
           prestation={prestation}
           recherche={q}
           lien={lien}
@@ -189,8 +194,8 @@ export default async function Reserver({
               proId={pro.id}
               serviceId={prestation.id}
               debut={q.c}
-              adresse={q.a}
-              codePostal={q.cp}
+              adresse={q.a ?? ''}
+              codePostal={q.cp ?? ''}
               ville={q.v ?? ''}
               depotPhotos={q.d ?? ''}
               canal={canal}
@@ -218,6 +223,7 @@ async function EtapeCreneaux({
   proId,
   prenom,
   pronom,
+  modePro,
   prestation,
   recherche,
   lien,
@@ -225,6 +231,7 @@ async function EtapeCreneaux({
   proId: string
   prenom: string
   pronom: string | null
+  modePro: 'itinerant' | 'fixe'
   prestation: { id: string; name: string }
   recherche: Recherche
   lien: (ajouts: Recherche) => string
@@ -233,6 +240,7 @@ async function EtapeCreneaux({
     proId,
     serviceId: prestation.id,
     adresse: { ligne1: recherche.a ?? '', codePostal: recherche.cp, ville: recherche.v },
+    modePro,
     accepterHorsZone: Boolean(recherche.sr),
   })
 
@@ -330,7 +338,9 @@ async function EtapeCreneaux({
       <h1 className="display mt-6 tracking-tight">
         {remplir(C.gabarits.creneauxTitre, { pro: prenom })}
       </h1>
-      <p className="mt-3 text-texte-attenue">{resultat.adresse.libelle}</p>
+      {resultat.adresse ? (
+        <p className="mt-3 text-texte-attenue">{resultat.adresse.libelle}</p>
+      ) : null}
       {resultat.horsZone ? <BandeauSousReserve /> : null}
 
       <div className="mt-8 space-y-8">

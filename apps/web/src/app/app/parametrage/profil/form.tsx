@@ -4,7 +4,7 @@ import { useActionState, useState } from 'react'
 import Link from 'next/link'
 import { enregistrerProfil, basculerPublication } from './actions'
 import { Champ, Zone, Erreur, Succes, BoutonPrincipal } from '@/components/champs'
-import { ListeDeroulante } from '@/components/trousse'
+import { CaseACocher, ListeDeroulante } from '@/components/trousse'
 import { VIDE, type EtatForm } from '@/lib/forms'
 
 type Profil = {
@@ -16,6 +16,7 @@ type Profil = {
   phone: string | null
   years_experience: number | null
   pronoun: string | null
+  mode: string
 }
 
 export function FormProfil({ profil }: { profil: Profil }) {
@@ -88,6 +89,24 @@ export function FormProfil({ profil }: { profil: Profil }) {
         required={false}
         defaultValue={valeur('phone')}
         aide="Pour te joindre. Il n’est jamais affiché sur ta page publique."
+      />
+      {/*
+        D10 ① — le mode d'exercice. Une case et non une liste : « itinérante »
+        est le défaut réel, et la trousse n'autorise une liste qu'avec une
+        option neutre (R3-1), ce qui n'a pas de sens pour un champ qui a une
+        valeur par défaut.
+
+        Conséquence immédiate, et c'est la seule pour l'instant : en mode fixe,
+        le parcours de réservation ne demande AUCUNE adresse à la cliente. Ce
+        n'est pas un confort, c'est de la minimisation RGPD : sans déplacement,
+        l'adresse n'a pas de finalité.
+      */}
+      <CaseACocher
+        id="mode"
+        name="mode"
+        label="Je reçois mes clientes à un poste fixe"
+        defaultChecked={valeur('mode') === 'fixe'}
+        aide="Salon à domicile, fauteuil loué. Sans cette case, Wiggy considère que tu te déplaces, et tes clientes indiquent leur adresse en réservant."
       />
       <Erreur message={etat.statut === 'erreur' ? etat.message : undefined} />
       <Succes message={etat.statut === 'ok' ? etat.message : undefined} />

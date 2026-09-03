@@ -90,7 +90,10 @@ export default async function Zone() {
           </span>
         </div>
 
-        <FormForfait montant={forfait ? formatEuros(forfait.fee_cents).replace(/\s*€/, '') : ''} />
+        <FormForfait
+          montant={forfait ? formatEuros(forfait.fee_cents).replace(/\s*€/, '') : ''}
+          centimes={forfait ? forfait.fee_cents : null}
+        />
 
         <p className="text-[11.5px] leading-[1.5] text-texte-attenue">
           Jamais affiché à tes clientes : elles découvrent le montant dans ta proposition, et le

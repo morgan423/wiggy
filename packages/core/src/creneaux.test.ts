@@ -211,3 +211,48 @@ test('joursOuvrables ne retient que les jours travaillés', () => {
     ['2026-09-15', '2026-09-17', '2026-09-22', '2026-09-24'],
   )
 })
+
+/**
+ * D10 ① — mode fixe : la cliente vient au poste de la pro.
+ *
+ * Aucune adresse cliente n'est collectée, donc aucun trajet ne se décompte. Ce
+ * test dit la chose importante : un créneau qui serait refusé pour cause de
+ * route l'est en itinérant, et ne l'est PAS en fixe. Sans lui, on aurait pu
+ * croire que passer `null` faisait planter le moteur, ou pire, qu'il gardait
+ * silencieusement un trajet.
+ */
+test('en mode fixe, aucun trajet ne rogne les créneaux', () => {
+  const jour = new Date('2026-09-07T00:00:00+02:00')
+  const plages = [
+    { debut: new Date('2026-09-07T09:00:00+02:00'), fin: new Date('2026-09-07T18:00:00+02:00') },
+  ]
+  const loin = { lat: 43.5, lng: -1.5 }
+  const rdvs = [
+    {
+      debut: new Date('2026-09-07T09:00:00+02:00'),
+      fin: new Date('2026-09-07T10:00:00+02:00'),
+      lieu: loin,
+    },
+  ]
+  // Une heure de route entre le rendez-vous précédent et la cliente.
+  const trajetLong = () => 60
+
+  const itinerant = creneauxDuJour(
+    { plages, rdvs, dureeMin: 60, lieuCliente: { lat: 43.3, lng: -0.37 }, pasAvant: jour },
+    trajetLong,
+  )
+  const fixe = creneauxDuJour(
+    { plages, rdvs, dureeMin: 60, lieuCliente: null, pasAvant: jour },
+    trajetLong,
+  )
+
+  // En itinérant, rien avant 11:00 : il faut une heure pour venir.
+  assert.equal(
+    itinerant[0].debut.toISOString(),
+    new Date('2026-09-07T11:00:00+02:00').toISOString(),
+  )
+  // En fixe, le créneau qui suit immédiatement le rendez-vous est proposable.
+  assert.equal(fixe[0].debut.toISOString(), new Date('2026-09-07T10:00:00+02:00').toISOString())
+  // Et aucun trajet n'est annoncé.
+  assert.equal(fixe[0].trajetAvant, undefined)
+})

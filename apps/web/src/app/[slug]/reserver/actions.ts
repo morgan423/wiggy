@@ -3,6 +3,7 @@
 import { finRendezVous } from '@wiggy/core'
 import { ReservationInput } from '@wiggy/api'
 import { supabaseAdmin, supabaseConfigured } from '@/lib/supabase/admin'
+import { modeDuPro } from '@/lib/mode'
 import { quotaDisponible } from '@/lib/quota'
 import { creneauxProposables } from '@/lib/creneaux'
 import { rattacherPhotos } from '@/lib/photos'
@@ -108,11 +109,24 @@ export async function reserver(
     return refus(donnees, 'Ce créneau n’est plus disponible.')
   }
 
+  // D10 ① : le mode d'exercice décide s'il y a une adresse à valider. Il se lit
+  // AVANT la revalidation, parce qu'il en change le calcul.
+  const modePro = await modeDuPro(supabaseAdmin(), d.proId)
+
+  // Le schéma a laissé l'adresse facultative parce qu'il ignore le mode. C'est
+  // ici qu'elle redevient obligatoire chez une pro qui se déplace : sans lieu,
+  // le rendez-vous ne bloque aucun créneau et la tournée se calcule sur une
+  // journée incomplète (R2-7 bis).
+  if (modePro === 'itinerant' && (!d.adresse || !d.codePostal || !d.ville)) {
+    return refus(donnees, 'Il manque votre adresse.')
+  }
+
   // Revalidation : le créneau doit toujours figurer parmi les propositions.
   const proposition = await creneauxProposables({
     proId: d.proId,
     serviceId: d.serviceId,
-    adresse: { ligne1: d.adresse, codePostal: d.codePostal, ville: d.ville },
+    adresse: { ligne1: d.adresse ?? '', codePostal: d.codePostal ?? '', ville: d.ville ?? '' },
+    modePro,
     accepterHorsZone: d.horsZone,
   })
   if (proposition.statut !== 'ok') {
@@ -174,14 +188,18 @@ export async function reserver(
       ends_at: finRendezVous(debut, duree).toISOString(),
       status: statut,
       source: 'online',
-      address_line1: d.adresse,
-      postal_code: d.codePostal,
-      city: d.ville,
+      // D10 ① — en mode fixe, AUCUNE adresse cliente n'est enregistrée. Ce
+      // n'est pas un oubli : sans déplacement, la collecter n'aurait aucune
+      // finalité, et une donnée sans finalité ne se collecte pas.
+      address_line1: proposition.adresse ? d.adresse : null,
+      postal_code: proposition.adresse ? d.codePostal : null,
+      city: proposition.adresse ? d.ville : null,
       // Sans coordonnées, un rendez-vous est invisible au calcul des trajets :
       // il ne bloquerait plus les créneaux qu'il doit bloquer, et la tournée
-      // du jour l'ignorerait. Elles viennent du géocodage déjà validé.
-      lat: proposition.adresse.point.lat,
-      lng: proposition.adresse.point.lng,
+      // du jour l'ignorerait. Elles viennent du géocodage déjà validé. En mode
+      // fixe il n'y a pas de trajet à calculer, donc rien à manquer.
+      lat: proposition.adresse?.point.lat ?? null,
+      lng: proposition.adresse?.point.lng ?? null,
       access_notes: d.acces,
       out_of_zone: horsZone,
       stay_from: d.sejourDu,

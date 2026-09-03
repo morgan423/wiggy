@@ -170,6 +170,20 @@ test('chaque valeur du livrable design a une correspondance ici', () => {
     wiggy.motion.celebrations.confirmationCliente
   CORRESPONDANCE['motion.celebrations.journeeBouclee'] = wiggy.motion.celebrations.journeeBouclee
 
+  /**
+   * Les écarts VOULUS au livrable de Design, un par ligne, avec leur motif.
+   *
+   * Un écart non listé ici reste une divergence et fait échouer le test : c'est
+   * tout l'intérêt du garde-fou. Ce qui est listé a été mesuré et tranché, et
+   * la valeur de Design reste lisible dans `reference/design-v2.json` pour que
+   * l'écart se voie.
+   */
+  const DEROGATIONS: Record<string, string> = {
+    'color.derived.inkMuted':
+      'Tranché le 03/09 : 55 % mesure 3,83:1 sur la crème, sous le seuil AA de 4,5. ' +
+      'Porté à 65 %, soit 5,21:1. Une pro lit son téléphone dehors entre deux clientes.',
+  }
+
   const manquantes: string[] = []
   const divergentes: string[] = []
   for (const [chemin, valeurDesign] of feuilles(D)) {
@@ -179,6 +193,17 @@ test('chaque valeur du livrable design a une correspondance ici', () => {
     }
     const attendu = CORRESPONDANCE[chemin]
     if (attendu === '§') continue
+    if (chemin in DEROGATIONS) {
+      // Une dérogation qui ne dévie plus n'a plus de raison d'être : elle doit
+      // se retirer, sans quoi la liste devient un cimetière que personne ne
+      // relit.
+      assert.notEqual(
+        norm(attendu),
+        norm(valeurDesign),
+        `${chemin} est listé en dérogation mais suit le livrable design : retire la ligne`,
+      )
+      continue
+    }
     if (norm(attendu) !== norm(valeurDesign)) {
       divergentes.push(`${chemin} : design ${String(valeurDesign)} · ici ${String(attendu)}`)
     }

@@ -68,7 +68,14 @@
     "photosEchec": "L’envoi n’a pas abouti. Réessayez, ou continuez sans photo.",
     "photosAideEtape": "Vos cheveux aujourd’hui et ce dont vous rêvez : {pro} prépare mieux, et prévoit le temps qu’il faut.",
     "photosChoisies": "{n} photo(s) choisie(s).",
-    "forfaitTitre": "Au-delà de ta zone"
+    "forfaitTitre": "Au-delà de ta zone",
+    "$noteModeFixe": "D10 ①, variante FIXE, réservée le 03/09. Ces clés ne servent pas encore : la variante fixe complète se construit après la bêta coiffure. Elles existent pour que le jour où l'écran les demande, on n'ait pas à réécrire le deck sous la pression. Chez une pro fixe, aucune adresse cliente n'est collectée : les clés d'adresse n'ont donc pas d'équivalent, leur équivalent est l'absence.",
+    "fixeZoneIntervention": "Vous reçoit à",
+    "fixeAdresseDuLieu": "{pro} vous reçoit au {adresse}.",
+    "fixeAccesTitre": "Comment entrer",
+    "fixeConfirmationDetailSms": "Rendez-vous chez {pro}. Vous recevrez un rappel par SMS la veille.",
+    "fixeConfirmationDetailEmail": "Rendez-vous chez {pro}. Vous recevrez un rappel la veille, par e-mail.",
+    "fixeAucunDeplacement": "{pro} ne se déplace pas : c'est vous qui venez."
   },
   "rappel": {
     "$note": "Livrées par Design le 02/09. La cliente ne doit jamais pouvoir deviner l'offre de sa coiffeuse ni qu'une limite a été atteinte : le texte dit comment elle sera prévenue, jamais pourquoi.",

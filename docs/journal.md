@@ -16,16 +16,6 @@ question qui ne vit que dans le chat disparaît avec la session. Trois lignes : 
 qu'elle bloque, la date. À la clôture, la question et sa réponse basculent dans l'entrée de
 l'étape et cette section se vide.
 
-- **Le plancher Fraunces de 20 px contre les prix des planches 14d et 14e.** `CLAUDE.md` interdit
-  Fraunces sous 20 px ; les planches posent le prix d'une prestation à 17 px et le forfait à
-  16 px. J'ai gardé le plancher (classe `.prix`, 20 px) : c'est une règle de lisibilité ratifiée,
-  et une taille de planche est un détail de rendu. Bloque la conformité au pixel de la colonne de
-  droite des listes. À confirmer avec Design, ou à inscrire comme exception. Posée le 2026-09-03.
-- **Le texte secondaire des planches passe sous le niveau AA.** L'encre prune à 55 %, valeur de
-  Design pour tout détail de rangée, mesure 3,58:1 sur la surface et 3,46:1 sur la crème, à des
-  corps de 11 à 12 px. 53 occurrences relevées par le contrôle de contraste, non bloquantes mais
-  réelles. La planche 14a écarte pourtant l'abricot pour exactement ce motif. Bloque une réponse
-  claire sur le niveau d'accessibilité visé. Posée le 2026-09-03.
 - **La liste d'attente promet de prendre un numéro et demande une adresse e-mail.** Le texte
   ratifié par Design écrit « Laissez votre numéro, on vous prévient dès qu'une arrive », alors que
   le formulaire A9 collecte un e-mail, et que `city_waitlist` ne porte que ça. Bloque la
@@ -34,6 +24,103 @@ l'étape et cette section se vide.
   non corrigée.
 
 ---
+
+## 2026-09-03 (3) Étape : D13, le prix, le mode d'exercice et les correctifs du site
+
+**Fait :**
+
+- **D13 inscrite dans `CLAUDE.md`** : le design fin passe à la fin, en une passe, quand les
+  écrans porteront leurs fonctionnalités. Ce qui reste obligatoire dès maintenant, et c'est
+  l'essentiel : la trousse et l'anatomie. On ne code pas hors du système. Jusqu'à la passe finale,
+  une recette porte sur ce qui marche, pas sur ce qui ressemble.
+- **S8, le prix passe à 34,90 €** : `apps/web/src/app/page.tsx` et les trois sources de copy 2a,
+  6a et 12b. La grille complète est portée en note dans chaque source (19,90 € Essentielle,
+  34,90 € Tournée, 49 € Intelligence). Le board portait aussi « 19 € » pour l'offre basse : passé
+  à 19,90 €.
+- **S5, la commission disparaît** : la phrase « sans commission sur tes rendez-vous » est retirée
+  de la source 6a. Il n'y a pas de commission, donc on n'en parle pas. Dire « sans commission »
+  installe l'idée qu'il pourrait y en avoir une.
+- **S1, S4, S7 : vérifiés, déjà en place.** S1 vit dans `packages/core/src/payment-terms.ts`, qui
+  renvoie UNE formulation dérivée du réglage du pro, et la page publique l'utilise. S4 : le claim
+  et son sous-titre sont ceux qui sont ratifiés, sur la home et sur l'image de partage. S7 : le
+  bouton mène bien à `/recherche`. Aucun de ces trois n'a demandé de correction ; je le dis
+  plutôt que de faire semblant d'avoir travaillé dessus.
+- **D10 ①, le mode d'exercice est réservé.** Migration `0010_mode_exercice.sql` : colonne `mode`
+  sur `pros`, `itinerant` par défaut, contrainte sur les deux valeurs, lecture accordée à `anon`
+  (c'est la page publique qui doit savoir s'il faut demander une adresse). Le réglage est dans
+  « Ma Page », en case à cocher de la trousse.
+- **En mode fixe, AUCUNE adresse cliente n'est collectée.** L'étape adresse du tunnel n'existe
+  pas, le géocodage n'est pas appelé, la zone n'est pas vérifiée, et le rendez-vous s'enregistre
+  sans adresse ni coordonnées. Ce n'est pas un cas dégradé : sans déplacement, l'adresse n'a
+  aucune finalité, et une donnée sans finalité ne se collecte pas.
+- **Le moteur de créneaux accepte `lieuCliente: null`** et cesse alors de décompter les trajets.
+  Un test le prouve en montrant qu'un créneau refusé pour cause de route en itinérant est
+  proposable en fixe.
+- **L'adresse change de gardien, elle ne perd pas son gardien.** Le schéma `ReservationInput` la
+  rend facultative, parce qu'un schéma ne connaît pas le mode d'exercice ; la route serveur la
+  réexige chez une pro itinérante, après avoir lu le mode. R2-7 bis reste tenue.
+- **Le mode n'est jamais un droit (D10 ③), et c'est vérifiable** : un test lit `tiers.ts` et
+  échoue si le mot y apparaît. Prouvé en le faisant échouer exprès. En fixe, les fonctions géo ne
+  sont pas RENDUES, décision d'écran ; elles ne sont pas RETIRÉES, ce qui serait une décision de
+  droits.
+- **Six clés de copy réservées pour la variante fixe**, déclarées dans `MANQUES.md`. Elles ne
+  servent pas encore : c'est le but.
+- **Arbitrage tranché : Fraunces sous 20 px.** Exception accordée aux NOMBRES SEULS, plancher à
+  16 px. Elle est rendue **structurelle** plutôt que déclarative : un composant `Prix` de la
+  trousse, qui prend des CENTIMES et non une chaîne, est le seul à porter la classe, et
+  `design:check` la refuse partout ailleurs. Aucun texte ne peut l'emprunter, le typage l'interdit
+  avant même le garde-fou. Prouvé en faisant échouer la règle exprès sur « à partir de 45 € ».
+- **Arbitrage tranché : le contraste.** Le texte secondaire passe de 55 % à 65 %. **Les 61
+  occurrences sous AA ont disparu, il n'en reste aucune.** Le livrable de Design reste à 55 % dans
+  `reference/design-v2.json`, et le test des jetons porte désormais une liste de DÉROGATIONS
+  nommées et motivées : celle-ci y figure, avec ses mesures. Une dérogation qui cesserait de
+  déroger fait échouer le test, pour que la liste ne devienne pas un cimetière.
+
+**Schéma :** migration **0010_mode_exercice.sql**, EN ATTENTE d'application par Morgan. La 0009
+est toujours en attente elle aussi.
+
+**Décisions :** D13 (méthode), D10 ① et ③ (mode d'exercice), S1, S4, S5, S7, S8.
+
+**Écarts au brief :**
+
+- **Le code lit et écrit `mode` À PART du reste du profil.** Les migrations s'appliquent à la
+  main (D7), il existe donc une fenêtre où le code connaît la colonne et la base ne l'a pas
+  encore. Dans un `select` groupé, PostgREST rejette la requête entière : le tunnel de
+  réservation serait tombé en 404 le temps que la migration soit collée, ce que la première
+  exécution de `verify` a montré noir sur blanc. La lecture retombe donc sur `itinerant` et
+  **le dit dans les logs**, elle ne l'avale pas. Personne ne perd de réservation pendant une
+  migration.
+- **Le prix Fraunces est à 17 px et non 16.** Le plancher accordé est 16 ; la planche 14d écrit
+  17 et la 14e 16. Une seule classe à 17 px, au-dessus du plancher dans les deux cas : l'écart
+  d'un pixel entre deux planches ne vaut pas une seconde classe.
+- **La variante fixe n'est pas meublée**, comme demandé : pas d'onboarding, pas de « vous reçoit
+  à » sur la page publique, pas de copilote sans GPS. En conséquence, **un rendez-vous pris chez
+  une pro fixe n'a aujourd'hui aucun lieu enregistré**. C'est cohérent avec la minimisation, et
+  ce sera l'adresse de la pro qui le remplira quand la variante complète se construira. À ne pas
+  oublier : c'est la seule dette assumée de ce lot.
+
+**Questions ouvertes :** la liste d'attente (numéro promis, e-mail collecté) reste ouverte, Morgan
+la tranchera. Les deux autres arbitrages sont tranchés et basculés dans cette entrée.
+
+**À recetter par Morgan :**
+
+1. Colle `0010_mode_exercice.sql`, puis coche la ligne dans `supabase/ETAT.md`.
+2. Avant de la coller, vérifie que le tunnel de réservation marche quand même : c'est le point
+   qui a failli casser. Il doit se comporter exactement comme avant.
+3. Home : le prix affiche « 34,90 € TTC/mois, tout compris ». Aucune mention de commission nulle
+   part.
+4. « Ma Page » : la case « Je reçois mes clientes à un poste fixe ». Coche-la, enregistre,
+   recharge : elle est toujours cochée.
+5. Case cochée, ouvre ta page publique et réserve : **l'étape adresse n'apparaît plus**. Les
+   créneaux s'affichent directement, et la réservation aboutit.
+6. Décoche, réserve à nouveau : l'étape adresse est revenue et reste obligatoire.
+7. Regarde n'importe quel texte secondaire (« 45 min · visible », « quartier Zola ») : il est plus
+   lisible qu'hier. C'est le passage à 65 %.
+8. Un prix de prestation : il est en Fraunces, plus petit que le libellé, et non plus l'inverse.
+
+**Statut à reporter dans la roadmap :** D13 : rien à changer, la ligne est déjà tranchée. S1, S4,
+S5, S7, S8 : « Corrigé, recette à valider ». D10 : « ① et ③ réservés, recette à valider ; variante
+fixe complète après la bêta ».
 
 ## 2026-09-03 (2) Étape : l'agenda, le rendez-vous et la tournée contre les planches 16a, 16b et 16d
 

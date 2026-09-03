@@ -28,6 +28,9 @@ for (const chemin of fichiers) {
   const lignes = contenu.split('\n')
   const estAgenda = /\/(agenda|tournee)\//.test(chemin)
   const estEspacePro = /\/app\/app\//.test(chemin)
+  // La trousse de composition : le seul endroit qui a le droit de définir un
+  // trait du système, plutôt que de le consommer.
+  const estTrousse = /\/components\/composition\.tsx$/.test(chemin)
   const estGlobals = chemin.endsWith('globals.css')
 
   lignes.forEach((ligne, i) => {
@@ -50,6 +53,25 @@ for (const chemin of fichiers) {
     // ② Fraunces jamais dans l'agenda — illisible en petit, en plein soleil.
     if (aSerif && estAgenda) {
       signaler(chemin, n, 'serif-dans-agenda', 'la serif n’a pas sa place dans l’agenda')
+    }
+
+    // ②bis L'exception Fraunces sous 20 px ne s'emprunte pas.
+    //
+    // Accordée le 03/09 pour les NOMBRES SEULS, plancher à 16 px : à 20 px, un
+    // prix devient plus gros que le libellé de sa prestation et inverse la
+    // hiérarchie de la planche. Elle ne vaut donc QUE pour un montant.
+    //
+    // Elle est tenue par la structure : le composant `Prix` prend des centimes,
+    // pas une chaîne, et il est le seul à porter la classe. Cette règle ferme
+    // la porte de derrière, celle où quelqu'un recopierait la classe sur un
+    // libellé « à partir de 45 € ».
+    if (/(^|[\s"'`])prix([\s"'`]|$)/.test(classes) && !estTrousse) {
+      signaler(
+        chemin,
+        n,
+        'prix-hors-trousse',
+        'la classe `prix` est l’exception Fraunces des nombres seuls : passe par le composant `Prix`',
+      )
     }
 
     // ⚠️ Portée de ② : la règle lit les fichiers d'écran, pas la trousse. Le

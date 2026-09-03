@@ -93,9 +93,26 @@ Côté cliente finale, tout reste web : zéro installation pour réserver.
   test structurel. Aucune valeur en dur.
 - Fraunces jamais sous 20 px ni dans l'agenda ; axe WONK sur les statements uniquement.
   Plus Jakarta Sans pour l'UI.
+  **Une seule exception, accordée le 03/09 : les NOMBRES SEULS, plancher à 16 px.** Un prix, un
+  montant, un compteur. Le plancher de 20 px reste entier pour **tout texte**, sans exception.
+  Motif : à 20 px, le prix d'une prestation devient plus gros que son libellé et inverse la
+  hiérarchie de la planche. L'exception est structurelle et pas déclarative : elle passe par le
+  composant `Prix` de la trousse, qui prend des **centimes** et non une chaîne, et `design:check`
+  refuse la classe `prix` partout ailleurs. Aucun texte ne peut donc l'emprunter.
 - Zone tactile 44 px minimum. Zéro animation ambiante. `prefers-reduced-motion` respecté sans
   exception. Deux célébrations seulement (confirmation cliente, journée bouclée), aux timings des
   tokens.
+- **Le design fin passe à la fin (D13, tranchée le 03/09).** Les fonctionnalités restantes se
+  développent sur le socle **déjà en place** : la trousse de composition issue de 14a, l'anatomie
+  unique de D12, les jetons verrouillés. **La conformité fine aux planches se fait en UNE passe,
+  à la fin**, quand les écrans portent enfin leurs fonctionnalités. Intégrer planche par planche
+  des écrans dont les fonctions n'existent pas encore, c'est payer deux fois.
+  **Ce qui ne change pas, et c'est l'essentiel : la trousse et l'anatomie restent obligatoires
+  dès maintenant.** On ne code jamais hors du système : ni une carte, ni un champ, ni un bandeau,
+  ni un bouton ne se réinventent en local. Ce qui est repoussé, c'est le pixel, pas la cohérence.
+  **Conséquence sur les recettes** : jusqu'à la passe finale, une recette porte sur **ce qui
+  marche**, pas sur ce qui ressemble. Un écart de rendu se note au journal et **ne bloque pas**.
+  La règle ci-dessous reste vraie et s'appliquera à cette passe finale.
 - **La source de vérité pour la composition est le fichier `../../Design/planches/XX.html`, jamais
   une description en prose reçue dans une consigne.** Une planche porte des proportions, une
   densité, un rythme et des alignements ; une phrase n'en porte aucun, et ce qui se perd dans la

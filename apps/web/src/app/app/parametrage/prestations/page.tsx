@@ -1,7 +1,6 @@
-import { formatEuros } from '@wiggy/core'
 import { requirePro } from '@/lib/auth'
 import { supabaseServer } from '@/lib/supabase/server'
-import { EnteteEcran, CorpsEcran, EtatVide, RANGEE } from '@/components/composition'
+import { EnteteEcran, CorpsEcran, EtatVide, Prix, RANGEE } from '@/components/composition'
 import { FormPrestation } from './form'
 import { basculerPrestation, supprimerPrestation } from './actions'
 
@@ -59,7 +58,7 @@ export default async function Prestations() {
                   </span>
                   {/* Le prix est hors du bloc de texte : il ne descend jamais à
                       la ligne, même sur un libellé de deux lignes. */}
-                  <span className="prix shrink-0">{formatEuros(p.price_cents)}</span>
+                  <Prix centimes={p.price_cents} />
                 </li>
               ))}
             </ul>

@@ -2,7 +2,7 @@
 
 import { useActionState, useState } from 'react'
 import { Champ, Erreur, Succes, BoutonPrincipal } from '@/components/champs'
-import { RANGEE } from '@/components/composition'
+import { Prix, RANGEE } from '@/components/composition'
 import { VIDE, type EtatForm } from '@/lib/forms'
 import { enregistrerForfait } from './actions'
 
@@ -22,7 +22,7 @@ import { enregistrerForfait } from './actions'
  * la pro trop bas quand le trajet est long. La cliente découvre le montant dans
  * la proposition de la pro, et le confirme avant que le rendez-vous existe.
  */
-export function FormForfait({ montant }: { montant: string }) {
+export function FormForfait({ montant, centimes }: { montant: string; centimes: number | null }) {
   const [etat, action, enCours] = useActionState<EtatForm, FormData>(enregistrerForfait, VIDE)
   const [ouvert, setOuvert] = useState(false)
 
@@ -43,8 +43,8 @@ export function FormForfait({ montant }: { montant: string }) {
         </span>
         {/* Pas de forfait posé n'est pas un chiffre : ça ne s'écrit pas en
             Fraunces comme un montant. */}
-        {montant ? (
-          <span className="prix shrink-0">{montant} €</span>
+        {centimes !== null ? (
+          <Prix centimes={centimes} />
         ) : (
           <span className="shrink-0 text-[12px] text-texte-attenue">Aucun ›</span>
         )}

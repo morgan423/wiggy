@@ -53,7 +53,7 @@ base, quelle qu'en soit la provenance.
 |---|---|
 | `communes` | `insee_code`, `lat`, `lng`, `name`, `population`, `postal_codes`, `search_key`, `updated_at` |
 | `pro_settings` | `booking_confirmation_mode`, `default_deposit_percent`, `free_cancellation_hours`, `payment_mode`, `pro_id` |
-| `pros` | `bio`, `city`, `display_name`, `headline`, `id`, `instagram_url`, `photo_url`, `pronoun`, `published`, `slug`, `years_experience` |
+| `pros` | `bio`, `city`, `display_name`, `headline`, `id`, `instagram_url`, `mode`, `photo_url`, `pronoun`, `published`, `slug`, `years_experience` |
 | `service_area_communes` | `insee_code`, `lat`, `lng`, `name`, `postal_code`, `pro_id` |
 | `service_areas` | `mode`, `pro_id` |
 | `services` | `active`, `deposit_percent`, `description`, `duration_min`, `id`, `name`, `position`, `price_cents`, `pro_id` |

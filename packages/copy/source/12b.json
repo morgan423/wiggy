@@ -6,7 +6,7 @@
     "TTC affiché, forfaits SMS visibles, annuel −17 %. L'offre 1 reste digne.",
     "Un prix simple, tout compris.",
     "Tu existes en ligne",
-    "19 €",
+    "19,90 €",
     "TTC / mois",
     "Page publique + référencement local",
     "Réservation en ligne, créneaux simples",
@@ -16,7 +16,7 @@
     "Commencer",
     "Ta journée s'organise toute seule",
     "La préférée",
-    "29,90 €",
+    "34,90 €",
     "TTC / mois",
     "Tout l'essentiel, plus :",
     "La tournée : créneaux géo-filtrés, trajets insérés",
@@ -34,5 +34,8 @@
     "Forfait SMS large inclus",
     "Commencer",
     "Au-delà du forfait, les SMS sont facturés à l'unité — compteur visible dans l'app, option 100 % e-mail gratuite. Annuel : −17 %. Résiliation en 2 taps, export complet de tes données."
+  ],
+  "revisions": [
+    "Prix révisés le 03/09 (S8) : la grille passe à 19,90 € Essentielle, 34,90 € Tournée, 49 € Intelligence. Le board portait 19 € et 29,90 €. La révision est de Morgan, postérieure au board, et c'est elle qui fait foi."
   ]
 }

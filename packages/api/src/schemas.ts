@@ -215,12 +215,20 @@ export const ReservationInput = z.object({
     .trim()
     .regex(/^(?:\+33|0)\s?[1-9](?:[\s.-]?\d{2}){4}$/, V.telephone),
   email: facultatif(z.string().trim().toLowerCase().max(200).pipe(z.email(V.email)).nullable()),
-  adresse: z.string().trim().min(1),
-  codePostal: z
-    .string()
-    .trim()
-    .regex(/^\d{5}$/, V.codePostal),
-  ville: z.string().trim().min(1),
+  // D10 ① — l'adresse est facultative ICI, et seulement ici, parce que le
+  // schéma ne connaît pas le mode d'exercice de la pro. En mode fixe il n'y a
+  // pas d'adresse cliente à collecter ; en itinérant elle reste obligatoire, et
+  // c'est la route serveur qui l'exige, après avoir lu le mode. La garantie ne
+  // se relâche pas, elle change de gardien.
+  adresse: facultatif(z.string().trim().min(1).nullable()),
+  codePostal: facultatif(
+    z
+      .string()
+      .trim()
+      .regex(/^\d{5}$/, V.codePostal)
+      .nullable(),
+  ),
+  ville: facultatif(z.string().trim().min(1).nullable()),
   acces: facultatif(z.string().trim().max(300).nullable()),
   // A6 : la cliente a vu l'avertissement hors zone et demande quand même.
   horsZone: z.preprocess((v) => v === '1' || v === 'on' || v === true, z.boolean()),

@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import { formatEuros } from '@wiggy/core'
 
 /**
  * Les pièces de composition des écrans pro.
@@ -130,7 +131,7 @@ export function RangeeEcran({
   principal,
   secondaire,
   resume,
-  valeur,
+  valeurCentimes,
   chevron = false,
   href,
   attenue = false,
@@ -141,8 +142,8 @@ export function RangeeEcran({
   secondaire?: string
   /** Le résumé de droite, en petit : « de 28 € à 75 € ». */
   resume?: string
-  /** Le chiffre de droite, en Fraunces : un prix, un forfait. */
-  valeur?: string
+  /** Le montant de droite, en Fraunces, en CENTIMES : un prix, un forfait. */
+  valeurCentimes?: number
   chevron?: boolean
   href?: string
   /** Une prestation masquée reste lisible, à 55 % comme sur la planche. */
@@ -166,7 +167,7 @@ export function RangeeEcran({
           ) : null}
         </span>
       ) : null}
-      {valeur ? <span className="prix shrink-0">{valeur}</span> : null}
+      {valeurCentimes !== undefined ? <Prix centimes={valeurCentimes} /> : null}
       {children}
     </>
   )
@@ -345,4 +346,19 @@ export function PanneauAuth({
 /** Le pied d'un écran d'authentification : une bascule, centrée, discrète. */
 export function PiedAuth({ children }: { children: React.ReactNode }) {
   return <p className="text-center text-[12px] text-texte-sur-plein-doux">{children}</p>
+}
+
+/**
+ * Un montant, en Fraunces, à droite d'une rangée. Planches 14d et 14e.
+ *
+ * **Le seul endroit du produit qui porte la classe `prix`**, et donc la seule
+ * porte de l'exception accordée le 03/09 : Fraunces sous 20 px, plancher à
+ * 16 px, pour un NOMBRE SEUL. `design:check` refuse la classe ailleurs.
+ *
+ * Il prend des **centimes**, pas une chaîne. C'est ce qui rend l'exception
+ * impossible à détourner : on ne peut pas lui passer du texte, le typage
+ * l'interdit avant même le garde-fou.
+ */
+export function Prix({ centimes }: { centimes: number }) {
+  return <span className="prix shrink-0">{formatEuros(centimes)}</span>
 }

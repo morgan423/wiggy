@@ -36,8 +36,14 @@ export type ResultatCreneaux =
       statut: 'ok'
       jours: JourProposable[]
       geoFiltre: boolean
-      /** L'adresse géocodée, à enregistrer telle quelle sur le rendez-vous. */
-      adresse: AdresseTrouvee
+      /**
+       * L'adresse géocodée, à enregistrer telle quelle sur le rendez-vous.
+       *
+       * `null` en mode fixe (D10 ①) : aucune adresse cliente n'est collectée,
+       * parce qu'il n'y a pas de finalité à la collecter. Minimisation RGPD,
+       * pas confort d'écran.
+       */
+      adresse: AdresseTrouvee | null
       /** A6 : la cliente a demandé malgré le hors-zone. Le pro tranchera. */
       horsZone: boolean
     }
@@ -61,6 +67,13 @@ export async function creneauxProposables(options: {
   proId: string
   serviceId: string
   adresse: AdresseSaisie
+  /**
+   * D10 ① — le mode d'exercice de la pro. En `fixe`, la cliente se déplace :
+   * aucune adresse n'est demandée, aucun géocodage n'est fait, aucune zone
+   * n'est vérifiée et aucun trajet n'est décompté. Ce n'est pas un cas
+   * dégradé, c'est le calcul juste pour ce mode d'exercice.
+   */
+  modePro?: 'itinerant' | 'fixe'
   /**
    * A6 : la cliente a vu l'avertissement hors zone et demande quand même.
    * Sans ce drapeau, une adresse hors zone s'arrête à l'embranchement.
@@ -101,11 +114,17 @@ export async function creneauxProposables(options: {
   if (!service.data || !horaires.data || horaires.data.length === 0)
     return { statut: 'indisponible' }
 
-  const adresse = await geocoder(options.adresse, 'reservation')
-  if (!adresse.trouve) {
-    return { statut: 'adresse-a-preciser', suggestions: adresse.suggestions }
+  // Mode fixe : rien à géocoder, il n'y a pas d'adresse cliente. On ne
+  // « saute » pas une étape, elle n'existe pas dans ce mode.
+  const fixe = options.modePro === 'fixe'
+  let lieu: AdresseTrouvee | null = null
+  if (!fixe) {
+    const adresse = await geocoder(options.adresse, 'reservation')
+    if (!adresse.trouve) {
+      return { statut: 'adresse-a-preciser', suggestions: adresse.suggestions }
+    }
+    lieu = adresse.trouve
   }
-  const lieu = adresse.trouve
 
   const jours = joursOuvrables(maintenant, horaires.data, JOURS_PROPOSES)
   if (jours.length === 0) return { statut: 'indisponible' }
@@ -140,14 +159,17 @@ export async function creneauxProposables(options: {
   const etat: SubscriptionState = abonnement.data
     ? { tier: abonnement.data.tier, status: abonnement.data.status }
     : { tier: 'tier_1', status: 'canceled' }
-  const geoFiltre = can(etat, 'booking_geo_filtered')
+  // En fixe, le géo-filtrage n'a rien à filtrer : la pro ne se déplace pas.
+  // Le gating reste par palier (D10 ③), c'est la géographie qui disparaît, pas
+  // le droit.
+  const geoFiltre = !fixe && can(etat, 'booking_geo_filtered')
 
   // A5 / A6 : hors zone, on ne calcule pas de créneaux tout de suite. La
   // cliente choisit d'abord entre « je serai sur place » et « je demande quand
   // même ». Sans le géo-filtrage (offre 1), la zone ne filtre rien : le pro n'a
   // pas souscrit à ça.
   let horsZone = false
-  if (geoFiltre && can(etat, 'booking_travelling')) {
+  if (geoFiltre && lieu && can(etat, 'booking_travelling')) {
     const position = positionDansZone(await zoneDuPro(options.proId), {
       point: lieu.point,
       inseeCode: lieu.inseeCode,
@@ -176,7 +198,7 @@ export async function creneauxProposables(options: {
     fin: new Date(i.ends_at),
   }))
 
-  const lookup = await tableDesTrajets(rendezVous, lieu.point, geoFiltre)
+  const lookup = lieu ? await tableDesTrajets(rendezVous, lieu.point, geoFiltre) : () => 0
   const duree = service.data.duration_min + (reglages.data?.new_client_buffer_min ?? 0)
 
   const proposables: JourProposable[] = []
@@ -189,7 +211,7 @@ export async function creneauxProposables(options: {
         plages,
         rdvs: rendezVous.filter((r) => r.debut >= jour && r.debut < finJour),
         dureeMin: duree,
-        lieuCliente: lieu.point,
+        lieuCliente: lieu?.point ?? null,
         pasAvant: maintenant,
       },
       lookup,

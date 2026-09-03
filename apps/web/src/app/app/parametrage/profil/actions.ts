@@ -35,11 +35,24 @@ export async function enregistrerProfil(precedent: EtatForm, donnees: FormData):
   // jour qui ne touche aucune ligne n'est pas une erreur pour Postgres : sans
   // cette relecture, l'écran annonçait « Profil enregistré. » sur un
   // enregistrement qui n'avait rien enregistré.
+  // D10 ① — le mode s'écrit à part, pour la même raison qu'il se lit à part
+  // (`lib/mode.ts`) : tant que la migration 0010 n'est pas collée, une mise à
+  // jour groupée ferait échouer TOUT l'enregistrement du profil. Sémantique
+  // HTML d'une case à cocher : décochée, le champ n'est pas envoyé du tout,
+  // c'est donc sa PRÉSENCE qui est la réponse.
+  const mode = donnees.get('mode') === null ? 'itinerant' : 'fixe'
+  const { error: erreurMode } = await supabase.from('pros').update({ mode }).eq('id', auth.user.id)
+  if (erreurMode) {
+    console.error('maj_mode_failed', erreurMode.code, 'migration 0010 appliquée ?')
+  }
+
   const { data: enregistre, error } = await supabase
     .from('pros')
     .update(saisie.data)
     .eq('id', auth.user.id)
-    .select('display_name, headline, bio, city, instagram_url, phone, years_experience, pronoun')
+    .select(
+      'display_name, headline, bio, city, instagram_url, phone, years_experience, pronoun, mode',
+    )
     .maybeSingle()
   if (error) return erreurBase(precedent, 'maj_profil_failed', error, donnees)
   if (!enregistre) {

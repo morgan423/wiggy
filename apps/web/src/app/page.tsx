@@ -8,7 +8,9 @@ import Link from 'next/link'
  * la frontière est marquée dans le code pour qu'elle ne se brouille pas.
  */
 
-const PRIX_TTC = '29,90 € TTC/mois' // S8
+// S8, révisé le 03/09 : la grille est 19,90 € Essentielle, 34,90 € Tournée,
+// 49 € Intelligence. La home affiche l'offre héros.
+const PRIX_TTC = '34,90 € TTC/mois'
 const ESSAI_JOURS = 30
 
 export default function Home() {

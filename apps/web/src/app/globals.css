@@ -117,13 +117,18 @@ body {
 /* Le prix, en Fraunces, à droite d'une rangée (planches 14d et 14e).
    Un accent, pas un chiffre héros : ni WONK, ni la taille du display.
 
-   ⚠️ Écart assumé : les planches posent ce prix à 17 px (14d) et 16 px (14e),
-   sous le plancher de 20 px inscrit dans CLAUDE.md pour Fraunces. Le plancher
-   est une règle de lisibilité ratifiée, la taille de la planche est un détail
-   de rendu : on garde le plancher et on signale l'écart à Design. */
+   17 px, sous le plancher de 20 px de Fraunces : c'est l'EXCEPTION accordée le
+   03/09, et elle ne vaut que pour un NOMBRE SEUL, plancher à 16 px. À 20 px le
+   prix devenait plus gros que le libellé de la prestation et inversait la
+   hiérarchie de la planche.
+
+   L'exception est tenue par la structure, pas par la bonne volonté : seul le
+   composant `Prix` de la trousse porte cette classe, il prend des CENTIMES et
+   non une chaîne, et `design:check` refuse la classe partout ailleurs. Aucun
+   texte ne peut donc l'emprunter. */
 .prix {
   font-family: var(--font-display);
-  font-size: 20px;
+  font-size: 17px;
   line-height: 1.1;
   font-weight: 700;
 }

@@ -470,6 +470,7 @@ export type Database = {
         updated_at: string
         pronoun: string | null
         phone_verified_at: string | null
+        mode: string
         }
         Insert: {
         id: string
@@ -487,6 +488,7 @@ export type Database = {
         updated_at?: string
         pronoun?: string | null
         phone_verified_at?: string | null
+        mode?: string
         }
         Update: {
         id?: string
@@ -504,6 +506,7 @@ export type Database = {
         updated_at?: string
         pronoun?: string | null
         phone_verified_at?: string | null
+        mode?: string
         }
         Relationships: []
       }

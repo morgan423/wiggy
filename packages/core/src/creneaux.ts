@@ -46,8 +46,15 @@ export type DemandeCreneaux = {
   rdvs: RendezVousExistant[]
   /** Durée de la prestation, tampon nouvelle cliente compris (B5). */
   dureeMin: Minutes
-  /** Où le pro doit se rendre. */
-  lieuCliente: Point
+  /**
+   * Où le pro doit se rendre.
+   *
+   * `null` en mode fixe (D10 ①) : la cliente vient au poste de la pro, il n'y
+   * a donc pas de trajet à décompter, et aucune adresse cliente n'a été
+   * collectée. Le calcul se réduit alors aux plages et aux rendez-vous, ce qui
+   * est exactement juste : sans déplacement, un créneau libre est libre.
+   */
+  lieuCliente: Point | null
   /** Granularité des propositions. 15 minutes par défaut. */
   pasMin?: Minutes
   /** Rien avant cet instant : on ne propose pas un créneau déjà passé. */
@@ -98,7 +105,7 @@ export function creneauxDuJour(demande: DemandeCreneaux, trajet: LookupTrajet): 
       // Ne reste donc ici que le cas résiduel où même la commune est
       // introuvable, où laisser passer reste le bon choix.
       let trajetAvant: Minutes | undefined
-      if (precedent?.lieu) {
+      if (precedent?.lieu && demande.lieuCliente) {
         trajetAvant = trajet(precedent.lieu, demande.lieuCliente)
         const arriveeAuPlusTot = precedent.fin.getTime() + trajetAvant * MS_PAR_MIN
         if (debut.getTime() < arriveeAuPlusTot) continue
@@ -106,7 +113,7 @@ export function creneauxDuJour(demande: DemandeCreneaux, trajet: LookupTrajet): 
 
       // Trajet vers le rendez-vous suivant.
       let trajetApres: Minutes | undefined
-      if (suivant?.lieu) {
+      if (suivant?.lieu && demande.lieuCliente) {
         trajetApres = trajet(demande.lieuCliente, suivant.lieu)
         const departAuPlusTard = suivant.debut.getTime() - trajetApres * MS_PAR_MIN
         if (fin.getTime() > departAuPlusTard) continue

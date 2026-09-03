@@ -64,8 +64,8 @@
       "usage": "texte secondaire sur crème"
     },
     "attenue": {
-      "valeur": "rgba(69, 23, 60, 0.55)",
-      "usage": "captions, métadonnées"
+      "valeur": "rgba(69, 23, 60, 0.65)",
+      "usage": "captions, métadonnées. 65 % et non les 55 % du livrable design : tranché le 03/09 sur mesure. 3,83:1 sur la crème à 55 %, 5,21:1 à 65 %, donc au-dessus du seuil AA de 4,5. La cible lit son téléphone dehors, entre deux clientes, et c'est là qu'est écrite l'adresse de la suivante."
     },
     "surPlein": {
       "valeur": "#FFFDFB",

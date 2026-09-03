@@ -86,3 +86,32 @@ test('le palier 1 n’a pas de SMS, et ce n’est pas un quota à zéro', () => 
   // Une résiliation retombe au socle : la capacité tombe avec elle.
   assert.equal(can({ tier: 'tier_3', status: 'canceled' }, 'sms_reminders'), false)
 })
+
+/**
+ * D10 ③ — un seul système de droits.
+ *
+ * Le mode d'exercice (itinérante ou fixe) est un drapeau d'AFFICHAGE. Il ne
+ * donne rien, il n'enlève rien : mêmes paliers, mêmes prix, aucun palier
+ * parallèle. Ce test protège cette frontière autrement qu'en y croyant : il
+ * lit le module de gating et refuse d'y voir apparaître le mot.
+ *
+ * Le jour où quelqu'un écrira `if (mode === 'fixe')` dans `tiers.ts` pour
+ * « retirer la tournée aux pros fixes », ce test tombera. Et il aura raison :
+ * en fixe, les fonctions géo ne sont pas RENDUES, ce qui est une décision
+ * d'écran ; elles ne sont pas RETIRÉES, ce qui serait une décision de droits.
+ */
+test('le mode d’exercice n’entre jamais dans le gating', async () => {
+  const { readFileSync } = await import('node:fs')
+  const { fileURLToPath } = await import('node:url')
+  const source = readFileSync(fileURLToPath(new URL('./tiers.ts', import.meta.url)), 'utf8')
+  const code = source
+    .split('\n')
+    .filter((ligne) => !ligne.trim().startsWith('*') && !ligne.trim().startsWith('//'))
+    .join('\n')
+  for (const interdit of ['itinerant', 'fixe', "'mode'", 'mode:']) {
+    assert.ok(
+      !code.includes(interdit),
+      `« ${interdit} » apparaît dans tiers.ts : le mode d’exercice n’est pas un droit (D10 ③)`,
+    )
+  }
+})
