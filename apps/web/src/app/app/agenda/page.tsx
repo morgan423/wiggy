@@ -8,13 +8,17 @@ import {
   instantVersHeureLocale,
   formatDistance,
   distanceALaZone,
+  etatRendezVous,
+  libelleTrajet,
+  type EtatRendezVous,
 } from '@wiggy/core'
 import { copy, remplir } from '@wiggy/copy'
 import { requirePro } from '@/lib/auth'
 import { supabaseServer } from '@/lib/supabase/server'
 import { zoneDuPro } from '@/lib/zone'
 import { libererPlage } from './actions'
-import { trajetsDeLaJournee, libelleTrajet, type Trajets } from '@/lib/tournee'
+import { journeeEstLancee } from '@/lib/journee'
+import { trajetsDeLaJournee, type Trajets } from '@/lib/tournee'
 import {
   EnteteEcran,
   CorpsEcran,
@@ -103,7 +107,7 @@ export default async function Agenda({
 }: {
   searchParams: Promise<{ vue?: string; le?: string; adresse?: string }>
 }) {
-  await requirePro()
+  const { pro } = await requirePro()
   const { vue: vueBrute, le, adresse } = await searchParams
   // Vue jour par défaut (planche 16a) : c'est la journée qu'on vient regarder.
   const vue: Vue = vueBrute === 'semaine' ? 'semaine' : 'jour'
@@ -155,6 +159,9 @@ export default async function Agenda({
   const autreVue: Vue = vue === 'jour' ? 'semaine' : 'jour'
 
   const duJour = rdvs ?? []
+  const maintenant = new Date()
+  // D15 : « en cours » suppose que la pro soit partie.
+  const journeeLancee = await journeeEstLancee(supabase, pro.id, debut)
   const minutesTrajet = [...trajets.values()].reduce((somme, t) => somme + t.minutes, 0)
   const derniere = duJour.length > 0 ? duJour[duJour.length - 1] : null
 
@@ -243,9 +250,16 @@ export default async function Agenda({
             {duJour.map((r) => {
               const trajet = trajets.get(r.id)
               const annule = r.status === 'cancelled'
-              const enCours =
-                !annule && new Date(r.starts_at) <= new Date() && new Date(r.ends_at) > new Date()
-              const termine = !annule && new Date(r.ends_at) <= new Date()
+              // D15 : le même calcul que la tournée, et il vit dans le
+              // domaine. Deux écrans ne peuvent pas dire deux choses du même
+              // rendez-vous, et l'horloge ne termine rien.
+              const etat = etatRendezVous({
+                cloture: r.status === 'done',
+                debut: new Date(r.starts_at),
+                fin: new Date(r.ends_at),
+                journeeLancee,
+                maintenant,
+              })
               return (
                 <li key={r.id} className="flex flex-col gap-2">
                   {/* Le trajet se lit entre les deux rendez-vous qu'il relie,
@@ -259,7 +273,7 @@ export default async function Agenda({
                   <Link
                     href={`/app/agenda/${r.id}`}
                     className={`${RANGEE} gap-2.5 px-3.5 py-3 hover:bg-fond ${
-                      enCours ? 'border-2 border-action' : ''
+                      etat === 'en-cours' ? 'border-2 border-action' : ''
                     } ${annule ? 'opacity-55' : ''}`}
                   >
                     <span className="w-[42px] shrink-0 text-[13px] font-extrabold">
@@ -275,7 +289,7 @@ export default async function Agenda({
                         </span>
                       ) : null}
                     </span>
-                    <EtatRdv annule={annule} enCours={enCours} termine={termine} />
+                    <EtatRdv annule={annule} etat={etat} />
                   </Link>
                 </li>
               )
@@ -316,32 +330,34 @@ export default async function Agenda({
   )
 }
 
-/** Les trois badges de la planche : miel fait, framboise en cours, contour à venir. */
-function EtatRdv({
-  annule,
-  enCours,
-  termine,
-}: {
-  annule: boolean
-  enCours: boolean
-  termine: boolean
-}) {
+/**
+ * Les badges d'état. D15 : quatre états, et un seul est automatique.
+ *
+ * « À clôturer » est celui qui manquait, et c'est lui qui empêche l'interface
+ * de mentir : l'heure est passée, la pro n'a pas clôturé, et personne ne va
+ * décider à sa place que le travail est fait.
+ */
+function EtatRdv({ annule, etat }: { annule: boolean; etat: EtatRendezVous }) {
   if (annule) {
     return <span className="shrink-0 text-[10px] font-extrabold text-texte-attenue">Annulé</span>
   }
-  if (termine) return <PastilleEtat>{T.etats.termine}</PastilleEtat>
-  if (enCours) {
-    return (
-      <span className="shrink-0 rounded-pilule bg-action px-2 py-1 text-[10px] font-extrabold whitespace-nowrap text-texte-sur-plein">
-        {T.etats.enCours}
-      </span>
-    )
+  const commun = 'shrink-0 rounded-pilule px-2 py-1 text-[10px] font-extrabold whitespace-nowrap'
+  switch (etat) {
+    case 'termine':
+      return <PastilleEtat>{T.etats.termine}</PastilleEtat>
+    case 'en-cours':
+      return <span className={`${commun} bg-action text-texte-sur-plein`}>{T.etats.enCours}</span>
+    case 'a-cloturer':
+      return (
+        <span className={`${commun} bg-attente text-texte-sur-miel`}>{T.$aEcrire.aCloturer}</span>
+      )
+    case 'a-venir':
+      return (
+        <span className={`${commun} border-[1.5px] border-texte-principal/25`}>
+          {T.$aEcrire.aVenir}
+        </span>
+      )
   }
-  return (
-    <span className="shrink-0 rounded-pilule border-[1.5px] border-texte-principal/25 px-2 py-1 text-[10px] font-extrabold whitespace-nowrap">
-      {T.$aEcrire.aVenir}
-    </span>
-  )
 }
 
 /**

@@ -6,6 +6,7 @@ import { SURFACE_CHAMP, LIBELLE, AIDE, bordure } from './trousse/styles'
 
 export function Champ({
   id,
+  name,
   label,
   type = 'text',
   autoComplete,
@@ -17,6 +18,8 @@ export function Champ({
   desactive = false,
 }: {
   id: string
+  /** Quand plusieurs formulaires coexistent : l'identifiant distingue, le nom reste stable. */
+  name?: string
   label: string
   type?: string
   autoComplete?: string
@@ -35,7 +38,7 @@ export function Champ({
       </label>
       <input
         id={id}
-        name={id}
+        name={name ?? id}
         type={type}
         required={required}
         disabled={desactive}
@@ -92,12 +95,15 @@ export function BoutonPrincipal({
 
 export function Zone({
   id,
+  name,
   label,
   defaultValue,
   rows = 4,
   aide,
 }: {
   id: string
+  /** Quand plusieurs formulaires coexistent : l'identifiant distingue, le nom reste stable. */
+  name?: string
   label: string
   defaultValue?: string
   rows?: number
@@ -110,7 +116,7 @@ export function Zone({
       </label>
       <textarea
         id={id}
-        name={id}
+        name={name ?? id}
         rows={rows}
         defaultValue={defaultValue}
         className={`${SURFACE_CHAMP} border-transparent`}

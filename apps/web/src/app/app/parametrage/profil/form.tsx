@@ -2,9 +2,11 @@
 
 import { useActionState, useState } from 'react'
 import Link from 'next/link'
-import { enregistrerProfil, basculerPublication } from './actions'
+import { copy } from '@wiggy/copy'
+import { enregistrerProfil, basculerPublication, enregistrerDepart } from './actions'
 import { Champ, Zone, Erreur, Succes, BoutonPrincipal } from '@/components/champs'
 import { CaseACocher, ListeDeroulante } from '@/components/trousse'
+import { ChampAdresse } from '@/components/champ-adresse'
 import { VIDE, type EtatForm } from '@/lib/forms'
 
 type Profil = {
@@ -210,6 +212,49 @@ export function BoutonPublication({
       )}
       <Erreur message={etat.statut === 'erreur' ? etat.message : undefined} />
       <Succes message={etat.statut === 'ok' ? etat.message : undefined} />
+    </form>
+  )
+}
+
+/**
+ * D16 — l'adresse de départ de la journée.
+ *
+ * ⚠️ **Jamais affichée à une cliente** : c'est le domicile de la pro dans la
+ * plupart des cas, et le principe n°6 du projet est que ses coordonnées
+ * précises ne sortent pas. Le texte d'aide le dit, parce qu'une pro qui ne le
+ * sait pas ne la renseignera pas.
+ *
+ * Elle est facultative : sans elle, on retrouve exactement le comportement
+ * d'avant, sans trajet pour le premier rendez-vous. On ne bloque personne.
+ */
+export function FormDepart({
+  depart,
+}: {
+  depart: { ligne: string | null; codePostal: string | null; ville: string | null }
+}) {
+  const [etat, action, enCours] = useActionState<EtatForm, FormData>(enregistrerDepart, VIDE)
+  const T = copy.agendaTournee
+
+  return (
+    <form action={action} key={etat.n}>
+      <h2 className="text-[13px] font-bold">{T.$aEcrire.departTitre}</h2>
+      <ChampAdresse
+        id="depart"
+        label={T.$aEcrire.departTitre}
+        aide={T.$aEcrire.departAide}
+        placeholder="12 rue des Lilas, Pau"
+        nomLigne="start_line1"
+        nomCodePostal="start_postal_code"
+        nomVille="start_city"
+        defaut={{
+          ligne: depart.ligne ?? '',
+          codePostal: depart.codePostal ?? '',
+          ville: depart.ville ?? '',
+        }}
+      />
+      <Erreur message={etat.statut === 'erreur' ? etat.message : undefined} />
+      <Succes message={etat.statut === 'ok' ? etat.message : undefined} />
+      <BoutonPrincipal enCours={enCours}>Enregistrer</BoutonPrincipal>
     </form>
   )
 }

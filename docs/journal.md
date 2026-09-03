@@ -20,6 +20,108 @@ _Rien en attente : les trois questions ouvertes ont été tranchées le 03/09._
 
 ---
 
+## 2026-09-03 (6) Étape : D15, l'état d'un rendez-vous, et D16, le point de départ
+
+**Fait :**
+
+### D15 — l'état se déduit de ce que la pro a FAIT, jamais de l'horloge
+
+- **Le défaut, dit franchement.** La tournée marquait « Terminé » tout rendez-vous dont l'heure de
+  fin était passée. Morgan s'est connecté le soir et a vu sa journée entière comme traitée, alors
+  que personne n'avait rien clôturé. Deux dégâts, et le second est le pire : l'interface mentait,
+  et B6 n'enregistrait AUCUNE durée puisqu'aucune clôture n'avait eu lieu. On accumulait des
+  rendez-vous qui avaient l'air faits et dont on n'apprenait rien.
+- **Quatre états dans le domaine** (`packages/core/src/etats.ts`), et **un seul déduit du temps** :
+  « à venir », le seul légitimement temporel parce qu'il ne prétend rien sur une action.
+  « En cours » suppose une journée LANCÉE. **« À clôturer » est l'état qui manquait.** « Terminé »
+  ne se déduit jamais, il se déclare.
+- **La tournée ET l'agenda utilisent le même calcul.** Deux écrans ne peuvent plus dire deux
+  choses du même rendez-vous.
+- **Le lancement de journée existe** (migration 0014), par deux gestes qui valent tous deux
+  lancement : le bouton en tête de la tournée, et **l'ouverture du premier GPS**. Le second est le
+  plus honnête des deux : personne n'ouvre un itinéraire sans partir.
+- **Le rattrapage du soir est un écran de plein droit**, `/app/tournee/a-cloturer`. Ce n'est pas un
+  rattrapage d'erreur, c'est le geste réel du métier.
+- **Clôturer tard demande la durée réelle**, et c'est ce qui répare B6. Mesurer « maintenant moins
+  le début » n'a aucun sens à 22 h, et retomber sur la durée prévue ferait que l'apprentissage
+  n'apprendrait jamais rien des soirées, c'est à dire de l'usage normal. Sa réponse fait foi :
+  c'est une correction manuelle au sens de B5, donc une instruction. La note du rendez-vous se
+  pose dans le même geste, parce que le soir est le seul moment où elle sera écrite.
+- **Les rendez-vous non clôturés des jours précédents ne disparaissent pas** : une rangée abricot
+  en tête de la tournée les compte et y mène. **Aucune clôture automatique, jamais**, même après
+  des semaines ; l'app cesse simplement de réclamer au bout de sept jours. On propose, on ne
+  harcèle pas.
+- **C2 et C7 se déclenchent sur une clôture réelle**, et C5 n'apparaît que sur une journée lancée :
+  annoncer un retard sans être partie n'annonce rien.
+
+### D16 — le point de départ, et les trajets honnêtes
+
+- **Ce que j'ai trouvé en cherchant, et qui corrige une partie du diagnostic** : la marge D5 était
+  **déjà appliquée sur tous les chemins** du moteur, y compris l'estimation, le cache et le repli.
+  Un trajet ne pouvait donc pas valoir zéro minute. Ce qui manquait vraiment, c'est le trajet
+  lui-même : sans point de départ, le calcul commençait à la deuxième étape et **le premier
+  rendez-vous n'avait aucun trajet amont**. Le rappel de départ du matin ne pouvait pas exister.
+- **L'adresse de départ existe** (migration 0015), dans « Ma Page », géocodée comme les autres.
+  **Jamais exposée publiquement** : c'est le domicile de la pro dans la plupart des cas, et les
+  colonnes ne sont accordées à `anon` nulle part. Elle est facultative : sans elle, on retrouve
+  exactement le comportement d'avant.
+- **Elle devient l'étape zéro de la journée**, et le premier rendez-vous a enfin son trajet et son
+  rappel de départ.
+- **Au lancement, la pro confirme ou change son point de départ**, avec « utiliser ma position
+  actuelle ». **CADRAGE RGPD TENU : la position sert au calcul et n'est jamais écrite en base.**
+  Aucun historique de localisation, sous aucun prétexte. Elle vit dans un cookie de session, sur
+  son appareil, portant sa position, valable une journée, et s'efface seule. Le texte d'aide le lui
+  dit : personne ne devrait avoir à deviner ce qu'on fait de sa position.
+- **Un trajet entre deux points confondus ne s'annonce plus en minutes seules.** Deux adresses
+  qu'aucun référentiel ne reconnaît sont rattachées au centre de leur commune : ce sont les points
+  qui sont confondus, pas le calcul qui est faux. On dit ce qu'on sait, « même secteur, adresse
+  approchée », et **la marge D5 reste dans le chiffre** : dix minutes entre deux rendez-vous du
+  même quartier restent dix minutes, parce qu'il faut se garer, monter, s'installer.
+- **`libelleTrajet` a quitté l'enveloppe pour le cœur** (D3) : c'est une règle d'énoncé, pas un
+  détail de rendu, et les deux surfaces devront la dire de la même façon.
+
+**Schéma :** **0014_journee_lancee.sql** et **0015_point_de_depart.sql**, EN ATTENTE. Les 0011,
+0012 et 0013 le sont toujours aussi.
+
+**Décisions :** D15, D16, et les conséquences sur B6, C2, C4, C5 et C7.
+
+**Écarts au brief :**
+
+- **La position du jour est dans un cookie de session, pas dans une mémoire serveur.** Le brief
+  disait « mémoire de session, pas en base » : un cookie `httpOnly` sur l'appareil de la pro tient
+  la même promesse et n'a pas besoin d'un magasin partagé qui, lui, deviendrait un endroit où des
+  positions s'accumulent.
+- **La confirmation du point de départ n'est pas une étape obligatoire** : le bouton lance la
+  journée, et la position est une option à côté. Imposer une confirmation à chaque matin ajouterait
+  un tap quotidien pour une donnée qui change rarement.
+- **Le trajet de l'étape zéro ne s'affiche pas comme une ligne de trajet dans la liste** : il
+  alimente le rappel de départ et la carte du prochain rendez-vous, là où il sert. Une ligne
+  « depuis chez toi » en tête de journée dirait quelque chose que la pro sait déjà.
+
+**Questions ouvertes :** aucune.
+
+**À recetter par Morgan :**
+
+1. Colle `0011` à `0015`, dans l'ordre, puis coche les cinq lignes de `supabase/ETAT.md`.
+2. « Ma Page » : renseigne ton **point de départ**. Vérifie sur ta page publique qu'il n'y
+   apparaît nulle part.
+3. Ouvre ta tournée un jour avec des rendez-vous, **sans rien lancer** : rien n'est « en cours »,
+   et un rendez-vous dont l'heure est passée est **« À clôturer »**, jamais « Terminé ».
+4. Tape « Je commence ma tournée ». Le premier rendez-vous a maintenant un **trajet** et, à
+   l'approche, un **rappel de départ**.
+5. Tape « Utiliser ma position actuelle » puis lance : les trajets partent de là. Rien n'est
+   enregistré, et le texte te le dit.
+6. Reviens le soir : ta journée n'est **pas** marquée terminée. La rangée abricot compte ce qui
+   reste à clôturer et y mène.
+7. Sur cet écran, clôture un rendez-vous en **corrigeant la durée** et en ajoutant une note. Puis
+   regarde les créneaux proposés pour cette prestation : c'est ta durée qui prime.
+8. Deux rendez-vous à la même adresse approchée : le trajet dit **« même secteur, adresse
+   approchée »**, avec un temps qui n'est jamais nul.
+
+**Statut à reporter dans la roadmap :** D15 : « Construit, recette à valider ». D16 : « Construit,
+recette à valider ». B6 : « Corrigé par D15, recette à valider ». C4 : « Fonctionne enfin le matin,
+recette à valider ».
+
 ## 2026-09-03 (5) Étape : B7 derrière un adaptateur, le copilote, B5, la page publique et B12
 
 **Fait :**

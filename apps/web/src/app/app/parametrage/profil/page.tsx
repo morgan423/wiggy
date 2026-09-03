@@ -3,7 +3,7 @@ import { supabaseServer } from '@/lib/supabase/server'
 import { modeDuPro } from '@/lib/mode'
 import { EnteteEcran, CorpsEcran } from '@/components/composition'
 import { Avatar } from '@/components/avatar'
-import { FormProfil, BoutonPublication, LienPage } from './form'
+import { FormProfil, BoutonPublication, LienPage, FormDepart } from './form'
 
 /**
  * Ma Page, planche 14g : « Ce que voient tes clientes. »
@@ -25,7 +25,7 @@ export default async function Profil() {
     supabase
       .from('pros')
       .select(
-        'display_name, headline, bio, city, instagram_url, phone, years_experience, pronoun, published, slug',
+        'display_name, headline, bio, city, instagram_url, phone, years_experience, pronoun, published, slug, start_line1, start_postal_code, start_city',
       )
       .eq('id', pro.id)
       .maybeSingle(),
@@ -63,6 +63,17 @@ export default async function Profil() {
         </div>
 
         <FormProfil profil={{ ...profil, mode }} />
+
+        {/* D16 : le point de départ. Il vit ici, avec l'identité, parce que
+            c'est une donnée de la pro et non un réglage de fonctionnement. Il
+            n'est jamais affiché à une cliente. */}
+        <FormDepart
+          depart={{
+            ligne: profil.start_line1,
+            codePostal: profil.start_postal_code,
+            ville: profil.start_city,
+          }}
+        />
 
         <BoutonPublication publiee={profil.published} pret={pret} slug={profil.slug} />
       </CorpsEcran>

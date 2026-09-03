@@ -133,6 +133,25 @@ export const ReglagesInput = z.object({
  * partout ailleurs : la conversion en instant absolu appartient au domaine,
  * jamais à l'écran.
  */
+/**
+ * D16 — le point de départ de la journée.
+ *
+ * ⚠️ Cette adresse n'est JAMAIS exposée publiquement : c'est le domicile de la
+ * pro dans la plupart des cas (principe n°6). Elle sert à calculer le trajet du
+ * premier rendez-vous, et rien d'autre.
+ *
+ * Facultative : une pro qui ne la renseigne pas retrouve exactement le
+ * comportement d'avant, sans trajet amont. On ne bloque personne pour un
+ * réglage de confort.
+ */
+export const DepartInput = z.object({
+  start_line1: facultatif(z.string().trim().max(200).nullable()),
+  start_postal_code: facultatif(z.string().trim().max(10).nullable()),
+  start_city: facultatif(z.string().trim().max(120).nullable()),
+})
+
+export type DepartInput = z.infer<typeof DepartInput>
+
 export const BlocageInput = z
   .object({
     debut: z.string().min(1, V.blocageDebut),

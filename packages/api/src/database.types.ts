@@ -384,6 +384,24 @@ export type Database = {
         }
         Relationships: []
       }
+      journees: {
+        Row: {
+        pro_id: string
+        jour: string
+        lancee_at: string
+        }
+        Insert: {
+        pro_id: string
+        jour: string
+        lancee_at?: string
+        }
+        Update: {
+        pro_id?: string
+        jour?: string
+        lancee_at?: string
+        }
+        Relationships: []
+      }
       phone_verifications: {
         Row: {
         id: string
@@ -498,6 +516,11 @@ export type Database = {
         pronoun: string | null
         phone_verified_at: string | null
         mode: string
+        start_line1: string | null
+        start_postal_code: string | null
+        start_city: string | null
+        start_lat: number | null
+        start_lng: number | null
         }
         Insert: {
         id: string
@@ -516,6 +539,11 @@ export type Database = {
         pronoun?: string | null
         phone_verified_at?: string | null
         mode?: string
+        start_line1?: string | null
+        start_postal_code?: string | null
+        start_city?: string | null
+        start_lat?: number | null
+        start_lng?: number | null
         }
         Update: {
         id?: string
@@ -534,6 +562,11 @@ export type Database = {
         pronoun?: string | null
         phone_verified_at?: string | null
         mode?: string
+        start_line1?: string | null
+        start_postal_code?: string | null
+        start_city?: string | null
+        start_lat?: number | null
+        start_lng?: number | null
         }
         Relationships: []
       }

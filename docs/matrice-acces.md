@@ -26,6 +26,7 @@ Trois rôles interviennent :
 | `communes_import` | 🔒 RLS active, **aucune politique** | Verrouillée par conception : écriture via route serveur uniquement (service_role). |
 | `distance_fees` | `pro_owns` : pro authentifié peut **lire/écrire/modifier/supprimer** | `(pro_id = auth.uid())` |
 | `geocodage_refus` | 🔒 RLS active, **aucune politique** | Verrouillée par conception : écriture via route serveur uniquement (service_role). |
+| `journees` | `journees_self` : pro authentifié peut **lire/écrire/modifier/supprimer** | `(pro_id = auth.uid())` |
 | `phone_verifications` | 🔒 RLS active, **aucune politique** | Verrouillée par conception : écriture via route serveur uniquement (service_role). |
 | `pro_photos` | `pro_photos_self` : pro authentifié peut **lire/écrire/modifier/supprimer** | `(pro_id = auth.uid())` |
 | `pro_photos` | `pro_photos_publiques` : visiteuse anonyme peut **lire** | `(EXISTS ( SELECT 1 FROM pros p WHERE ((p.id = pro_photos.pro_id) AND p.published)))` |

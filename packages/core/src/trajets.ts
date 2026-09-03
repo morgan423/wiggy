@@ -138,3 +138,38 @@ export const moteurVolDOiseau: MoteurTrajets = {
     )
   },
 }
+
+/**
+ * D16 — en dessous de cette distance, deux points sont le MÊME SECTEUR.
+ *
+ * Le cas réel : deux adresses qu'aucun référentiel ne reconnaît sont rattachées
+ * au centre de leur commune (règle de la recette 3), et se retrouvent donc sur
+ * des coordonnées identiques. Le trajet calculé n'est pas faux, ce sont les
+ * deux points qui sont confondus.
+ *
+ * Annoncer « 10 min » sur deux points confondus donnerait un chiffre que
+ * personne ne croirait, et annoncer « 0 min » serait pire encore. On dit ce
+ * qu'on sait : c'est le même secteur, et l'adresse est approchée.
+ */
+export const SEUIL_MEME_SECTEUR_KM = 0.3
+
+export function memeSecteur(km: number): boolean {
+  return km < SEUIL_MEME_SECTEUR_KM
+}
+
+/**
+ * Ce qu'on affiche d'un trajet, marge D5 comprise.
+ *
+ * **La marge est dans le chiffre affiché**, et c'est essentiel : si l'écran
+ * montrait le brut pendant que le moteur applique la marge, la pro lirait un
+ * chiffre qui n'est pas celui qui décale son agenda. Le tampon de dix minutes
+ * vaut aussi entre deux rendez-vous du même quartier : il faut se garer,
+ * monter, s'installer.
+ */
+export function libelleTrajet(trajet: ResultatTrajet): string {
+  if (memeSecteur(trajet.km)) {
+    return `${String(trajet.minutes)} min, même secteur, adresse approchée`
+  }
+  const base = `${String(trajet.minutes)} min de trajet`
+  return trajet.source === 'estimation' ? `${base} (estimé)` : base
+}

@@ -10,15 +10,23 @@ import {
   estAppGps,
   minutesAvantDepart,
   rappelDeDepartPertinent,
+  libelleTrajet,
+  memeSecteur,
   fenetreDeReprise,
   rythmeDeRetourSemaines,
+  etatRendezVous,
+  aRelancer,
   type AppGps,
+  type EtatRendezVous,
 } from '@wiggy/core'
 import { copy, remplir } from '@wiggy/copy'
 import { requireCapability } from '@/lib/auth'
 import { supabaseServer } from '@/lib/supabase/server'
 import { trajetsDeLaJournee, type Trajets } from '@/lib/tournee'
 import { FormRetard } from './retard'
+import { journeeEstLancee, departDuJour } from '@/lib/journee'
+import { LienGps } from './lien-gps'
+import { Lancement } from './lancement'
 import { EnteteEcran, CorpsEcran, RANGEE } from '@/components/composition'
 
 /**
@@ -54,8 +62,6 @@ const heure = new Intl.DateTimeFormat('fr-FR', {
 })
 const jourSeul = new Intl.DateTimeFormat('fr-FR', { timeZone: ZONE, weekday: 'long' })
 
-type Etat = 'termine' | 'en-cours' | 'a-venir'
-
 export default async function MaTournee({
   searchParams,
 }: {
@@ -80,7 +86,32 @@ export default async function MaTournee({
     .order('starts_at')
 
   const journee = rdvs ?? []
-  const trajets: Trajets = await trajetsDeLaJournee(journee)
+
+  /*
+    D16 — le point de départ, étape ZÉRO de la journée.
+
+    Sans lui, le calcul commençait à la deuxième étape : le premier rendez-vous
+    n'avait aucun trajet amont, et le rappel de départ ne fonctionnait jamais le
+    matin, au moment où il sert le plus.
+
+    ⚠️ Cette adresse n'est jamais exposée publiquement : c'est le domicile de la
+    pro dans la plupart des cas (principe n°6).
+  */
+  const { data: pointDepart } = await supabase
+    .from('pros')
+    .select('start_line1, start_lat, start_lng')
+    .eq('id', pro.id)
+    .maybeSingle()
+  // La position du jour, quand la pro l'a confirmée au lancement, prime sur
+  // l'adresse enregistrée : c'est de là qu'elle part aujourd'hui.
+  const duJour = await departDuJour(instantVersHeureLocale(jour).slice(0, 10))
+  const depart =
+    duJour ??
+    (pointDepart?.start_lat != null && pointDepart.start_lng != null
+      ? { lat: pointDepart.start_lat, lng: pointDepart.start_lng }
+      : null)
+
+  const trajets: Trajets = await trajetsDeLaJournee(journee, depart)
 
   // C3 : l'application de navigation que la pro utilise déjà, réglée une fois.
   // C7 : la reprise du prochain rendez-vous, à la clôture. C'est LE geste
@@ -89,6 +120,29 @@ export default async function MaTournee({
   // ne dit rien (moins de trois visites), on propose sans fenêtre plutôt que
   // d'inventer une régularité.
   const reprise = vientDe ? await repriseApresCloture(supabase, vientDe) : null
+
+  const journeeLancee = await journeeEstLancee(supabase, pro.id, jour)
+  const jourCivil = instantVersHeureLocale(jour).slice(0, 10)
+
+  /*
+    D15, le piège à ne pas laisser ouvert : un rendez-vous non clôturé d'un jour
+    précédent disparaîtrait dans le passé. L'apprentissage des durées ne se
+    ferait jamais et les fiches resteraient vides. On les compte, et on y mène.
+
+    L'app cesse d'insister au bout de sept jours. Elle ne clôture jamais pour
+    autant : on propose, on ne harcèle pas.
+  */
+  const { data: ouverts } = await supabase
+    .from('appointments')
+    .select('id, ends_at, status')
+    .lt('starts_at', jour.toISOString())
+    .not('status', 'in', '(done,cancelled)')
+    .order('starts_at', { ascending: false })
+    .limit(50)
+  const aCloturer = aRelancer(
+    (ouverts ?? []).map((r) => ({ id: r.id, cloture: false, fin: new Date(r.ends_at) })),
+    maintenant,
+  )
 
   const [{ data: reglages }, { data: fiche }] = await Promise.all([
     supabase.from('pro_settings').select('gps_app').eq('pro_id', pro.id).maybeSingle(),
@@ -99,17 +153,30 @@ export default async function MaTournee({
   const gpsChoisi = reglages?.gps_app ?? ''
   const appGps: AppGps = estAppGps(gpsChoisi) ? gpsChoisi : 'system'
 
-  const etatDe = (r: (typeof journee)[number]): Etat => {
-    if (r.status === 'done') return 'termine'
-    if (new Date(r.ends_at) <= maintenant) return 'termine'
-    if (new Date(r.starts_at) <= maintenant) return 'en-cours'
-    return 'a-venir'
-  }
+  /*
+    D15 — l'état se déduit de ce que la pro a FAIT, jamais de l'horloge.
+    L'ancien code marquait « Terminé » tout rendez-vous dont l'heure était
+    passée : l'interface mentait, et B6 n'apprenait rien puisqu'aucune clôture
+    n'avait eu lieu. Le calcul vit désormais dans le domaine, partagé avec
+    l'agenda : deux écrans ne peuvent plus dire deux choses du même
+    rendez-vous.
+  */
+  const etatDe = (r: (typeof journee)[number]): EtatRendezVous =>
+    etatRendezVous({
+      cloture: r.status === 'done',
+      debut: new Date(r.starts_at),
+      fin: new Date(r.ends_at),
+      journeeLancee,
+      maintenant,
+    })
 
   const restants = journee.filter((r) => etatDe(r) !== 'termine')
   const faits = journee.length - restants.length
-  const prochain = restants.length > 0 ? restants[0] : null
-  const ensuite = restants.slice(1)
+  // Le « prochain » est le prochain à VIVRE : un rendez-vous à clôturer est
+  // derrière soi, il n'ouvre pas la carte de tête.
+  const aVivre = restants.filter((r) => etatDe(r) !== 'a-cloturer')
+  const prochain = aVivre.length > 0 ? aVivre[0] : null
+  const ensuite = aVivre.slice(1)
   const bouclee = journee.length > 0 && restants.length === 0
 
   const veille = instantVersHeureLocale(ajouterJours(jour, -1)).slice(0, 10)
@@ -142,6 +209,40 @@ export default async function MaTournee({
       )}
 
       <CorpsEcran serre>
+        {aCloturer.length > 0 ? (
+          <Link
+            href="/app/tournee/a-cloturer"
+            className="flex items-center justify-between gap-2.5 rounded-carte bg-attente px-3.5 py-3 hover:opacity-90"
+          >
+            <span className="text-[13px] font-bold">
+              {remplir(T.$aEcrire.aCloturerCompte, { n: String(aCloturer.length) })}
+            </span>
+            <span aria-hidden className="shrink-0 text-[14px]">
+              ›
+            </span>
+          </Link>
+        ) : null}
+
+        {/* D15 : sans lancement, rien n'est « en cours ». Le bouton est l'un
+            des deux gestes qui lancent ; l'autre est l'ouverture du GPS. */}
+        {!journeeLancee && journee.length > 0 && !bouclee ? (
+          <>
+            <Lancement jour={jourCivil} depart={pointDepart?.start_line1 ?? null} />
+            <p className="text-center text-[11.5px] text-texte-attenue">{T.$aEcrire.lancerAide}</p>
+            {/* D16 : sans point de départ, le premier rendez-vous n'a ni trajet
+                ni rappel. On le dit ici, au moment où ça compte, et on mène au
+                réglage. */}
+            {!depart ? (
+              <p className="text-center text-[11.5px] text-texte-attenue">
+                {T.$aEcrire.departManquant}{' '}
+                <Link href="/app/parametrage/profil" className="font-bold underline">
+                  {T.$aEcrire.departTitre}
+                </Link>
+              </p>
+            ) : null}
+          </>
+        ) : null}
+
         {/* C2 : au retour d'une clôture, la première chose à savoir est où l'on
             va maintenant. On le NOMME, plutôt que de laisser chercher. */}
         {vientDe && prochain ? (
@@ -181,6 +282,8 @@ export default async function MaTournee({
                 appGps={appGps}
                 prenomPro={prenom}
                 telephonePro={fiche?.phone ?? null}
+                jour={jourCivil}
+                journeeLancee={journeeLancee}
               />
             ) : null}
             {ensuite.map((r) => (
@@ -220,7 +323,7 @@ export default async function MaTournee({
  * C'est la seule figure de la planche qui dit d'un coup d'œil où en est la
  * journée.
  */
-function FilTrajet({ journee }: { journee: Etat[] }) {
+function FilTrajet({ journee }: { journee: EtatRendezVous[] }) {
   return (
     <span aria-hidden className="flex items-center pt-1.5">
       {journee.map((etat, i) => (
@@ -238,7 +341,9 @@ function FilTrajet({ journee }: { journee: Etat[] }) {
                 ? 'bg-celebration'
                 : etat === 'en-cours'
                   ? 'border-[2.5px] border-attente'
-                  : 'border-[2.5px] border-texte-sur-plein-doux'
+                  : etat === 'a-cloturer'
+                    ? 'border-[2.5px] border-attente opacity-60'
+                    : 'border-[2.5px] border-texte-sur-plein-doux'
             }`}
           />
         </span>
@@ -258,6 +363,8 @@ function ProchainRdv({
   appGps,
   prenomPro,
   telephonePro,
+  jour,
+  journeeLancee,
 }: {
   rdv: {
     id: string
@@ -273,6 +380,9 @@ function ProchainRdv({
   appGps: AppGps
   prenomPro: string
   telephonePro: string | null
+  /** Le jour civil du rendez-vous, pour lancer la bonne journée. */
+  jour: string
+  journeeLancee: boolean
 }) {
   const trajet = trajets.get(rdv.id)
   const lieu = [rdv.address_line1, rdv.city].filter(Boolean).join(', ')
@@ -293,9 +403,13 @@ function ProchainRdv({
         <span className="text-[13.5px] font-bold">
           {nomDe(rdv.clients)} · {heure.format(new Date(rdv.starts_at))}
         </span>
+        {/* D16 : deux points confondus ne s'annoncent pas en minutes seules.
+            La marge D5 est DANS le chiffre : c'est celui qui décale l'agenda. */}
         {trajet ? (
           <span className="shrink-0 text-[11.5px] font-bold text-texte-secondaire">
-            {remplir(T.gabarits.route, { min: String(trajet.minutes) })}
+            {memeSecteur(trajet.km)
+              ? libelleTrajet(trajet)
+              : remplir(T.gabarits.route, { min: String(trajet.minutes) })}
           </span>
         ) : null}
       </div>
@@ -324,23 +438,26 @@ function ProchainRdv({
         {/* C3 : un tap ouvre l'application que la pro utilise déjà. Aucune
             navigation embarquée, jamais : c'est une règle de la ligne. */}
         {rdv.lat !== null && rdv.lng !== null ? (
-          <a
+          <LienGps
             href={lienGps(appGps, { lat: rdv.lat, lng: rdv.lng }, nomDe(rdv.clients))}
-            rel="noopener noreferrer"
-            target="_blank"
-            className="tactile w-full rounded-pilule bg-action py-3 text-center text-[13px] font-bold text-texte-sur-plein hover:bg-action-survol"
+            jour={jour}
+            dejaLancee={journeeLancee}
           >
             {T.tournee.gps}
-          </a>
+          </LienGps>
         ) : null}
-        {/* C5 : le message se prévisualise et se valide. Il ne part jamais seul. */}
-        <FormRetard
-          id={rdv.id}
-          cliente={nomDe(rdv.clients)}
-          prenomPro={prenomPro}
-          telephonePro={telephonePro}
-          minutesTrajet={trajet?.minutes ?? null}
-        />
+        {/* C5 : il n'a de sens qu'une fois la journée lancée. Annoncer un
+            retard sans être partie n'annonce rien. Et le message se
+            prévisualise et se valide : il ne part jamais seul. */}
+        {journeeLancee ? (
+          <FormRetard
+            id={rdv.id}
+            cliente={nomDe(rdv.clients)}
+            prenomPro={prenomPro}
+            telephonePro={telephonePro}
+            minutesTrajet={trajet?.minutes ?? null}
+          />
+        ) : null}
         <Link
           href={`/app/agenda/${rdv.id}`}
           className="tactile w-full rounded-pilule border-[1.5px] border-texte-principal/25 py-3 text-center text-[13px] font-bold hover:border-prune"

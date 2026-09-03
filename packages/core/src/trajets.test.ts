@@ -8,6 +8,7 @@ import {
   avecMargeSecurite,
   MARGE_FIXE_MIN,
   SEUIL_MARGE_PROPORTIONNELLE_MIN,
+  libelleTrajet,
 } from './trajets.ts'
 
 const PAU: Point = { lat: 43.3219, lng: -0.3435 }
@@ -119,4 +120,28 @@ test('le tampon ne raccourcit jamais un trajet', () => {
       `${minutes} min : la marge doit être strictement positive`,
     )
   }
+})
+
+test('D16 — deux points confondus se disent, ils ne s’annoncent pas en minutes seules', () => {
+  // Deux adresses qu'aucun référentiel ne reconnaît sont rattachées au centre
+  // de leur commune : ce sont les points qui sont confondus, pas le calcul qui
+  // est faux. « 10 min » entre deux points identiques ne se croit pas.
+  const libelle = libelleTrajet({ minutes: 10, km: 0, source: 'estimation' })
+  assert.match(libelle, /même secteur/)
+  assert.match(libelle, /adresse approchée/)
+})
+
+test('D5 est dans le chiffre affiché, y compris sur le même secteur', () => {
+  // Si l'écran montrait le brut pendant que le moteur applique la marge, la pro
+  // lirait un chiffre qui n'est pas celui qui décale son agenda.
+  assert.equal(avecMargeSecurite(0), 10)
+  assert.match(libelleTrajet({ minutes: avecMargeSecurite(0), km: 0, source: 'api' }), /^10 min/)
+})
+
+test('un vrai trajet garde sa formulation, et dit s’il est estimé', () => {
+  assert.equal(libelleTrajet({ minutes: 18, km: 7.2, source: 'api' }), '18 min de trajet')
+  assert.equal(
+    libelleTrajet({ minutes: 18, km: 7.2, source: 'estimation' }),
+    '18 min de trajet (estimé)',
+  )
 })

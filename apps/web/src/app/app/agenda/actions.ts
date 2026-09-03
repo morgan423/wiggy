@@ -8,6 +8,7 @@ import { copy } from '@wiggy/copy'
 import { requirePro } from '@/lib/auth'
 import { supabaseServer } from '@/lib/supabase/server'
 import { prevenirCliente } from '@/lib/messagerie/prevenance'
+import { lancerJournee, jourDe, retenirDepartDuJour } from '@/lib/journee'
 import { geocoder } from '@/lib/adresse'
 import { centreDeCommune } from '@/lib/lieu-approche'
 import { erreur, erreurBase, ok, champ, type EtatForm, champTexte } from '@/lib/forms'
@@ -252,17 +253,36 @@ export async function terminerRdv(donnees: FormData) {
   if (!rdv) return
 
   const cloture = new Date()
-  const prevue = Math.round(
-    (new Date(rdv.ends_at).getTime() - new Date(rdv.starts_at).getTime()) / 60_000,
-  )
-  const reelle = dureeReelle(new Date(rdv.starts_at), cloture, prevue)
+  const debut = new Date(rdv.starts_at)
+  const prevue = Math.round((new Date(rdv.ends_at).getTime() - debut.getTime()) / 60_000)
 
+  /*
+    D15 — le rattrapage du soir est un usage de PLEIN DROIT, pas un cas
+    dégradé : la pro coiffe toute la journée et remplit ses fiches le soir.
+
+    Mesurer « maintenant moins le début » n'a alors aucun sens, et retomber sur
+    la durée prévue ferait que B6 n'apprendrait jamais rien des soirées, c'est
+    à dire de l'usage normal. Quand elle clôture tard, on lui DEMANDE combien
+    de temps ça a pris, et sa réponse fait foi : c'est une correction manuelle
+    au sens de B5, donc une instruction, pas une mesure.
+  */
+  const saisie = champ(donnees, 'duree_min')
+  const declaree = saisie === null ? null : Number.parseInt(saisie, 10)
+  const reelle =
+    declaree !== null && Number.isFinite(declaree) && declaree > 0 && declaree <= 12 * 60
+      ? declaree
+      : dureeReelle(debut, cloture, prevue)
+
+  const note = champ(donnees, 'note')
   const { error } = await supabase
     .from('appointments')
     .update({
       status: 'done',
       completed_at: cloture.toISOString(),
       actual_duration_min: reelle,
+      // B3 : la note du rendez-vous se pose dans le même geste que la clôture.
+      // Le soir, c'est le seul moment où elle sera écrite.
+      ...(note === null ? {} : { note }),
     })
     .eq('id', id)
   if (error) console.error('cloture_rdv_failed', error.code)
@@ -271,11 +291,14 @@ export async function terminerRdv(donnees: FormData) {
   revalidatePath('/app/tournee')
   revalidatePath(`/app/agenda/${id}`)
 
-  // C2 et C7 : à la clôture, la pro est encore chez la cliente. C'est le seul
-  // moment où le prochain rendez-vous se cale sans friction, et où la question
-  // suivante est déjà « où je vais maintenant ». On la ramène donc sur la
-  // tournée plutôt que de la laisser sur un écran qui vient de se vider.
-  redirect(`/app/tournee?vient_de=${id}`)
+  // C2 et C7 se déclenchent sur une CLÔTURE RÉELLE, jamais sur le passage de
+  // l'heure (D15) : c'est ici, et nulle part ailleurs. À la clôture, la pro est
+  // encore chez la cliente, c'est le seul moment où le prochain rendez-vous se
+  // cale sans friction, et la question suivante est déjà « où je vais
+  // maintenant ». On la ramène donc sur la tournée du JOUR DU RENDEZ-VOUS,
+  // plutôt que sur celle d'aujourd'hui : le rattrapage du soir clôture des
+  // rendez-vous d'hier.
+  redirect(`/app/tournee?le=${jourDe(debut)}&vient_de=${id}`)
 }
 
 /**
@@ -395,4 +418,38 @@ function clienteJoignable(relation: unknown): { telephone?: string; email?: stri
     telephone: typeof c.phone === 'string' ? c.phone : undefined,
     email: typeof c.email === 'string' ? c.email : undefined,
   }
+}
+
+/**
+ * D15 — lancer la journée.
+ *
+ * Deux appelants, et les deux valent lancement : le bouton en tête de la
+ * tournée, et l'ouverture du premier GPS (C3). La seconde est la plus honnête
+ * des deux : personne n'ouvre un itinéraire sans partir.
+ *
+ * Lancer ne clôture rien. Ça dit que la pro est partie, pas que son travail est
+ * fait.
+ */
+export async function commencerLaTournee(donnees: FormData) {
+  const { pro } = await requirePro()
+  const supabase = await supabaseServer()
+  const jour = champ(donnees, 'jour')
+  const quand = jour ? (heureLocaleVersInstant(`${jour}T12:00`) ?? new Date()) : new Date()
+
+  /*
+    D16 — la pro peut confirmer ou changer son point de départ au lancement,
+    avec l'option « utiliser ma position actuelle ».
+
+    ⚠️ Cette position sert au CALCUL et n'est JAMAIS écrite en base. Aucun
+    historique de localisation de la pro, sous aucun prétexte. Elle vit dans un
+    cookie de session, sur son appareil, pour la journée, et s'efface seule.
+  */
+  const lat = Number.parseFloat(champ(donnees, 'lat') ?? '')
+  const lng = Number.parseFloat(champ(donnees, 'lng') ?? '')
+  if (jour && Number.isFinite(lat) && Number.isFinite(lng)) {
+    await retenirDepartDuJour({ jour, lat, lng })
+  }
+
+  await lancerJournee(supabase, pro.id, quand)
+  revalidatePath('/app/tournee')
 }

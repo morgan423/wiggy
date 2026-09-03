@@ -1,10 +1,11 @@
 'use server'
 
 import { revalidatePath } from 'next/cache'
-import { ProfilInput } from '@wiggy/api'
+import { ProfilInput, DepartInput } from '@wiggy/api'
 import { requirePro } from '@/lib/auth'
 import { supabaseServer } from '@/lib/supabase/server'
 import { erreur, erreurBase, ok, type EtatForm, champ } from '@/lib/forms'
+import { geocoder } from '@/lib/adresse'
 
 /** Identité publique du pro (A1) — ce que la cliente voit sur sa page. */
 
@@ -119,4 +120,64 @@ export async function basculerPublication(
   revalidatePath(CHEMIN)
   revalidatePath('/app')
   return ok(precedent, publierMaintenant ? 'Ta page est en ligne.' : 'Ta page est hors ligne.')
+}
+
+/**
+ * D16 — l'adresse de départ de la journée.
+ *
+ * Géocodée comme toutes les autres, avec la même validation : la BAN place
+ * « rue des Lilas, Pau » dans les Landes si on ne la contraint pas.
+ *
+ * ⚠️ Elle n'est JAMAIS exposée publiquement (principe n°6). Les colonnes ne
+ * sont accordées à `anon` nulle part, et cette action est la seule à les
+ * écrire.
+ */
+export async function enregistrerDepart(precedent: EtatForm, donnees: FormData): Promise<EtatForm> {
+  const saisie = DepartInput.safeParse({
+    start_line1: champ(donnees, 'start_line1'),
+    start_postal_code: champ(donnees, 'start_postal_code'),
+    start_city: champ(donnees, 'start_city'),
+  })
+  if (!saisie.success) {
+    const faute = saisie.error.issues[0]
+    return erreur(precedent, faute.message, donnees, String(faute.path[0] ?? ''))
+  }
+
+  const { pro } = await requirePro()
+  const supabase = await supabaseServer()
+
+  // Vider l'adresse est un geste légitime : la pro retrouve le comportement
+  // sans trajet amont, et on ne garde pas des coordonnées orphelines.
+  const vide = !saisie.data.start_line1
+  let point: { lat: number; lng: number } | null = null
+  if (!vide) {
+    const trouve = await geocoder(
+      {
+        ligne1: saisie.data.start_line1 ?? '',
+        codePostal: saisie.data.start_postal_code ?? '',
+        ville: saisie.data.start_city ?? '',
+      },
+      'rdv_manuel',
+    )
+    if (trouve.trouve) point = trouve.trouve.point
+  }
+
+  const { data: enregistre, error } = await supabase
+    .from('pros')
+    .update({
+      start_line1: saisie.data.start_line1,
+      start_postal_code: saisie.data.start_postal_code,
+      start_city: saisie.data.start_city,
+      start_lat: point?.lat ?? null,
+      start_lng: point?.lng ?? null,
+    })
+    .eq('id', pro.id)
+    .select('start_line1')
+    .maybeSingle()
+  if (error) return erreurBase(precedent, 'maj_depart_failed', error, donnees)
+  if (!enregistre) return erreur(precedent, 'L’enregistrement n’a rien modifié. Réessaie.', donnees)
+
+  revalidatePath('/app/parametrage/profil')
+  revalidatePath('/app/tournee')
+  return ok(precedent, 'Point de départ enregistré.', enregistre)
 }
