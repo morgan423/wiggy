@@ -20,6 +20,70 @@ _Rien en attente : les trois questions ouvertes ont été tranchées le 03/09._
 
 ---
 
+## 2026-09-03 (8) Étape : la page tournée le soir, trois correctifs
+
+**Fait :**
+
+- **La page tournée connaît enfin l'heure de fermeture.** `working_hours` porte un `ends_at` par
+  jour de semaine depuis la première migration, et la page ne l'avait jamais lue : elle ne
+  connaissait que les heures des rendez-vous. C'est la cause des deux premiers défauts, et elle
+  était en base depuis le début.
+- **Le bouton de lancement disparaît après la fermeture.** On ne propose pas de commencer ce qui
+  est fini. Repli à minuit sans horaire posé : une pro sans horaires enregistrés n'a pas fini de
+  travailler pour autant. **Exception tenue : si un rendez-vous est encore en cours, le bouton
+  reste.** Une pro qui déborde n'est pas une pro qui a fini, et lui retirer le lancement au milieu
+  d'une couleur serait absurde.
+- **L'historique de la journée ne disparaît plus jamais.** Quelle que soit l'heure, et que la
+  journée ait été lancée ou non, chaque rendez-vous du jour reste affiché avec son état réel. Le
+  code d'avant ne listait que les rendez-vous « à vivre » : tout ce qui était passé et non clôturé
+  s'effaçait au profit du bouton de lancement, et il fallait naviguer vers le LENDEMAIN pour voir
+  qu'il restait quelque chose à faire.
+- **La rangée abricot compte aussi le jour affiché**, plus seulement les jours précédents. Le soir,
+  la page du jour EST l'écran de rattrapage : c'est là que la pro revient, pas sur la date
+  suivante.
+- **La clôture porte DEUX champs de notes, et pas un.** La note du rendez-vous (B3) reste attachée
+  à ce rendez-vous ; l'annotation technique (B2) enrichit la fiche et se réaffiche à chaque visite.
+  Les mélanger les perdrait toutes les deux : « elle avait les cheveux mouillés en arrivant » ne
+  doit pas revenir aux dix visites suivantes, « formule 6.35 » doit revenir à toutes.
+- **Le texte fait la différence sans l'expliquer** : l'un dit « comment ça s'est passé », l'autre
+  « à retenir pour la prochaine fois ». C'est le seul moment où la pro écrira quoi que ce soit ;
+  il faut que le bon texte aille au bon endroit du premier coup, sans qu'elle ait à lire une règle.
+- **Les trois champs sont facultatifs**, comme la durée. Rien ne bloque la clôture.
+- **L'annotation technique arrive pré-remplie** de ce que la fiche porte déjà : on écrase donc en
+  connaissance de cause, jamais en silence.
+
+**Schéma :** aucun. Les migrations 0011 à 0016 restent EN ATTENTE.
+
+**Décisions :** D15, troisième passe.
+
+**Écarts au brief :**
+
+- **Le jour de semaine est calculé en UTC** (`(getUTCDay() + 6) % 7`), la journée civile étant déjà
+  ancrée sur l'heure de Paris en amont. C'est cohérent avec le reste du calcul de journée, mais
+  c'est une hypothèse : si un jour la borne de journée changeait de convention, cette ligne
+  suivrait.
+- **Une valeur d'horaire illisible retombe sur minuit** plutôt que sur zéro heure. Une chaîne qui
+  ne ressemble pas à une heure aurait fermé la journée à l'aube, ce qui est pire que de ne pas
+  savoir.
+
+**Questions ouvertes :** aucune.
+
+**À recetter par Morgan :**
+
+1. Ouvre ta tournée du jour **après ton heure de fermeture** : plus de bouton « Je commence ma
+   tournée », et **toute la journée reste affichée**, chaque rendez-vous avec son état.
+2. Ce qui reste à clôturer se voit **sur la page du jour**, sans naviguer vers demain.
+3. Fais déborder un rendez-vous au-delà de ton horaire de fermeture : le bouton de lancement
+   revient tant qu'il est en cours.
+4. Sur « Ce qui reste à clôturer », ouvre un rendez-vous : durée, **« comment ça s'est passé »** et
+   **« à retenir pour la prochaine fois »**, les trois facultatifs. Tape « Clôturer » sans rien
+   remplir : ça marche.
+5. Remplis les deux notes, puis ouvre la fiche de la cliente : seule la seconde y est. Ouvre un
+   autre de ses rendez-vous : la seconde s'y réaffiche, la première non.
+
+**Statut à reporter dans la roadmap :** D15 : « Trois correctifs du soir appliqués, recette à
+valider ». B2 et B3 : « Saisissables à la clôture, recette à valider ».
+
 ## 2026-09-03 (7) Étape : D15 corrigée, la clôture ne se refuse jamais
 
 **Fait :**

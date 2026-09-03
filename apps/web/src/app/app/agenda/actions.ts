@@ -247,7 +247,7 @@ export async function terminerRdv(donnees: FormData) {
 
   const { data: rdv } = await supabase
     .from('appointments')
-    .select('starts_at, ends_at')
+    .select('starts_at, ends_at, client_id')
     .eq('id', id)
     .maybeSingle()
   if (!rdv) return
@@ -297,6 +297,25 @@ export async function terminerRdv(donnees: FormData) {
     })
     .eq('id', id)
   if (error) console.error('cloture_rdv_failed', error.code)
+
+  /*
+    B2 — « à retenir pour la prochaine fois » va sur la FICHE, pas sur le
+    rendez-vous. Les deux champs de l'écran de clôture ne sont pas deux façons
+    de dire la même chose : l'un reste attaché à ce rendez-vous, l'autre se
+    réaffiche à chacune de ses visites. Le soir est le seul moment où la pro
+    écrira quoi que ce soit ; il faut que le bon texte aille au bon endroit.
+
+    Le champ arrive pré-rempli de ses notes existantes : on écrase donc en
+    connaissance de cause, jamais en silence.
+  */
+  const aRetenir = champ(donnees, 'technical_notes')
+  if (rdv.client_id && aRetenir !== null) {
+    const { error: erreurFiche } = await supabase
+      .from('clients')
+      .update({ technical_notes: aRetenir })
+      .eq('id', rdv.client_id)
+    if (erreurFiche) console.error('cloture_notes_fiche_failed', erreurFiche.code)
+  }
 
   revalidatePath('/app/agenda')
   revalidatePath('/app/tournee')

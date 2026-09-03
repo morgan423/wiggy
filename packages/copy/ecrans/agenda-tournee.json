@@ -99,7 +99,11 @@
     "departPosition": "Utiliser ma position actuelle",
     "departPositionAide": "Elle sert au calcul du jour et n'est jamais enregistrée.",
     "departPositionRefusee": "Position indisponible. On garde ton adresse de départ.",
-    "aCloturerCompte": "{n} rendez-vous à clôturer"
+    "aCloturerCompte": "{n} rendez-vous à clôturer",
+    "noteDuJour": "Comment ça s'est passé (facultatif)",
+    "noteDuJourAide": "Reste sur ce rendez-vous.",
+    "aRetenir": "À retenir pour la prochaine fois (facultatif)",
+    "aRetenirAide": "Se réaffiche à chacune de ses visites. Formule, dosage, produits, préférences."
   },
   "tournee": {
     "statement": "Ta tournée, {pro}.",

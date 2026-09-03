@@ -1,6 +1,12 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { etatRendezVous, aRelancer, JOURS_DE_RELANCE } from './etats.ts'
+import {
+  etatRendezVous,
+  aRelancer,
+  JOURS_DE_RELANCE,
+  finDeJournee,
+  lancementProposable,
+} from './etats.ts'
 
 const debut = new Date('2026-09-07T10:00:00Z')
 const fin = new Date('2026-09-07T11:00:00Z')
@@ -81,5 +87,54 @@ test('au bout de sept jours, on cesse de relancer sans jamais clôturer', () => 
       maintenant,
     }),
     'a-cloturer',
+  )
+})
+
+test('la fin de journée vient des horaires, avec minuit pour repli', () => {
+  const jour = new Date('2026-09-07T00:00:00Z')
+  assert.equal(finDeJournee(jour, ['18:00', '12:00']).toISOString(), '2026-09-07T18:00:00.000Z')
+  // Sans horaires posés, on ne suppose pas qu'elle a fini de travailler.
+  assert.equal(finDeJournee(jour, []).toISOString(), '2026-09-08T00:00:00.000Z')
+})
+
+test('on ne propose pas de commencer ce qui est fini', () => {
+  // Le défaut de 23 h : un gros bouton « commencer ma tournée » sur une journée
+  // terminée depuis cinq heures.
+  const base = {
+    journeeLancee: false,
+    aDesRendezVous: true,
+    unEnCours: false,
+    finJournee: new Date('2026-09-07T18:00:00Z'),
+  }
+  assert.equal(lancementProposable({ ...base, maintenant: new Date('2026-09-07T09:00:00Z') }), true)
+  assert.equal(
+    lancementProposable({ ...base, maintenant: new Date('2026-09-07T23:00:00Z') }),
+    false,
+  )
+})
+
+test('une pro qui déborde n’est pas une pro qui a fini', () => {
+  assert.equal(
+    lancementProposable({
+      journeeLancee: false,
+      aDesRendezVous: true,
+      unEnCours: true,
+      maintenant: new Date('2026-09-07T19:30:00Z'),
+      finJournee: new Date('2026-09-07T18:00:00Z'),
+    }),
+    true,
+  )
+})
+
+test('rien à proposer sur une journée déjà lancée ou sans rendez-vous', () => {
+  const quand = {
+    maintenant: new Date('2026-09-07T09:00:00Z'),
+    finJournee: new Date('2026-09-07T18:00:00Z'),
+    unEnCours: false,
+  }
+  assert.equal(lancementProposable({ ...quand, journeeLancee: true, aDesRendezVous: true }), false)
+  assert.equal(
+    lancementProposable({ ...quand, journeeLancee: false, aDesRendezVous: false }),
+    false,
   )
 })

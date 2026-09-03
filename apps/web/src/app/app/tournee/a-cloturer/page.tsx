@@ -35,7 +35,9 @@ export default async function ACloturer() {
 
   const { data: ouverts } = await supabase
     .from('appointments')
-    .select('id, starts_at, ends_at, service_name, clients(first_name, last_name)')
+    .select(
+      'id, starts_at, ends_at, service_name, note, clients(first_name, last_name, technical_notes)',
+    )
     .lt('ends_at', new Date().toISOString())
     .not('status', 'in', '(done,cancelled)')
     .order('starts_at', { ascending: false })
@@ -69,6 +71,8 @@ export default async function ACloturer() {
               dureePrevueMin={Math.round(
                 (new Date(r.ends_at).getTime() - new Date(r.starts_at).getTime()) / 60_000,
               )}
+              note={r.note}
+              aRetenir={notesDe(r.clients)}
             />
           ))
         )}
@@ -84,4 +88,12 @@ function nomDe(relation: unknown): string {
   if (typeof c.first_name !== 'string') return 'Sans fiche'
   const nom = typeof c.last_name === 'string' ? c.last_name : ''
   return `${c.first_name} ${nom}`.trim()
+}
+
+/** Les annotations techniques déjà posées sur la fiche, pour ne pas les effacer. */
+function notesDe(relation: unknown): string | null {
+  const brut: unknown = Array.isArray(relation) ? relation[0] : relation
+  if (typeof brut !== 'object' || brut === null) return null
+  const c = brut as Record<string, unknown>
+  return typeof c.technical_notes === 'string' ? c.technical_notes : null
 }

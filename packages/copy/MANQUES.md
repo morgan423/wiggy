@@ -270,6 +270,10 @@ sans les nommer.
 | `agenda-tournee.$aEcrire.departPositionAide`               | « Elle sert au calcul du jour et n'est jamais enregistrée. »                                                                                        |
 | `agenda-tournee.$aEcrire.departPositionRefusee`            | « Position indisponible. On garde ton adresse de départ. »                                                                                          |
 | `agenda-tournee.$aEcrire.aCloturerCompte`                  | « {n} rendez-vous à clôturer »                                                                                                                      |
+| `agenda-tournee.$aEcrire.noteDuJour`                       | « Comment ça s'est passé (facultatif) »                                                                                                             |
+| `agenda-tournee.$aEcrire.noteDuJourAide`                   | « Reste sur ce rendez-vous. »                                                                                                                       |
+| `agenda-tournee.$aEcrire.aRetenir`                         | « À retenir pour la prochaine fois (facultatif) »                                                                                                   |
+| `agenda-tournee.$aEcrire.aRetenirAide`                     | « Se réaffiche à chacune de ses visites. Formule, dosage, produits, préférences. »                                                                  |
 | `reservation-cliente.$aEcrire.forfaitTitre`                | « Au-delà de ta zone »                                                                                                                              |
 | `reservation-cliente.$aEcrire.fixeZoneIntervention`        | « Vous reçoit à »                                                                                                                                   |
 | `reservation-cliente.$aEcrire.fixeAdresseDuLieu`           | « {pro} vous reçoit au {adresse}. »                                                                                                                 |

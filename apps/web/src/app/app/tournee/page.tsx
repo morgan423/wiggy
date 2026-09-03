@@ -15,6 +15,8 @@ import {
   fenetreDeReprise,
   rythmeDeRetourSemaines,
   etatRendezVous,
+  finDeJournee,
+  lancementProposable,
   aRelancer,
   type AppGps,
   type EtatRendezVous,
@@ -135,13 +137,34 @@ export default async function MaTournee({
   const { data: ouverts } = await supabase
     .from('appointments')
     .select('id, ends_at, status')
-    .lt('starts_at', jour.toISOString())
+    // Le soir, la page du jour EST l'écran de rattrapage : ce qui reste à
+    // clôturer aujourd'hui compte ici, pas seulement les jours précédents.
+    .lt('ends_at', maintenant.toISOString())
     .not('status', 'in', '(done,cancelled)')
     .order('starts_at', { ascending: false })
     .limit(50)
   const aCloturer = aRelancer(
     (ouverts ?? []).map((r) => ({ id: r.id, cloture: false, fin: new Date(r.ends_at) })),
     maintenant,
+  )
+
+  /*
+    D15 — la page ne connaissait que les heures des rendez-vous, jamais celle de
+    la fermeture. `working_hours` la porte depuis la première migration, et
+    c'est cet oubli qui faisait proposer « commencer ma tournée » à 23 h sur une
+    journée finie depuis cinq heures.
+
+    `weekday` suit la convention du schéma : 0 = lundi.
+  */
+  const jourDeSemaine = (jour.getUTCDay() + 6) % 7
+  const { data: fermetures } = await supabase
+    .from('working_hours')
+    .select('ends_at')
+    .eq('pro_id', pro.id)
+    .eq('weekday', jourDeSemaine)
+  const finJournee = finDeJournee(
+    jour,
+    (fermetures ?? []).map((h) => h.ends_at),
   )
 
   const [{ data: reglages }, { data: fiche }] = await Promise.all([
@@ -176,7 +199,6 @@ export default async function MaTournee({
   // derrière soi, il n'ouvre pas la carte de tête.
   const aVivre = restants.filter((r) => etatDe(r) !== 'a-cloturer')
   const prochain = aVivre.length > 0 ? aVivre[0] : null
-  const ensuite = aVivre.slice(1)
   const bouclee = journee.length > 0 && restants.length === 0
 
   const veille = instantVersHeureLocale(ajouterJours(jour, -1)).slice(0, 10)
@@ -225,7 +247,13 @@ export default async function MaTournee({
 
         {/* D15 : sans lancement, rien n'est « en cours ». Le bouton est l'un
             des deux gestes qui lancent ; l'autre est l'ouverture du GPS. */}
-        {!journeeLancee && journee.length > 0 && !bouclee ? (
+        {lancementProposable({
+          journeeLancee,
+          aDesRendezVous: journee.length > 0,
+          unEnCours: journee.some((r) => etatDe(r) === 'en-cours'),
+          maintenant,
+          finJournee,
+        }) ? (
           <>
             <Lancement jour={jourCivil} depart={pointDepart?.start_line1 ?? null} />
             <p className="text-center text-[11.5px] text-texte-attenue">{T.$aEcrire.lancerAide}</p>
@@ -269,12 +297,12 @@ export default async function MaTournee({
           </Link>
         ) : null}
 
-        {bouclee ? (
-          <Bouclee journee={journee} trajets={trajets} />
-        ) : journee.length === 0 ? (
+        {journee.length === 0 ? (
           <JourSansRdv jour={jour} lendemain={lendemain} />
         ) : (
           <>
+            {bouclee ? <Bouclee journee={journee} trajets={trajets} /> : null}
+
             {prochain ? (
               <ProchainRdv
                 rdv={prochain}
@@ -286,19 +314,44 @@ export default async function MaTournee({
                 journeeLancee={journeeLancee}
               />
             ) : null}
-            {ensuite.map((r) => (
-              <div key={r.id} className={`${RANGEE} rounded-[14px] px-3.5 py-[11px] opacity-70`}>
-                <Link href={`/app/agenda/${r.id}`} className="text-[12.5px] font-bold">
-                  {nomDe(r.clients)} · {heure.format(new Date(r.starts_at))}
-                  {r.city ? ` · ${r.city}` : ''}
-                </Link>
-                <span className="shrink-0 text-[11.5px] text-texte-attenue">
-                  {T.tournee.ensuite}
-                </span>
-              </div>
-            ))}
+
+            {/*
+              D15 — L'HISTORIQUE DE LA JOURNÉE NE DISPARAÎT JAMAIS. Quelle que
+              soit l'heure, et que la journée ait été lancée ou non, chaque
+              rendez-vous du jour reste là avec son état réel.
+
+              À 23 h, cette liste EST l'écran de rattrapage : c'est sur la page
+              du jour que la pro revient, pas sur la date suivante. Avant, la
+              journée écoulée disparaissait au profit d'un bouton de lancement,
+              et il fallait naviguer vers le LENDEMAIN pour voir ce qui restait
+              à clôturer.
+            */}
+            <ul className="flex flex-col gap-2">
+              {journee.map((r) =>
+                prochain?.id === r.id ? null : (
+                  <li key={r.id}>
+                    <Link
+                      href={`/app/agenda/${r.id}`}
+                      className={`${RANGEE} gap-2.5 rounded-[14px] px-3.5 py-[11px] hover:bg-fond ${
+                        etatDe(r) === 'termine' ? 'opacity-70' : ''
+                      }`}
+                    >
+                      <span className="w-[42px] shrink-0 text-[12.5px] font-extrabold">
+                        {heure.format(new Date(r.starts_at))}
+                      </span>
+                      <span className="min-w-0 flex-1 text-[12.5px] font-bold">
+                        {nomDe(r.clients)}
+                        {r.city ? ` · ${r.city}` : ''}
+                      </span>
+                      <EtatDuJour etat={etatDe(r)} />
+                    </Link>
+                  </li>
+                ),
+              )}
+            </ul>
           </>
         )}
+
         {/* Les flèches de jour ne sont pas sur la planche : le copilote parle
             d'aujourd'hui. Elles restent, en pied et en petit, parce que
             regarder la veille ou le lendemain est un besoin réel. */}
@@ -584,4 +637,23 @@ async function repriseApresCloture(
   const params = new URLSearchParams({ cliente: rdv.client_id, prestation: rdv.service_id })
   if (fenetre) params.set('vers', instantVersHeureLocale(fenetre.debut).slice(0, 10))
   return { lien: `/app/agenda/nouveau?${params.toString()}` }
+}
+
+/** La pastille d'état dans la liste du jour. Quatre états, un seul automatique. */
+function EtatDuJour({ etat }: { etat: EtatRendezVous }) {
+  const commun = 'shrink-0 rounded-pilule px-2 py-1 text-[10px] font-extrabold whitespace-nowrap'
+  switch (etat) {
+    case 'termine':
+      return (
+        <span className={`${commun} bg-celebration text-texte-sur-miel`}>{T.etats.termine}</span>
+      )
+    case 'en-cours':
+      return <span className={`${commun} bg-action text-texte-sur-plein`}>{T.etats.enCours}</span>
+    case 'a-cloturer':
+      return (
+        <span className={`${commun} bg-attente text-texte-sur-miel`}>{T.$aEcrire.aCloturer}</span>
+      )
+    case 'a-venir':
+      return <span className={`${commun} text-texte-attenue`}>{T.tournee.ensuite}</span>
+  }
 }

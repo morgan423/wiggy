@@ -28,12 +28,18 @@ export function FormCloture({
   prestation,
   quand,
   dureePrevueMin,
+  note,
+  aRetenir,
 }: {
   id: string
   cliente: string
   prestation: string
   quand: string
   dureePrevueMin: number
+  /** B3 : ce qui reste attaché à CE rendez-vous. */
+  note: string | null
+  /** B2 : ce qui se réaffichera à chacune de ses visites. */
+  aRetenir: string | null
 }) {
   const [ouvert, setOuvert] = useState(false)
   const T = copy.agendaTournee
@@ -76,7 +82,31 @@ export function FormCloture({
         placeholder={String(dureePrevueMin)}
         aide={T.$aEcrire.dureeReelleAide}
       />
-      <Zone id={`note-${id}`} name="note" label={copy.ficheCliente.$aEcrire.noteDuRdv} rows={2} />
+      {/*
+        DEUX champs, et pas un. Le soir, la pro a deux informations différentes
+        en tête, et les mélanger les perdrait toutes les deux : « elle avait les
+        cheveux mouillés en arrivant » ne doit pas revenir aux dix visites
+        suivantes, « formule 6.35 » doit revenir à toutes.
+
+        Le texte fait la différence sans l'expliquer : l'un dit « ce
+        rendez-vous », l'autre dit « la prochaine fois ».
+      */}
+      <Zone
+        id={`note-${id}`}
+        name="note"
+        label={T.$aEcrire.noteDuJour}
+        defaultValue={note ?? ''}
+        rows={2}
+        aide={T.$aEcrire.noteDuJourAide}
+      />
+      <Zone
+        id={`retenir-${id}`}
+        name="technical_notes"
+        label={T.$aEcrire.aRetenir}
+        defaultValue={aRetenir ?? ''}
+        rows={2}
+        aide={T.$aEcrire.aRetenirAide}
+      />
       <button
         type="submit"
         className="tactile mt-3 w-full rounded-pilule bg-action py-3 text-center text-[13px] font-bold text-texte-sur-plein hover:bg-action-survol"

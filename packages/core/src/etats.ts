@@ -76,3 +76,52 @@ export function aRelancer<T extends { cloture: boolean; fin: Date }>(
   const limite = maintenant.getTime() - JOURS_DE_RELANCE * 86_400_000
   return rdvs.filter((r) => !r.cloture && r.fin < maintenant && r.fin.getTime() >= limite)
 }
+
+/**
+ * D15 — l'heure à laquelle la journée de travail se termine.
+ *
+ * `working_hours` la porte depuis la première migration, et la tournée ne la
+ * lisait jamais : elle ne connaissait que les heures des rendez-vous. C'est ce
+ * qui faisait proposer « commencer ma tournée » à 23 h sur une journée finie
+ * depuis cinq heures.
+ *
+ * Repli à minuit quand aucun horaire n'est posé pour ce jour : on ne suppose
+ * pas qu'une pro sans horaires enregistrés a fini de travailler.
+ */
+export function finDeJournee(jour: Date, fermetures: string[]): Date {
+  const derniere = [...fermetures].sort().pop()
+  if (!derniere) return new Date(jour.getTime() + 24 * 3600 * 1000)
+  const [h, m] = derniere.split(':').map(Number)
+  // Une chaîne qui ne ressemble pas à une heure ne repousse pas la fermeture à
+  // minuit : elle la met à zéro, ce qui serait pire. On retombe sur le repli.
+  if (!Number.isFinite(h) || !Number.isFinite(m)) {
+    return new Date(jour.getTime() + 24 * 3600 * 1000)
+  }
+  return new Date(jour.getTime() + (h * 60 + m) * 60_000)
+}
+
+/**
+ * Faut-il encore proposer de commencer la tournée ?
+ *
+ * Après l'heure de fermeture, non : on ne propose pas de commencer ce qui est
+ * fini. **Sauf si un rendez-vous est encore en cours** : une pro qui déborde
+ * n'est pas une pro qui a fini, et lui retirer le lancement au milieu d'une
+ * couleur serait absurde.
+ */
+export function lancementProposable({
+  journeeLancee,
+  aDesRendezVous,
+  unEnCours,
+  maintenant,
+  finJournee,
+}: {
+  journeeLancee: boolean
+  aDesRendezVous: boolean
+  unEnCours: boolean
+  maintenant: Date
+  finJournee: Date
+}): boolean {
+  if (journeeLancee || !aDesRendezVous) return false
+  if (unEnCours) return true
+  return maintenant < finJournee
+}
