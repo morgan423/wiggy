@@ -35,6 +35,104 @@ l'étape et cette section se vide.
 
 ---
 
+## 2026-09-03 (2) Étape : l'agenda, le rendez-vous et la tournée contre les planches 16a, 16b et 16d
+
+**Fait :**
+
+- **Cause du retard, dite franchement** : la reprise du matin s'était arrêtée à 14a-14g. La
+  tournée et l'agenda ont leurs propres planches, `16d` et `16a`, que je n'avais pas ouvertes.
+  Morgan a mis les deux écrans côte à côte avec leur planche pour le montrer.
+- **16d, Ma tournée** : bandeau prune avec le statement « Ta tournée, {prénom}. », l'avancement en
+  toutes lettres et le FIL DE PASTILLES, qui est le motif trajet de la planche 8a porté en
+  avancement (miel plein pour ce qui est fait, anneau abricot pour le rendez-vous en cours, anneau
+  doux pour la suite, segment plein derrière, pointillé devant). Dessous, une seule carte détachée
+  par une bordure framboise, celle du prochain rendez-vous, avec ses deux actions empilées ; les
+  suivants suivent en rangées atténuées. Deux autres états : « Journée bouclée. » avec son fil
+  entièrement en miel et le bilan réel du jour, et le jour off, sans CTA de remplissage.
+- **16a, Agenda** : vue JOUR par défaut, comme la planche. Bandeau prune avec la date, la bascule
+  de vue et le résumé du jour. « À décider » est une carte abricot en tête, elle se voit avant
+  tout le reste. Les rangées ont la colonne d'heure de 42 px, le nom et la prestation sur une
+  ligne, le lieu dessous, et les trois pastilles de la planche : miel pour terminé, framboise pour
+  en cours (avec la bordure framboise sur la rangée), contour pour à venir. Le trajet se lit entre
+  les deux rendez-vous qu'il relie. Bouton flottant framboise pour ajouter.
+- **La vue semaine devient le RADAR de la planche** : une barre par jour, framboise pour ce qui
+  est réservé, abricot pour ce qui attend une décision, gris pour ce qui reste libre. Ce n'est pas
+  une grille horaire, c'est une charge qu'on lit d'un coup d'œil.
+- **16b : consultation et édition deviennent deux écrans.** La planche en fait une règle de
+  sûreté autant que de composition, « la lecture ne contient aucun champ, tout tap accidentel est
+  sans conséquence ». `/app/agenda/[id]` est désormais la consultation, en lecture seule ;
+  l'édition vit sous `/app/agenda/[id]/modifier`, et « Modifier » est le seul chemin qui y mène.
+- **La décision d'une demande se prend devant son détail.** La planche 16a met un chevron sur les
+  lignes « À décider », pas deux boutons : valider et refuser sont donc sur la consultation, là où
+  se lisent le lieu, l'heure et le motif. Décider sans avoir lu, c'est décider à l'aveugle.
+- **Les textes des trois planches sont versés comme source ratifiée**,
+  `packages/copy/source/spec-16.json`, au même titre que le board et la spécification 14. Les
+  valeurs d'exemple des planches y sont remplacées par leurs variables.
+- **`npm run vues` sème enfin une vraie journée** : quatre fiches clientes, un rendez-vous terminé,
+  un en cours, un à venir et une demande à décider. C'est le correctif qui compte le plus de cette
+  étape : l'agenda et la tournée se capturaient toujours VIDES, et c'est exactement pour ça que
+  leur écart aux planches n'a été vu par personne, ni par le contrôle de contraste, ni par moi. Une
+  vue de plus aussi, la consultation d'un rendez-vous.
+- **`design:check` corrigé sur un point** : la règle qui interdit la classe `statement` dans
+  l'espace pro cherchait `\bstatement\b`, donc elle mordait aussi `statement-ecran`, le statement
+  de 30 px des planches 14b et 16d. Elle cherche désormais la classe entre délimiteurs. Vérifié en
+  la faisant échouer exprès sur `statement`.
+- **Un prix rond, un motif honnête** : un écart à la zone inférieur à 100 m n'écrit plus
+  « hors zone +0 m » mais le motif, « sous réserve ».
+
+**Schéma :** aucun. La migration 0009 reste EN ATTENTE d'application par Morgan.
+
+**Décisions :** aucune nouvelle. D12 s'applique aussi à ces trois écrans : une seule anatomie, et
+la vue semaine est la même à toutes les largeurs.
+
+**Écarts au brief :**
+
+- **Les flèches de jour ne sont sur aucune des deux planches.** 16a n'a que la bascule
+  « Jour · Semaine », 16d ne parle que d'aujourd'hui. Elles restent, en pied de liste et en petit,
+  parce que regarder la veille ou le lendemain est un besoin réel ; les mettre dans le bandeau
+  faisait passer « Jeudi 3 septembre » à deux lignes et doublait sa hauteur.
+- **« Terminer » n'existe pas sur la consultation.** La planche 16b en fait l'action principale
+  d'un rendez-vous en cours, et précise qu'elle enregistre la durée réelle. C'est B6, la clôture
+  en un tap, phase 2. Un bouton qui n'enregistrerait rien serait pire que son absence. « Commencer
+  le trajet » est là, lui, pour un rendez-vous à venir.
+- **« Voir la fiche de {prénom} » n'est pas affiché** : la fiche cliente est la planche 16c,
+  livraison 3. Un lien mort en pied d'écran ne vaut pas mieux qu'un bouton mort.
+- **« Acompte reçu » n'est pas affiché** : `appointments` ne porte pas de montant d'acompte
+  encaissé. Rien à afficher, donc rien d'affiché.
+- **La carte abricot « ce changement prévient {cliente} par SMS »** de l'édition n'est pas posée :
+  aucun SMS ne part encore d'une modification, et annoncer un envoi qui n'a pas lieu est un
+  mensonge à la pro.
+- **Le jour off n'annonce pas la prochaine tournée** (« jeudi, 2 rendez-vous à Rezé ») : il
+  faudrait interroger les jours suivants pour l'écrire sans mentir. On propose d'aller voir le
+  lendemain plutôt que d'annoncer un chiffre qu'on n'a pas.
+- **La serif dans l'agenda** : `CLAUDE.md` l'interdit, et l'annotation de la planche 16a la
+  redit. Les planches 16a, 16b et 16d posent pourtant la DATE en Fraunces 24 px dans le bandeau.
+  Lu comme Design l'écrit, l'interdit vise la LISTE, pas la tête d'écran : c'est la liste qui se
+  lit vite et en biais. Le bandeau garde donc sa serif, et `design:check` porte cette lecture en
+  commentaire pour que personne ne la découvre par surprise.
+
+**Questions ouvertes :** les trois lignes de la section « En attente d'arbitrage » restent
+ouvertes, aucune nouvelle.
+
+**À recetter par Morgan :**
+
+1. `/app/tournee` un jour travaillé : bandeau prune, « Ta tournée, {ton prénom}. », l'avancement,
+   et le fil de pastilles sous lui. Une seule carte bordée de framboise, celle du prochain.
+2. Fais passer l'heure au-delà du dernier rendez-vous : « Journée bouclée. », le fil tout en miel
+   et le bilan (nombre, kilomètres, encaissé).
+3. Un jour sans rendez-vous : « Rien aujourd'hui, c'est ton {jour}. » Aucun bouton de remplissage.
+4. `/app/agenda` s'ouvre sur le JOUR, plus sur la semaine. Tape « Semaine » : c'est un radar de
+   charge, une barre par jour. Tape un jour du radar : il ouvre sa vue jour.
+5. Une demande hors zone : elle est en carte abricot en tête d'agenda, avec un chevron. Tape la
+   ligne : tu arrives sur le rendez-vous, et c'est là que « Valider » et « Refuser » vivent.
+6. Tape un rendez-vous ordinaire : tu arrives en LECTURE. Aucun champ. « Modifier » ouvre
+   l'édition, et elle seule.
+7. Vérifie les trois pastilles dans la liste du jour : miel pour terminé, framboise pour en cours,
+   contour pour à venir, et la bordure framboise sur la rangée en cours.
+
+**Statut à reporter dans la roadmap :** aucun. Cette étape ne livre pas de fonctionnalité, elle met
+trois écrans de plus en conformité avec leurs planches. B10 et C0 restent à leur statut actuel.
+
 ## 2026-09-03 Étape : les sept écrans du paramétrage repris contre leurs planches (14a à 14g)
 
 **Fait :**

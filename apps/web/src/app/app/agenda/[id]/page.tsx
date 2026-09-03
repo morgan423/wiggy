@@ -1,17 +1,43 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
-import { instantVersHeureLocale } from '@wiggy/core'
-import { copy } from '@wiggy/copy'
+import { ZONE, formatEuros } from '@wiggy/core'
+import { copy, remplir } from '@wiggy/copy'
 import { requirePro } from '@/lib/auth'
 import { supabaseServer } from '@/lib/supabase/server'
 import { photosDuRendezVous } from '@/lib/photos'
-import { FormRdv } from '../form'
-import { modifierRdv } from '../actions'
+import { EnteteEcran, CorpsEcran } from '@/components/composition'
+import { annulerRdv, validerDemande, refuserDemande } from '../actions'
+
+/**
+ * Le rendez-vous, EN LECTURE. Planche 16b, colonne « CONSULTATION ».
+ *
+ * La règle de la planche est une règle de sûreté autant que de composition :
+ * **consultation n'est pas édition**. Cet écran ne contient aucun champ, donc
+ * aucun tap accidentel ne peut rien enregistrer. « Modifier » est le seul
+ * chemin vers l'édition, et il est explicite.
+ *
+ * L'action principale suit le statut : à venir → commencer le trajet, en
+ * cours → terminer, terminé → aucune, la pastille miel suffit. Une demande qui
+ * attend une décision porte les deux réponses, ici et pas dans la liste :
+ * l'agenda montre le chevron, la décision se prend devant le détail.
+ */
 
 const T = copy.agendaTournee
 const D = copy.demandesPro
 
-export default async function ModifierRdv({ params }: { params: Promise<{ id: string }> }) {
+const jourLong = new Intl.DateTimeFormat('fr-FR', {
+  timeZone: ZONE,
+  weekday: 'long',
+  day: 'numeric',
+  month: 'long',
+})
+const heure = new Intl.DateTimeFormat('fr-FR', {
+  timeZone: ZONE,
+  hour: '2-digit',
+  minute: '2-digit',
+})
+
+export default async function RendezVous({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   await requirePro()
   const supabase = await supabaseServer()
@@ -21,133 +47,213 @@ export default async function ModifierRdv({ params }: { params: Promise<{ id: st
   const { data: rdv } = await supabase
     .from('appointments')
     .select(
-      'id, client_id, service_id, service_name, price_cents, starts_at, ends_at, address_line1, postal_code, city, access_notes, note, status',
+      'id, service_name, price_cents, starts_at, ends_at, address_line1, postal_code, city, lat, lng, access_notes, note, status, travel_min_from_previous, client_id, clients(first_name, last_name)',
     )
     .eq('id', id)
     .maybeSingle()
 
   if (!rdv) notFound()
 
-  const [{ data: prestations }, { data: clientes }] = await Promise.all([
-    supabase
-      .from('services')
-      .select('id, name, price_cents, duration_min')
-      .eq('active', true)
-      .order('position'),
-    supabase.from('clients').select('id, first_name, last_name').order('first_name'),
-  ])
-
   // La lecture ci-dessus est passée par la RLS : si elle a renvoyé une ligne,
   // ce rendez-vous appartient bien au pro connecté. C'est cette preuve qui
   // autorise la signature des photos.
   const photos = await photosDuRendezVous(rdv.id)
 
-  const dureeMin = Math.round(
-    (new Date(rdv.ends_at).getTime() - new Date(rdv.starts_at).getTime()) / 60_000,
-  )
+  const cliente = clienteDe(rdv.clients)
+  const maintenant = new Date()
+  const aDecider = rdv.status === 'pending' || rdv.status === 'conditional'
+  const annule = rdv.status === 'cancelled'
+  const termine = rdv.status === 'done' || new Date(rdv.ends_at) <= maintenant
+  const enCours = !termine && new Date(rdv.starts_at) <= maintenant
+  const lieu = [rdv.address_line1, rdv.city].filter(Boolean).join(', ')
 
   return (
     <>
-      <Link
-        href="/app/agenda"
-        className="text-sm font-semibold text-texte-secondaire hover:text-action"
+      <EnteteEcran
+        retour="/app/agenda"
+        retourLibelle={T.rendezVous.retour}
+        variante="jour"
+        statement={nomDe(cliente)}
+        sousTitre={remplir(T.gabarits.recapRdv, {
+          prestation: rdv.service_name,
+          jour: jourLong.format(new Date(rdv.starts_at)),
+          heure: heure.format(new Date(rdv.starts_at)),
+          prix: formatEuros(rdv.price_cents),
+        })}
       >
-        ← Agenda
-      </Link>
-      <h1 className="mt-6 text-3xl font-extrabold tracking-tight">Modifier le rendez-vous</h1>
+        {/* La pastille de statut est DANS le bandeau, alignée à gauche sous le
+            récapitulatif : sur la planche, elle appartient à l'identité du
+            rendez-vous, pas à sa liste d'actions. */}
+        <span className="mt-1.5 flex">
+          <StatutRdv annule={annule} aDecider={aDecider} enCours={enCours} termine={termine} />
+        </span>
+      </EnteteEcran>
 
-      {/*
-        R2-7 bis : les rendez-vous créés avant que l'adresse ne devienne
-        obligatoire doivent pouvoir être complétés, pas devenir un parc de
-        rendez-vous invalides. Le formulaire l'exige déjà : ce bandeau dit
-        pourquoi, plutôt que de laisser un champ rouge sans explication.
-      */}
-      {!rdv.address_line1 || !rdv.postal_code || !rdv.city ? (
-        <p role="status" className="mt-6 rounded-carte bg-attente/25 px-5 py-4">
-          {D.$aEcrire.adresseAComplete}
-        </p>
-      ) : null}
+      <CorpsEcran serre>
+        <BlocLecture titre={lieu || D.$aEcrire.adresseAComplete} precision={rdv.access_notes}>
+          {rdv.travel_min_from_previous !== null ? (
+            <span className="text-texte-attenue">
+              {remplir(T.gabarits.depuisPrecedent, { min: String(rdv.travel_min_from_previous) })}
+            </span>
+          ) : null}
+        </BlocLecture>
 
-      {photos.length > 0 ? (
-        <section className="mt-8 rounded-bloc bg-fond p-6">
-          <h2 className="text-sm font-bold tracking-widest text-texte-secondaire uppercase">
-            {T.$aEcrire.photosCliente}
-          </h2>
-          <ul className="mt-4 flex flex-wrap gap-3">
-            {photos.map((photo) => (
-              <li key={photo.url}>
-                {/* Pas de `next/image` : ces URL sont signées et expirent, les
-                    optimiser reviendrait à les mettre en cache après leur mort. */}
-                <img
-                  src={photo.url}
-                  alt={photo.kind === 'current' ? 'Cheveux au naturel' : 'Inspiration'}
-                  className="h-40 w-40 rounded-carte object-cover"
-                />
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
+        {rdv.note ? <BlocLecture titre={T.rendezVous.notes} precision={rdv.note} /> : null}
 
-      <div className="mt-8">
-        <FormRdv
-          edition
-          prestations={prestations ?? []}
-          clientes={await avecDerniereAdresse(supabase, clientes ?? [])}
-          action={modifierRdv}
-          libelle="Enregistrer les modifications"
-          valeurs={{
-            id: rdv.id,
-            client_id: rdv.client_id,
-            service_id: rdv.service_id,
-            service_name: rdv.service_name,
-            prix: (rdv.price_cents / 100).toFixed(2).replace('.', ','),
-            duree: String(dureeMin),
-            debut: instantVersHeureLocale(new Date(rdv.starts_at)),
-            address_line1: rdv.address_line1,
-            postal_code: rdv.postal_code,
-            city: rdv.city,
-            access_notes: rdv.access_notes,
-            note: rdv.note,
-          }}
-        />
-      </div>
+        {photos.length > 0 ? (
+          <div className="flex flex-col gap-2 rounded-[14px] bg-surface px-3 py-2.5">
+            <span className="text-[12.5px] font-extrabold">{T.$aEcrire.photosCliente}</span>
+            <ul className="flex flex-wrap gap-2">
+              {photos.map((photo) => (
+                <li key={photo.url}>
+                  {/* Pas de `next/image` : ces URL sont signées et expirent, les
+                      optimiser reviendrait à les mettre en cache après leur mort. */}
+                  <img
+                    src={photo.url}
+                    alt={photo.kind === 'current' ? 'Cheveux au naturel' : 'Inspiration'}
+                    className="size-24 rounded-champ object-cover"
+                  />
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+
+        {/*
+          Une demande qui attend porte ses deux réponses. Elles sont ici, devant
+          le détail qui permet de décider, et non dans la liste : décider sans
+          avoir lu où c'est et quand, c'est décider à l'aveugle.
+        */}
+        {aDecider ? (
+          <div className="flex gap-2">
+            <form action={validerDemande} className="flex-1">
+              <input type="hidden" name="id" value={rdv.id} />
+              <button
+                type="submit"
+                className="tactile w-full rounded-pilule bg-action py-3 text-center text-[13px] font-bold text-texte-sur-plein hover:bg-action-survol"
+              >
+                {D.actions.valider}
+              </button>
+            </form>
+            <form action={refuserDemande} className="flex-1">
+              <input type="hidden" name="id" value={rdv.id} />
+              <button
+                type="submit"
+                className="tactile w-full rounded-pilule border-[1.5px] border-texte-principal/25 py-3 text-center text-[13px] font-bold hover:border-erreur hover:text-erreur"
+              >
+                {D.actions.refuser}
+              </button>
+            </form>
+          </div>
+        ) : null}
+
+        {/*
+          L'action principale suit le statut (planche 16b) : à venir, c'est le
+          trajet. En cours, la planche met « Terminer » ; la clôture en un tap
+          est B6, phase 2, et elle n'existe pas encore. On ne met donc rien
+          plutôt qu'un bouton qui n'enregistrerait rien.
+        */}
+        {!annule && !termine && !enCours && rdv.lat !== null && rdv.lng !== null ? (
+          <a
+            href={`https://www.google.com/maps/dir/?api=1&destination=${String(rdv.lat)},${String(rdv.lng)}`}
+            rel="noopener noreferrer"
+            target="_blank"
+            className="tactile w-full rounded-pilule bg-action py-3 text-center text-[13px] font-bold text-texte-sur-plein hover:bg-action-survol"
+          >
+            {T.rendezVous.trajetVers}
+          </a>
+        ) : null}
+
+        {!annule ? (
+          <div className="mt-auto flex flex-col gap-2 pt-4 pb-3.5">
+            <Link
+              href={`/app/agenda/${rdv.id}/modifier`}
+              className="tactile w-full rounded-pilule border-[1.5px] border-texte-principal/25 py-3 text-center text-[13px] font-bold hover:border-prune"
+            >
+              {T.rendezVous.modifier}
+            </Link>
+            <form action={annulerRdv}>
+              <input type="hidden" name="id" value={rdv.id} />
+              <button
+                type="submit"
+                className="tactile w-full text-[12px] font-bold text-erreur hover:underline"
+              >
+                {T.rendezVous.annuler}
+              </button>
+            </form>
+          </div>
+        ) : null}
+      </CorpsEcran>
     </>
   )
 }
 
 /**
- * Dernière adresse connue de chaque cliente, reprise de son rendez-vous le
- * plus récent.
- *
- * `client_addresses` reste vide en pratique : la réservation en ligne pose
- * l'adresse sur le rendez-vous, pas sur la fiche. C'est donc l'historique qui
- * fait référence, et c'est lui qui rend l'adresse obligatoire indolore pour
- * une cliente déjà venue (R2-7 bis ②).
+ * Un bloc de lecture de la planche : le libellé en gras, la précision à la
+ * suite, sur la même carte. Rien n'est cliquable, rien n'est un champ.
  */
-async function avecDerniereAdresse(
-  supabase: Awaited<ReturnType<typeof supabaseServer>>,
-  clientes: { id: string; first_name: string; last_name: string | null }[],
-) {
-  if (clientes.length === 0) return []
-  const { data: historique } = await supabase
-    .from('appointments')
-    .select('client_id, address_line1, postal_code, city, starts_at')
-    .not('address_line1', 'is', null)
-    .order('starts_at', { ascending: false })
-
-  const derniere = new Map<
-    string,
-    { address_line1: string | null; postal_code: string | null; city: string | null }
-  >()
-  for (const rdv of historique ?? []) {
-    if (rdv.client_id && !derniere.has(rdv.client_id)) {
-      derniere.set(rdv.client_id, {
-        address_line1: rdv.address_line1,
-        postal_code: rdv.postal_code,
-        city: rdv.city,
-      })
-    }
-  }
-  return clientes.map((c) => ({ ...c, adresse: derniere.get(c.id) }))
+function BlocLecture({
+  titre,
+  precision,
+  children,
+}: {
+  titre: string
+  /** Ce qui suit le libellé sur la même ligne, après le point médian. */
+  precision?: string | null
+  /** Ce qui vient à la ligne suivante, quand il y a quelque chose. */
+  children?: React.ReactNode
+}) {
+  return (
+    <p className="rounded-[14px] bg-surface px-3 py-2.5 text-[12.5px] leading-[1.5]">
+      <span className="font-extrabold">{titre}</span>
+      {precision ? ` · ${precision}` : null}
+      {children ? (
+        <>
+          <br />
+          {children}
+        </>
+      ) : null}
+    </p>
+  )
 }
+
+function StatutRdv({
+  annule,
+  aDecider,
+  enCours,
+  termine,
+}: {
+  annule: boolean
+  aDecider: boolean
+  enCours: boolean
+  termine: boolean
+}) {
+  const commun = 'rounded-pilule px-2.5 py-1 text-[10px] font-extrabold'
+  if (annule) return <span className={`${commun} bg-erreur text-texte-sur-plein`}>Annulé</span>
+  if (aDecider) return <span className={`${commun} bg-attente text-texte-sur-miel`}>{D.badge}</span>
+  if (termine)
+    return <span className={`${commun} bg-celebration text-texte-sur-miel`}>{T.etats.termine}</span>
+  if (enCours)
+    return <span className={`${commun} bg-action text-texte-sur-plein`}>{T.etats.enCours}</span>
+  return (
+    <span className={`${commun} bg-texte-sur-plein/14 text-texte-sur-plein`}>
+      {T.$aEcrire.aVenir}
+    </span>
+  )
+}
+
+type Cliente = { first_name: string; last_name: string | null }
+
+function clienteDe(relation: unknown): Cliente | undefined {
+  const brut: unknown = Array.isArray(relation) ? relation[0] : relation
+  if (typeof brut !== 'object' || brut === null) return undefined
+  const c = brut as Record<string, unknown>
+  if (typeof c.first_name !== 'string') return undefined
+  return {
+    first_name: c.first_name,
+    last_name: typeof c.last_name === 'string' ? c.last_name : null,
+  }
+}
+
+const nomDe = (cliente: Cliente | undefined) =>
+  cliente ? `${cliente.first_name} ${cliente.last_name ?? ''}`.trim() : 'Sans fiche'

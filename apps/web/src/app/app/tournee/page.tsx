@@ -5,24 +5,34 @@ import {
   ajouterJours,
   instantVersHeureLocale,
   formatDistance,
+  formatEuros,
 } from '@wiggy/core'
 import { copy, remplir } from '@wiggy/copy'
 import { requireCapability } from '@/lib/auth'
 import { supabaseServer } from '@/lib/supabase/server'
-import { trajetsDeLaJournee, libelleTrajet, type Trajets } from '@/lib/tournee'
+import { trajetsDeLaJournee, type Trajets } from '@/lib/tournee'
+import { EnteteEcran, CorpsEcran, RANGEE } from '@/components/composition'
 
 /**
- * C0 : « Ma tournée ». L'écran que le pro ouvre trente fois par jour.
+ * C0, « Ma tournée » : le copilote du jour. Planche 16d.
+ *
+ * Trois états, et la planche les distingue nettement.
+ *
+ * ① EN TOURNÉE : le bandeau prune porte le statement, l'avancement en toutes
+ * lettres, et le FIL DE PASTILLES qui est le motif trajet de la planche 8a.
+ * Dessous, une seule carte détachée par une bordure framboise, celle du
+ * prochain rendez-vous, avec ses deux actions ; les suivants suivent en
+ * rangées atténuées.
+ * ② JOURNÉE BOUCLÉE : le fil entièrement en miel, le statement de célébration
+ * et le bilan réel du jour. Jamais d'estimation.
+ * ③ JOUR OFF : ni CTA de remplissage ni culpabilisation. Un jour off n'est pas
+ * un état d'échec.
  *
  * Distinct de l'agenda (B10) : là c'est la planification, ici c'est le jour
- * vécu. La journée se lit de haut en bas, avec les trajets entre les
- * rendez-vous : c'est ce qui matérialise la promesse « ta journée en tournée
- * logique ».
+ * vécu. Gaté sur `tour_copilot` (offre 2), vérifié côté serveur.
  *
- * Gaté sur `tour_copilot` (offre 2), vérifié côté serveur.
- *
- * Ce qui n'est pas là et ne s'invente pas : la clôture en un tap (B6) et le
- * bouton « je suis en retard » (C5) appartiennent à la phase 2. L'état d'un
+ * Ce qui n'est pas là et ne s'invente pas : la clôture en un tap (B6) et le SMS
+ * « je suis en retard » (C5) appartiennent à la phase 2. L'état d'un
  * rendez-vous se déduit donc de l'heure, pas d'un geste du pro.
  */
 
@@ -34,12 +44,7 @@ const heure = new Intl.DateTimeFormat('fr-FR', {
   hour: '2-digit',
   minute: '2-digit',
 })
-const jourLong = new Intl.DateTimeFormat('fr-FR', {
-  timeZone: ZONE,
-  weekday: 'long',
-  day: 'numeric',
-  month: 'long',
-})
+const jourSeul = new Intl.DateTimeFormat('fr-FR', { timeZone: ZONE, weekday: 'long' })
 
 type Etat = 'termine' | 'en-cours' | 'a-venir'
 
@@ -48,7 +53,7 @@ export default async function MaTournee({
 }: {
   searchParams: Promise<{ le?: string }>
 }) {
-  await requireCapability('tour_copilot')
+  const { pro } = await requireCapability('tour_copilot')
   const { le } = await searchParams
 
   const jour = debutDeJour(ancreValide(le))
@@ -59,7 +64,7 @@ export default async function MaTournee({
   const { data: rdvs } = await supabase
     .from('appointments')
     .select(
-      'id, starts_at, ends_at, service_name, status, address_line1, city, lat, lng, client_id, clients(first_name, last_name)',
+      'id, starts_at, ends_at, service_name, price_cents, status, address_line1, city, lat, lng, client_id, clients(first_name, last_name)',
     )
     .gte('starts_at', jour.toISOString())
     .lt('starts_at', finJour.toISOString())
@@ -77,165 +82,235 @@ export default async function MaTournee({
   }
 
   const restants = journee.filter((r) => etatDe(r) !== 'termine')
+  const faits = journee.length - restants.length
   const prochain = restants.length > 0 ? restants[0] : null
-  const kmTotal = [...trajets.values()].reduce((somme, t) => somme + t.km, 0)
+  const ensuite = restants.slice(1)
+  const bouclee = journee.length > 0 && restants.length === 0
+
   const veille = instantVersHeureLocale(ajouterJours(jour, -1)).slice(0, 10)
   const lendemain = instantVersHeureLocale(ajouterJours(jour, 1)).slice(0, 10)
+  const prenom = pro.display_name.split(' ')[0]
 
   return (
     <>
-      <div className="flex flex-wrap items-baseline justify-between gap-4">
-        <h1 className="text-3xl font-extrabold tracking-tight">{T.titre}</h1>
-        <p className="text-lg font-semibold text-texte-secondaire capitalize">
-          {jourLong.format(jour)}
-        </p>
-      </div>
-
-      {journee.length > 0 ? (
-        <p className="mt-3 text-lg font-bold">
-          {remplir(T.gabarits.resume, {
-            n: String(journee.length),
-            km: kmTotal > 0 ? formatDistance(kmTotal) : '0 km',
-          })}
-        </p>
-      ) : null}
-
-      <nav className="mt-6 flex flex-wrap items-center gap-3 text-sm font-semibold">
-        <Link
-          href={`/app/tournee?le=${veille}`}
-          className="tactile rounded-pilule border-2 border-trait-discret px-4 hover:border-prune"
+      {/*
+        Journée bouclée : la planche retire le bandeau prune. La célébration
+        occupe l'écran, elle ne partage pas la tête avec un résumé.
+      */}
+      {bouclee ? null : (
+        <EnteteEcran
+          variante="jour"
+          statement={remplir(T.tournee.statement, { pro: prenom })}
+          sousTitre={
+            prochain
+              ? remplir(T.gabarits.progression, {
+                  faits: String(faits),
+                  total: String(journee.length),
+                  cliente: nomDe(prochain.clients),
+                  heure: heure.format(new Date(prochain.starts_at)),
+                })
+              : undefined
+          }
         >
-          ← Veille
-        </Link>
-        <Link
-          href="/app/tournee"
-          className="tactile rounded-pilule border-2 border-trait-discret px-4 hover:border-prune"
-        >
-          Aujourd’hui
-        </Link>
-        <Link
-          href={`/app/tournee?le=${lendemain}`}
-          className="tactile rounded-pilule border-2 border-trait-discret px-4 hover:border-prune"
-        >
-          Lendemain →
-        </Link>
-      </nav>
-
-      {journee.length === 0 ? (
-        <section className="mt-10 rounded-bloc bg-fond p-8">
-          <h2 className="text-2xl font-extrabold tracking-tight">{V.agendaVide.titre}</h2>
-          <p className="mt-3 text-texte-secondaire">{V.agendaVide.invitation}</p>
-          <Link
-            href="/app/parametrage/profil"
-            className="tactile mt-6 rounded-pilule bg-action px-8 font-bold text-texte-sur-plein hover:bg-action-survol active:bg-action-pressee"
-          >
-            {V.agendaVide.bouton}
-          </Link>
-        </section>
-      ) : (
-        <>
-          {/* Le prochain rendez-vous en tête : c'est la question à laquelle le
-              pro vient chercher une réponse, il ne doit pas la chercher. */}
-          {prochain ? (
-            <section className="mt-8 rounded-bloc bg-prune p-6 text-texte-sur-plein">
-              <p className="text-sm font-bold tracking-widest uppercase opacity-80">
-                {T.prochain.titre}
-              </p>
-              <p className="mt-2 text-2xl font-extrabold">
-                {nomDe(prochain.clients)} · {heure.format(new Date(prochain.starts_at))}
-              </p>
-              <p className="mt-1 opacity-90">
-                {prochain.address_line1
-                  ? detailProchain(prochain, trajets)
-                  : T.$aEcrire.sansAdresse}
-              </p>
-              <div className="mt-5 flex flex-wrap gap-3">
-                {prochain.lat !== null && prochain.lng !== null ? (
-                  <a
-                    href={lienGps(prochain.lat, prochain.lng)}
-                    rel="noopener noreferrer"
-                    target="_blank"
-                    className="tactile rounded-pilule bg-celebration px-6 font-bold text-texte-sur-miel"
-                  >
-                    {T.prochain.trajet}
-                  </a>
-                ) : null}
-                <Link
-                  href={`/app/agenda/${prochain.id}`}
-                  className="tactile rounded-pilule border-2 border-texte-sur-plein px-6 font-bold"
-                >
-                  {T.prochain.fiche}
-                </Link>
-              </div>
-            </section>
-          ) : null}
-
-          <ol className="mt-8">
-            {journee.map((r) => {
-              const trajet = trajets.get(r.id)
-              const etat = etatDe(r)
-              return (
-                <li key={r.id}>
-                  {trajet ? (
-                    <p className="flex items-center gap-3 py-2 pl-5 text-sm font-semibold text-texte-secondaire">
-                      <span aria-hidden className="trait-trajet" />
-                      {libelleTrajet(trajet)}
-                    </p>
-                  ) : null}
-                  <Link
-                    href={`/app/agenda/${r.id}`}
-                    className={`flex flex-wrap items-center gap-x-5 gap-y-2 rounded-carte border-2 p-5 hover:border-prune ${
-                      etat === 'termine'
-                        ? 'border-trait-discret text-texte-secondaire'
-                        : etat === 'en-cours'
-                          ? 'border-attente bg-attente/15'
-                          : 'border-trait-discret'
-                    }`}
-                  >
-                    <span className="font-mono text-lg font-bold">
-                      {heure.format(new Date(r.starts_at))}
-                    </span>
-                    <span className="text-lg font-bold">{nomDe(r.clients)}</span>
-                    <span className="text-texte-secondaire">
-                      {r.service_name}
-                      {r.address_line1 ? ` · ${r.address_line1}` : ''}
-                    </span>
-                    <span className="ml-auto rounded-pilule bg-fond px-3 py-1 text-xs font-bold">
-                      {etat === 'termine'
-                        ? T.etats.termine
-                        : etat === 'en-cours'
-                          ? T.etats.enCours
-                          : T.$aEcrire.aVenir}
-                    </span>
-                  </Link>
-                </li>
-              )
-            })}
-          </ol>
-
-          {restants.length > 0 ? (
-            <p className="mt-8 text-lg font-bold">
-              {remplir(T.gabarits.restant, { n: String(restants.length) })}
-            </p>
-          ) : null}
-        </>
+          {journee.length > 0 ? <FilTrajet journee={journee.map(etatDe)} /> : null}
+        </EnteteEcran>
       )}
+
+      <CorpsEcran serre>
+        {bouclee ? (
+          <Bouclee journee={journee} trajets={trajets} />
+        ) : journee.length === 0 ? (
+          <JourSansRdv jour={jour} lendemain={lendemain} />
+        ) : (
+          <>
+            {prochain ? <ProchainRdv rdv={prochain} trajets={trajets} /> : null}
+            {ensuite.map((r) => (
+              <div key={r.id} className={`${RANGEE} rounded-[14px] px-3.5 py-[11px] opacity-70`}>
+                <Link href={`/app/agenda/${r.id}`} className="text-[12.5px] font-bold">
+                  {nomDe(r.clients)} · {heure.format(new Date(r.starts_at))}
+                  {r.city ? ` · ${r.city}` : ''}
+                </Link>
+                <span className="shrink-0 text-[11.5px] text-texte-attenue">
+                  {T.tournee.ensuite}
+                </span>
+              </div>
+            ))}
+          </>
+        )}
+        {/* Les flèches de jour ne sont pas sur la planche : le copilote parle
+            d'aujourd'hui. Elles restent, en pied et en petit, parce que
+            regarder la veille ou le lendemain est un besoin réel. */}
+        <nav className="flex justify-between pt-2 text-[12px] font-bold text-texte-attenue">
+          <Link href={`/app/tournee?le=${veille}`} className="hover:text-prune">
+            ‹ Veille
+          </Link>
+          <Link href={`/app/tournee?le=${lendemain}`} className="hover:text-prune">
+            Lendemain ›
+          </Link>
+        </nav>
+      </CorpsEcran>
     </>
   )
 }
 
-type RdvTournee = {
-  id: string
-  address_line1: string | null
-  clients: unknown
+/**
+ * Le fil de pastilles : le motif trajet de la planche 8a, porté en avancement.
+ *
+ * Fait en miel plein, en cours en anneau abricot, à venir en anneau doux ; le
+ * segment qui reste à parcourir est pointillé, celui qui l'est déjà est plein.
+ * C'est la seule figure de la planche qui dit d'un coup d'œil où en est la
+ * journée.
+ */
+function FilTrajet({ journee }: { journee: Etat[] }) {
+  return (
+    <span aria-hidden className="flex items-center pt-1.5">
+      {journee.map((etat, i) => (
+        <span key={i} className="flex items-center">
+          {i > 0 ? (
+            <span
+              className={`h-[2.5px] w-[30px] ${
+                journee[i - 1] === 'termine' ? 'bg-celebration' : 'trait-pointille'
+              }`}
+            />
+          ) : null}
+          <span
+            className={`size-3 rounded-pilule ${
+              etat === 'termine'
+                ? 'bg-celebration'
+                : etat === 'en-cours'
+                  ? 'border-[2.5px] border-attente'
+                  : 'border-[2.5px] border-texte-sur-plein-doux'
+            }`}
+          />
+        </span>
+      ))}
+    </span>
+  )
 }
 
-function detailProchain(rdv: RdvTournee & { address_line1: string | null }, trajets: Trajets) {
+/**
+ * La carte du prochain rendez-vous : la seule de l'écran à porter une bordure
+ * framboise. C'est la question à laquelle le pro vient chercher une réponse,
+ * il ne doit pas la chercher.
+ */
+function ProchainRdv({
+  rdv,
+  trajets,
+}: {
+  rdv: {
+    id: string
+    starts_at: string
+    service_name: string
+    address_line1: string | null
+    city: string | null
+    lat: number | null
+    lng: number | null
+    clients: unknown
+  }
+  trajets: Trajets
+}) {
   const trajet = trajets.get(rdv.id)
-  const adresse = rdv.address_line1 ?? ''
-  return trajet
-    ? remplir(T.gabarits.prochainDetail, { adresse, min: String(trajet.minutes) })
-    : adresse
+  const lieu = [rdv.address_line1, rdv.city].filter(Boolean).join(', ')
+
+  return (
+    <div className="flex flex-col gap-2 rounded-carte border-2 border-action bg-surface px-3.5 py-[13px]">
+      <div className="flex items-center justify-between gap-2.5">
+        <span className="text-[13.5px] font-bold">
+          {nomDe(rdv.clients)} · {heure.format(new Date(rdv.starts_at))}
+        </span>
+        {trajet ? (
+          <span className="shrink-0 text-[11.5px] font-bold text-texte-secondaire">
+            {remplir(T.gabarits.route, { min: String(trajet.minutes) })}
+          </span>
+        ) : null}
+      </div>
+      <p className="text-[12px] text-texte-attenue">
+        {rdv.service_name}
+        {lieu ? ` · ${lieu}` : ` · ${T.$aEcrire.sansAdresse}`}
+      </p>
+      <div className="flex flex-col gap-1.5">
+        {rdv.lat !== null && rdv.lng !== null ? (
+          <a
+            href={lienGps(rdv.lat, rdv.lng)}
+            rel="noopener noreferrer"
+            target="_blank"
+            className="tactile w-full rounded-pilule bg-action py-3 text-center text-[13px] font-bold text-texte-sur-plein hover:bg-action-survol"
+          >
+            {T.tournee.gps}
+          </a>
+        ) : null}
+        <Link
+          href={`/app/agenda/${rdv.id}`}
+          className="tactile w-full rounded-pilule border-[1.5px] border-texte-principal/25 py-3 text-center text-[13px] font-bold hover:border-prune"
+        >
+          {T.prochain.fiche}
+        </Link>
+      </div>
+    </div>
+  )
+}
+
+/**
+ * La journée bouclée : la célébration 13b, une fois par jour au maximum.
+ *
+ * Le bilan reprend les compteurs RÉELS du jour. Aucune estimation : un chiffre
+ * inventé dans une célébration est un mensonge que la pro croira.
+ */
+function Bouclee({ journee, trajets }: { journee: { price_cents: number }[]; trajets: Trajets }) {
+  const km = [...trajets.values()].reduce((somme, t) => somme + t.km, 0)
+  const encaisse = journee.reduce((somme, r) => somme + r.price_cents, 0)
+
+  return (
+    <div className="flex flex-col gap-2.5 py-2">
+      <FilBoucle n={journee.length} />
+      <h1 className="statement-ecran">{T.tournee.bouclee}</h1>
+      <div className="flex justify-between rounded-carte bg-surface px-3.5 py-[13px] text-[12.5px] font-bold">
+        <span>{remplir(T.gabarits.nRdv, { n: String(journee.length) })}</span>
+        <span>{km > 0 ? formatDistance(km) : '0 km'}</span>
+        <span>{formatEuros(encaisse)}</span>
+      </div>
+    </div>
+  )
+}
+
+/** Le fil de la planche, entièrement en miel : tout est fait. */
+function FilBoucle({ n }: { n: number }) {
+  return (
+    <span aria-hidden className="flex items-center px-0.5 py-1">
+      {Array.from({ length: n }, (_, i) => (
+        <span key={i} className="flex items-center">
+          {i > 0 ? <span className="h-[2.5px] w-[42px] bg-celebration" /> : null}
+          <span className="size-3 rounded-pilule bg-celebration" />
+        </span>
+      ))}
+    </span>
+  )
+}
+
+/**
+ * Le jour off. Pas de CTA de remplissage, pas de culpabilisation : la planche
+ * est explicite, un jour sans rendez-vous n'est pas un échec.
+ *
+ * ⚠️ Écart signalé : la planche annonce la prochaine tournée (« jeudi, 2
+ * rendez-vous à Rezé »). Il faudrait interroger les jours suivants pour
+ * l'écrire sans mentir ; en attendant, on propose simplement d'aller voir le
+ * lendemain plutôt que d'annoncer un chiffre qu'on n'a pas.
+ */
+function JourSansRdv({ jour, lendemain }: { jour: Date; lendemain: string }) {
+  return (
+    <div className="my-auto flex flex-col gap-2.5 py-6 text-center">
+      <p className="text-[14px] font-bold">
+        {remplir(T.gabarits.jourOff, { jour: jourSeul.format(jour) })}
+      </p>
+      <p className="text-[12.5px] leading-[1.5] text-texte-attenue">{V.agendaVide.invitation}</p>
+      <Link
+        href={`/app/tournee?le=${lendemain}`}
+        className="tactile w-full rounded-pilule border-[1.5px] border-texte-principal/25 py-3 text-center text-[12.5px] font-bold hover:border-prune"
+      >
+        {T.$aEcrire.voirLendemain}
+      </Link>
+    </div>
+  )
 }
 
 /**

@@ -73,10 +73,11 @@ body {
   font-weight: var(--font-weight-titre);
 }
 
-/* Le statement d'un écran d'authentification (planche 14b) : Fraunces 30 px,
-   interligne serré, axe WONK. Il ouvre l'écran sur un plein prune, il n'est
-   pas un titre de page. */
-.statement-auth {
+/* Le statement qui OUVRE un écran, sans le titrer : Fraunces 30 px, interligne
+   serré, axe WONK. Deux emplois, tous deux au board : l'authentification
+   (14b, 30 px) et « Journée bouclée. » (16d, 32 px). Une seule taille pour les
+   deux, l'écart de 2 px ne vaut pas une seconde classe. */
+.statement-ecran {
   font-family: var(--font-display);
   font-size: 30px;
   line-height: 1.05;
@@ -101,6 +102,16 @@ body {
   color: var(--color-attente);
   padding: 0;
   font-weight: 700;
+}
+
+/* Le segment de trajet encore à parcourir : pointillé, comme le motif trajet
+   de la planche 8a. Le segment déjà parcouru est plein et miel. */
+.trait-pointille {
+  background-image: repeating-linear-gradient(
+    90deg,
+    var(--color-attente) 0 6px,
+    transparent 6px 12px
+  );
 }
 
 /* Le prix, en Fraunces, à droite d'une rangée (planches 14d et 14e).

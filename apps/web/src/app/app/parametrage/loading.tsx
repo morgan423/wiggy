@@ -16,7 +16,7 @@ import {
 export default function ChargementParametrage() {
   return (
     <>
-      <EnteteEcran statement="Ton activité." />
+      <EnteteEcran variante="hub" statement="Ton activité." />
       <CorpsEcran>
         <EtiquetteSection>Prestations</EtiquetteSection>
         <RangeeSquelette />

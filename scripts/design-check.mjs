@@ -52,13 +52,24 @@ for (const chemin of fichiers) {
       signaler(chemin, n, 'serif-dans-agenda', 'la serif n’a pas sa place dans l’agenda')
     }
 
+    // ⚠️ Portée de ② : la règle lit les fichiers d'écran, pas la trousse. Le
+    // bandeau `EnteteEcran` porte la date en Fraunces 24 px, comme les
+    // planches 16a et 16b le montrent, et l'annotation « jamais de serif dans
+    // l'agenda » de Design vise la LISTE, pas la tête d'écran. C'est
+    // volontaire et écrit ici pour que personne ne le découvre par surprise.
+
     // ③ WONK réservé aux statements du site et aux chiffres héros.
     //
     // Le board 8a écrit « WONK réservé aux statements ET aux chiffres héros »,
     // et la planche 11d le montre dans l'application, en miel sur prune. La
-    // classe `statement` reste au site ; dans l'app, seul `chiffre-heros`
-    // ouvre l'axe, et jamais l'interface courante.
-    if (/\bstatement\b/.test(classes) && estEspacePro) {
+    // classe `statement` (55 à 92 px) reste au site ; dans l'app, seuls
+    // `chiffre-heros` et `statement-ecran` ouvrent l'axe, et jamais
+    // l'interface courante.
+    //
+    // La classe se cherche entre délimiteurs, pas par `\b` : `statement-ecran`
+    // est le statement de 30 px des planches 14b et 16d, il n'a rien à voir
+    // avec celui du site, et un tiret n'est pas une frontière de classe.
+    if (/(^|[\s"'`])statement([\s"'`]|$)/.test(classes) && estEspacePro) {
       signaler(
         chemin,
         n,

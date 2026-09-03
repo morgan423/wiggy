@@ -23,9 +23,15 @@ export const RANGEE =
 /**
  * Le bandeau prune qui ouvre chaque écran.
  *
- * Planche 14c pour le hub (padding 20/18, statement 28 px, sous-titre), 14d à
- * 14g pour les écrans de second niveau (padding 18, lien de retour 12 px en
- * gras, statement 26 px à 4 px sous lui). Statement à gauche, jamais centré.
+ * Trois tailles de statement, celles des planches, et rien entre les deux :
+ * 28 px pour le hub (14c), 26 px pour un écran de réglage (14d à 14g), 24 px
+ * pour les écrans du jour (16a, 16b, 16d), où la date change tous les jours et
+ * n'a pas à crier.
+ *
+ * `action` est le contrôle en haut à droite, sur la ligne du statement : la
+ * bascule « Jour · Semaine » de 16a, les flèches de jour de la tournée.
+ * `children` est ce qui vient sous le sous-titre, comme le fil de pastilles
+ * de 16d.
  *
  * Il déborde la gouttière du corps : sur la planche, le prune touche les bords
  * de l'écran, il n'est pas une carte posée dans une marge.
@@ -35,12 +41,20 @@ export function EnteteEcran({
   retourLibelle,
   statement,
   sousTitre,
+  variante = 'section',
+  action,
+  children,
 }: {
   retour?: string
   retourLibelle?: string
   statement: string
   sousTitre?: string
+  variante?: 'hub' | 'section' | 'jour'
+  action?: React.ReactNode
+  children?: React.ReactNode
 }) {
+  const taille =
+    variante === 'hub' ? 'text-[28px]' : variante === 'jour' ? 'text-[24px]' : undefined
   return (
     <header
       className={`sur-plein -mx-4 -mt-3.5 bg-prune text-texte-sur-plein ${
@@ -55,12 +69,16 @@ export function EnteteEcran({
           ‹ {retourLibelle ?? 'Ton activité'}
         </Link>
       ) : null}
-      <h1 className={`titre font-bold tracking-tight ${retour ? 'mt-1' : 'text-[28px]'}`}>
-        {statement}
-      </h1>
+      <div className="flex items-center justify-between gap-2.5">
+        <h1 className={`titre font-bold tracking-tight ${retour ? 'mt-1' : ''} ${taille ?? ''}`}>
+          {statement}
+        </h1>
+        {action}
+      </div>
       {sousTitre ? (
         <p className="mt-1 text-[12.5px] text-texte-sur-plein-doux">{sousTitre}</p>
       ) : null}
+      {children}
     </header>
   )
 }
@@ -314,7 +332,7 @@ export function PanneauAuth({
 }) {
   return (
     <section className="sur-plein flex flex-1 flex-col gap-3 rounded-bloc bg-prune px-[18px] py-6 text-texte-sur-plein">
-      <h1 className="statement-auth">{statement}</h1>
+      <h1 className="statement-ecran">{statement}</h1>
       {sousTitre ? (
         <p className="text-[13px] leading-[1.5] text-texte-sur-plein-doux">{sousTitre}</p>
       ) : null}

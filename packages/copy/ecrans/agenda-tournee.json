@@ -1,12 +1,23 @@
 {
   "$ecran": "Ma tournée (C0) et détail du rendez-vous",
-  "$source": "board phase 2, blocs 3c, 5a, 7a, 9b et 12a",
+  "$source": "board phase 2 (blocs 3c, 5a, 7a, 9b, 12a) et spécification Design, planches 16a, 16b, 16d",
   "$registre": "pro",
   "titre": "Ma tournée",
   "gabarits": {
     "resume": "Ta tournée · {n} rendez-vous · {km}",
     "restant": "Plus que {n} rendez-vous et ta journée est bouclée",
-    "prochainDetail": "{adresse} · à {min} min en voiture"
+    "prochainDetail": "{adresse} · à {min} min en voiture",
+    "resumeJour": "{n} rendez-vous · {trajet} de trajet · fini à {fin}",
+    "progression": "{faits} sur {total} faits · prochaine : {cliente} à {heure}",
+    "route": "{min} min de route",
+    "depuisPrecedent": "{min} min depuis ton RDV précédent",
+    "jourOff": "Rien aujourd'hui, c'est ton {jour}.",
+    "prochaineTournee": "Prochaine tournée : {quand}.",
+    "aDecider": "À décider ({n})",
+    "horsZoneCourt": "hors zone +{km}",
+    "nRdv": "{n} RDV",
+    "ficheDe": "Voir la fiche de {prenom}",
+    "recapRdv": "{prestation} · {jour} · {heure} · {prix}"
   },
   "entete": {
     "resumeExemple": "Ta tournée · 4 rendez-vous · 12 km"
@@ -22,12 +33,22 @@
   },
   "etats": {
     "enCours": "En cours",
-    "termine": "Terminé"
+    "termine": "Terminé",
+    "sousReserve": "sous réserve"
   },
   "rendezVous": {
     "cloture": "Terminé",
     "clotureAction": "Terminer le rendez-vous",
-    "trajet": "8 min de trajet"
+    "trajet": "8 min de trajet",
+    "retour": "Agenda",
+    "notes": "Tes notes",
+    "acompte": "Acompte reçu",
+    "modifier": "Modifier",
+    "trajetVers": "Commencer le trajet",
+    "titreEdition": "Modifier le rendez-vous",
+    "titreAjout": "Nouveau rendez-vous",
+    "annuler": "Annuler le rendez-vous",
+    "avertissementTournee": "Wiggy te signale si le moment casse ta tournée, tu peux le garder quand même."
   },
   "progression": {
     "restant": "Plus que 3 rendez-vous et ta journée est bouclée"
@@ -36,6 +57,23 @@
     "$note": "Absent du board : à faire ratifier.",
     "aVenir": "À venir",
     "photosCliente": "Ce que ta cliente a envoyé",
-    "sansAdresse": "Adresse non reconnue : pas de trajet calculé."
+    "sansAdresse": "Adresse non reconnue : pas de trajet calculé.",
+    "voirLendemain": "Voir le lendemain"
+  },
+  "tournee": {
+    "statement": "Ta tournée, {pro}.",
+    "bouclee": "Journée bouclée.",
+    "gps": "Lancer le GPS",
+    "retard": "Je suis en retard",
+    "ensuite": "ensuite"
+  },
+  "agenda": {
+    "bascule": "Jour · Semaine",
+    "semaine": "Semaine du {date}",
+    "jourOff": "off, récurrent",
+    "legende": "Framboise : réservé · abricot : sous réserve · gris : libre.",
+    "ajouter": "Ajouter un rendez-vous",
+    "pret": "Ton agenda est prêt.",
+    "pretInvitation": "Partage ton lien : la première réservation arrive souvent dans les 48 h. Tu peux aussi ajouter toi-même les rendez-vous pris par téléphone."
   }
 }

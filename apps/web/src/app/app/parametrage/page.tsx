@@ -91,6 +91,7 @@ export default async function Parametrage() {
   return (
     <>
       <EnteteEcran
+        variante="hub"
         statement="Ton activité."
         sousTitre={
           pret

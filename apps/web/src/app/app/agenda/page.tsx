@@ -6,7 +6,6 @@ import {
   ajouterJours,
   joursDeLaSemaine,
   instantVersHeureLocale,
-  formatEuros,
   formatDistance,
   distanceALaZone,
 } from '@wiggy/core'
@@ -15,21 +14,29 @@ import { requirePro } from '@/lib/auth'
 import { supabaseServer } from '@/lib/supabase/server'
 import { zoneDuPro } from '@/lib/zone'
 import { trajetsDeLaJournee, libelleTrajet, type Trajets } from '@/lib/tournee'
-import { annulerRdv, validerDemande, refuserDemande } from './actions'
+import { EnteteEcran, CorpsEcran, RANGEE, PastilleEtat } from '@/components/composition'
 
 /**
- * B10 : l'agenda de planification.
+ * B10, l'agenda de planification. Planche 16a.
  *
- * Distinct de « Ma tournée » (C0), qui montre le jour vécu : ici c'est la vue
- * de gestion, sur grand écran.
+ * Vue JOUR par défaut, comme la planche : c'est la question du matin. La vue
+ * semaine n'est pas une grille horaire, c'est un RADAR DE CHARGE, une barre par
+ * jour, framboise pour ce qui est réservé, abricot pour ce qui attend une
+ * décision, gris pour ce qui reste libre.
  *
- * Deux ajouts par rapport à la planification pure. Les demandes à décider
- * (A6 hors zone, A11 confirmation manuelle) passent en tête : une demande qui
- * dort est une cliente qui part ailleurs. Et en vue jour, les temps de trajet
- * s'affichent entre les rendez-vous, comme sur la tournée.
+ * « À décider » n'apparaît que s'il y a à décider, et passe en tête : une
+ * demande qui dort est une cliente qui part ailleurs. La carte est abricot,
+ * elle se voit avant tout le reste.
+ *
+ * Un tap sur une carte ouvre la CONSULTATION (16b), jamais l'édition.
+ *
+ * Jamais de serif dans l'agenda, sauf la date en tête : c'est la règle typo du
+ * design system, et la planche la respecte au caractère près.
  */
 
+const T = copy.agendaTournee
 const D = copy.demandesPro
+const V = copy.etatsVides
 
 const heure = new Intl.DateTimeFormat('fr-FR', {
   timeZone: ZONE,
@@ -47,10 +54,10 @@ const jourCourt = new Intl.DateTimeFormat('fr-FR', {
   day: 'numeric',
   month: 'long',
 })
-const moisAnnee = new Intl.DateTimeFormat('fr-FR', {
+const jourRadar = new Intl.DateTimeFormat('fr-FR', {
   timeZone: ZONE,
-  month: 'long',
-  year: 'numeric',
+  weekday: 'short',
+  day: 'numeric',
 })
 
 /** Détour routier moyen par rapport à la ligne droite (cf. moteur de trajets). */
@@ -91,13 +98,13 @@ export default async function Agenda({
 }) {
   await requirePro()
   const { vue: vueBrute, le, adresse } = await searchParams
-  const vue: Vue = vueBrute === 'jour' ? 'jour' : 'semaine'
+  // Vue jour par défaut (planche 16a) : c'est la journée qu'on vient regarder.
+  const vue: Vue = vueBrute === 'semaine' ? 'semaine' : 'jour'
 
   // `le` vient de l'URL : on ne lui fait pas confiance pour construire une date.
   const ancre = ancreValide(le)
   const debut = vue === 'jour' ? debutDeJour(ancre) : debutDeSemaine(ancre)
   const fin = ajouterJours(debut, vue === 'jour' ? 1 : 7)
-  const jours = vue === 'jour' ? [debut] : joursDeLaSemaine(ancre)
 
   const supabase = await supabaseServer()
   const [{ data: rdvs }, { data: aDecider }] = await Promise.all([
@@ -128,157 +135,249 @@ export default async function Agenda({
     10,
   )
   const suivant = instantVersHeureLocale(ajouterJours(debut, vue === 'jour' ? 1 : 7)).slice(0, 10)
+  const ancreCourante = instantVersHeureLocale(debut).slice(0, 10)
+  const autreVue: Vue = vue === 'jour' ? 'semaine' : 'jour'
+
+  const duJour = rdvs ?? []
+  const minutesTrajet = [...trajets.values()].reduce((somme, t) => somme + t.minutes, 0)
+  const derniere = duJour.length > 0 ? duJour[duJour.length - 1] : null
 
   return (
     <>
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <h1 className="text-3xl font-extrabold tracking-tight capitalize">
-          {moisAnnee.format(debut)}
-        </h1>
+      <EnteteEcran
+        variante="jour"
+        statement={
+          vue === 'jour'
+            ? capitale(jourLong.format(debut))
+            : remplir(T.agenda.semaine, { date: jourCourt.format(debut) })
+        }
+        sousTitre={
+          vue === 'jour' && duJour.length > 0 && derniere
+            ? remplir(T.gabarits.resumeJour, {
+                n: String(duJour.length),
+                trajet: minutesTrajet > 0 ? `${String(minutesTrajet)} min` : '0 min',
+                fin: heure.format(new Date(derniere.ends_at)),
+              })
+            : undefined
+        }
+        action={
+          // La planche ne met qu'un contrôle dans le bandeau : la bascule de
+          // vue. Les flèches de jour descendent en pied de liste, sinon la
+          // date longue (« Jeudi 3 septembre ») passe à deux lignes et le
+          // bandeau double de hauteur.
+          <Link
+            href={`/app/agenda?vue=${autreVue}&le=${ancreCourante}`}
+            className="tactile shrink-0 rounded-pilule bg-texte-sur-plein/14 px-2.5 text-[11px] font-extrabold"
+          >
+            {vue === 'jour' ? 'Semaine' : 'Jour'}
+          </Link>
+        }
+      />
+
+      <CorpsEcran serre>
+        {adresse === 'commune' || adresse === 'inconnue' ? (
+          <p
+            role="status"
+            className="rounded-champ bg-attente px-3.5 py-2.5 text-[12px] font-semibold"
+          >
+            {adresse === 'commune' ? D.$aEcrire.adresseApprochee : D.$aEcrire.adresseInconnue}
+          </p>
+        ) : null}
+
+        <ADecider demandes={aDecider ?? []} />
+
+        {vue === 'semaine' ? (
+          <Radar ancre={ancre} rdvs={duJour} />
+        ) : duJour.length === 0 ? (
+          <AgendaVide />
+        ) : (
+          <ul className="flex flex-col gap-2">
+            {duJour.map((r) => {
+              const trajet = trajets.get(r.id)
+              const annule = r.status === 'cancelled'
+              const enCours =
+                !annule && new Date(r.starts_at) <= new Date() && new Date(r.ends_at) > new Date()
+              const termine = !annule && new Date(r.ends_at) <= new Date()
+              return (
+                <li key={r.id} className="flex flex-col gap-2">
+                  {/* Le trajet se lit entre les deux rendez-vous qu'il relie,
+                      pas dans une colonne à part : c'est ce qui fait lire la
+                      journée comme une tournée. */}
+                  {trajet ? (
+                    <p className="pl-3.5 text-[11px] font-bold text-texte-secondaire">
+                      · · {libelleTrajet(trajet)}
+                    </p>
+                  ) : null}
+                  <Link
+                    href={`/app/agenda/${r.id}`}
+                    className={`${RANGEE} gap-2.5 px-3.5 py-3 hover:bg-fond ${
+                      enCours ? 'border-2 border-action' : ''
+                    } ${annule ? 'opacity-55' : ''}`}
+                  >
+                    <span className="w-[42px] shrink-0 text-[13px] font-extrabold">
+                      {heure.format(new Date(r.starts_at))}
+                    </span>
+                    <span className="flex min-w-0 flex-1 flex-col gap-px">
+                      <span className={`text-[13px] font-bold ${annule ? 'line-through' : ''}`}>
+                        {nomDe(clienteDe(r.clients))} · {r.service_name}
+                      </span>
+                      {r.city || r.address_line1 ? (
+                        <span className="text-[11.5px] text-texte-attenue">
+                          {r.address_line1 ?? r.city}
+                        </span>
+                      ) : null}
+                    </span>
+                    <EtatRdv annule={annule} enCours={enCours} termine={termine} />
+                  </Link>
+                </li>
+              )
+            })}
+          </ul>
+        )}
+        <nav className="flex justify-between pt-2 text-[12px] font-bold text-texte-attenue">
+          <Link href={`/app/agenda?vue=${vue}&le=${precedent}`} className="hover:text-prune">
+            ‹ {vue === 'jour' ? 'Veille' : 'Semaine précédente'}
+          </Link>
+          <Link href={`/app/agenda?vue=${vue}&le=${suivant}`} className="hover:text-prune">
+            {vue === 'jour' ? 'Lendemain' : 'Semaine suivante'} ›
+          </Link>
+        </nav>
+      </CorpsEcran>
+
+      {/*
+        Le bouton flottant de la planche : framboise, au-dessus de la barre de
+        navigation. C'est le chemin des rendez-vous pris par téléphone, et il ne
+        doit jamais demander de descendre au bas d'une liste. Il s'efface quand
+        l'écran est vide : l'état vide porte déjà l'action, et deux affordances
+        d'ajout côte à côte ont déjà été relevées comme un défaut à la recette 6.
+      */}
+      {duJour.length > 0 || vue === 'semaine' ? (
         <Link
           href="/app/agenda/nouveau"
-          className="rounded-pilule bg-action px-6 py-3 font-bold text-texte-sur-plein hover:bg-action-survol active:bg-action-pressee"
+          aria-label={T.agenda.ajouter}
+          className="tactile sticky bottom-3 z-20 ml-auto size-14 min-h-14 min-w-14 rounded-pilule bg-action text-2xl font-bold text-texte-sur-plein shadow-lg hover:bg-action-survol"
         >
-          Ajouter un rendez-vous
+          <span aria-hidden>+</span>
         </Link>
-      </div>
-
-      {adresse === 'commune' || adresse === 'inconnue' ? (
-        <p role="status" className="mt-6 rounded-carte bg-attente/25 px-5 py-4">
-          {adresse === 'commune' ? D.$aEcrire.adresseApprochee : D.$aEcrire.adresseInconnue}
-        </p>
       ) : null}
+    </>
+  )
+}
 
-      <ADecider demandes={aDecider ?? []} />
+/** Les trois badges de la planche : miel fait, framboise en cours, contour à venir. */
+function EtatRdv({
+  annule,
+  enCours,
+  termine,
+}: {
+  annule: boolean
+  enCours: boolean
+  termine: boolean
+}) {
+  if (annule) {
+    return <span className="shrink-0 text-[10px] font-extrabold text-texte-attenue">Annulé</span>
+  }
+  if (termine) return <PastilleEtat>{T.etats.termine}</PastilleEtat>
+  if (enCours) {
+    return (
+      <span className="shrink-0 rounded-pilule bg-action px-2 py-1 text-[10px] font-extrabold whitespace-nowrap text-texte-sur-plein">
+        {T.etats.enCours}
+      </span>
+    )
+  }
+  return (
+    <span className="shrink-0 rounded-pilule border-[1.5px] border-texte-principal/25 px-2 py-1 text-[10px] font-extrabold whitespace-nowrap">
+      {T.$aEcrire.aVenir}
+    </span>
+  )
+}
 
-      <nav className="mt-8 flex flex-wrap items-center gap-3 text-sm font-semibold">
-        <Link
-          href={`/app/agenda?vue=${vue}&le=${precedent}`}
-          className="tactile rounded-pilule border-2 border-trait-discret px-4 hover:border-prune"
-        >
-          ← Précédent
-        </Link>
-        <Link
-          href={`/app/agenda?vue=${vue}`}
-          className="tactile rounded-pilule border-2 border-trait-discret px-4 hover:border-prune"
-        >
-          Aujourd’hui
-        </Link>
-        <Link
-          href={`/app/agenda?vue=${vue}&le=${suivant}`}
-          className="tactile rounded-pilule border-2 border-trait-discret px-4 hover:border-prune"
-        >
-          Suivant →
-        </Link>
-        <span className="ml-auto flex gap-2">
-          {(['jour', 'semaine'] as Vue[]).map((v) => (
-            <Link
-              key={v}
-              href={`/app/agenda?vue=${v}&le=${instantVersHeureLocale(debut).slice(0, 10)}`}
-              aria-current={vue === v ? 'page' : undefined}
-              className={`tactile rounded-pilule px-4 capitalize ${vue === v ? 'bg-prune text-texte-sur-plein' : 'border-2 border-trait-discret hover:border-prune'}`}
-            >
-              {v}
-            </Link>
-          ))}
-        </span>
-      </nav>
+/**
+ * La semaine : un radar de charge, jamais une grille horaire.
+ *
+ * Une barre par jour, dont les segments disent l'occupation réelle : framboise
+ * pour ce qui est réservé, abricot pour ce qui attend une décision, gris pour
+ * ce qui reste. Un tap sur un jour ouvre sa vue jour.
+ */
+function Radar({ ancre, rdvs }: { ancre: Date; rdvs: { starts_at: string; status: string }[] }) {
+  const jours = joursDeLaSemaine(ancre)
 
-      <div className="mt-8 space-y-6">
+  return (
+    <>
+      <ul className="flex flex-col gap-[7px]">
         {jours.map((jour) => {
           const finJour = ajouterJours(jour, 1)
-          const duJour = (rdvs ?? []).filter((r) => {
+          const duJour = rdvs.filter((r) => {
             const t = new Date(r.starts_at).getTime()
             return t >= jour.getTime() && t < finJour.getTime()
           })
+          const reserves = duJour.filter(
+            (r) => r.status !== 'cancelled' && r.status !== 'pending' && r.status !== 'conditional',
+          ).length
+          const attente = duJour.filter(
+            (r) => r.status === 'pending' || r.status === 'conditional',
+          ).length
+          const libre = Math.max(0, 4 - reserves - attente)
 
           return (
-            <section key={jour.toISOString()}>
-              <h2 className="text-sm font-bold tracking-widest text-texte-secondaire uppercase">
-                {jourLong.format(jour)}
-              </h2>
-
-              {duJour.length === 0 ? (
-                <p className="mt-2 rounded-carte bg-fond px-5 py-4 text-texte-secondaire">
-                  Aucun rendez-vous.
-                </p>
-              ) : (
-                <ul className="mt-2 space-y-2">
-                  {duJour.map((r) => {
-                    const annule = r.status === 'cancelled'
-                    const trajet = trajets.get(r.id)
-                    return (
-                      <li key={r.id}>
-                        {/* Le trajet se lit entre les deux rendez-vous qu'il
-                            relie, pas dans une colonne à part : c'est ce qui
-                            fait lire la journée comme une tournée. */}
-                        {trajet ? (
-                          <p className="flex items-center gap-3 py-2 pl-5 text-sm font-semibold text-texte-secondaire">
-                            <span aria-hidden className="trait-trajet" />
-                            {libelleTrajet(trajet)}
-                          </p>
-                        ) : null}
-                        <div
-                          className={`flex flex-wrap items-center gap-x-5 gap-y-2 rounded-carte border-2 border-trait-discret p-5 ${
-                            annule ? 'text-texte-secondaire' : ''
-                          }`}
-                        >
-                          <span className="font-mono text-lg font-bold">
-                            {heure.format(new Date(r.starts_at))}
-                            <span className="text-texte-secondaire">
-                              {' à '}
-                              {heure.format(new Date(r.ends_at))}
-                            </span>
-                          </span>
-                          <span className={`text-lg font-bold ${annule ? 'line-through' : ''}`}>
-                            {nomDe(clienteDe(r.clients))}
-                          </span>
-                          <span className="text-texte-secondaire">
-                            {r.service_name} · {formatEuros(r.price_cents)}
-                            {r.city ? ` · ${r.city}` : ''}
-                          </span>
-                          {r.source === 'online' ? (
-                            <span className="rounded-pilule bg-fond px-3 py-1 text-xs font-bold">
-                              En ligne
-                            </span>
-                          ) : null}
-                          {r.status === 'conditional' ? (
-                            <span className="rounded-pilule bg-attente/40 px-3 py-1 text-xs font-bold">
-                              {D.badge}
-                            </span>
-                          ) : null}
-                          {!annule ? (
-                            <div className="ml-auto flex gap-4">
-                              <Link
-                                href={`/app/agenda/${r.id}`}
-                                className="text-sm font-semibold text-texte-secondaire hover:text-prune"
-                              >
-                                Modifier
-                              </Link>
-                              <form action={annulerRdv}>
-                                <input type="hidden" name="id" value={r.id} />
-                                <button
-                                  type="submit"
-                                  className="text-sm font-semibold text-texte-secondaire hover:text-erreur"
-                                >
-                                  Annuler
-                                </button>
-                              </form>
-                            </div>
-                          ) : (
-                            <span className="ml-auto text-sm font-semibold">Annulé</span>
-                          )}
-                        </div>
-                      </li>
-                    )
-                  })}
-                </ul>
-              )}
-            </section>
+            <li key={jour.toISOString()}>
+              <Link
+                href={`/app/agenda?vue=jour&le=${instantVersHeureLocale(jour).slice(0, 10)}`}
+                className="flex items-center gap-2.5 rounded-[14px] bg-surface px-3.5 py-[11px] hover:bg-fond"
+              >
+                <span className="w-[58px] shrink-0 text-[12px] font-extrabold capitalize">
+                  {jourRadar.format(jour)}
+                </span>
+                <span aria-hidden className="flex flex-1 gap-[3px]">
+                  {reserves > 0 ? (
+                    <span className="h-3 rounded-pilule bg-action" style={{ flex: reserves }} />
+                  ) : null}
+                  {attente > 0 ? (
+                    <span className="h-3 rounded-pilule bg-attente" style={{ flex: attente }} />
+                  ) : null}
+                  {libre > 0 ? (
+                    <span className="h-3 rounded-pilule bg-trait-discret" style={{ flex: libre }} />
+                  ) : null}
+                </span>
+                <span className="w-[52px] shrink-0 text-right text-[11.5px] font-bold">
+                  {attente > 0
+                    ? `${String(reserves)} + ${String(attente)} ?`
+                    : remplir(T.gabarits.nRdv, { n: String(reserves) })}
+                </span>
+              </Link>
+            </li>
           )
         })}
-      </div>
+      </ul>
+      <p className="text-[11.5px] leading-[1.5] text-texte-attenue">{T.agenda.legende}</p>
     </>
+  )
+}
+
+/**
+ * L'état vide du jour un : deux issues, LE PARTAGE D'ABORD.
+ *
+ * La planche est explicite sur l'ordre : l'état vide travaille pour l'objectif
+ * des 48 heures de l'onboarding.
+ */
+function AgendaVide() {
+  return (
+    <div className="my-auto flex flex-col gap-2.5 py-6 text-center">
+      <p className="text-[14px] font-bold">{T.agenda.pret}</p>
+      <p className="text-[12.5px] leading-[1.5] text-texte-attenue">{T.agenda.pretInvitation}</p>
+      <Link
+        href="/app/parametrage/profil"
+        className="tactile w-full rounded-pilule bg-action py-[13px] text-center text-[14px] font-bold text-texte-sur-plein hover:bg-action-survol"
+      >
+        {V.agendaVide.bouton}
+      </Link>
+      <Link
+        href="/app/agenda/nouveau"
+        className="tactile w-full rounded-pilule border-[1.5px] border-texte-principal/25 py-3 text-center text-[13px] font-bold hover:border-prune"
+      >
+        {T.agenda.ajouter}
+      </Link>
+    </div>
   )
 }
 
@@ -301,9 +400,10 @@ type Demande = {
 /**
  * A6 / A11 : les demandes qui attendent une décision.
  *
- * Le board les montre validables « en un tap ». Deux boutons, rien entre les
- * deux, et l'information qui permet de décider : à quelle distance, et
- * pourquoi cette cliente est là (A5, le séjour).
+ * Carte abricot en tête de l'agenda, comme la planche 16a : elle se voit avant
+ * tout le reste. Chaque ligne dit qui, quand, et POURQUOI elle attend une
+ * décision. La décision elle-même se prend sur la consultation du rendez-vous
+ * (16b) : la planche met un chevron, pas deux boutons.
  */
 async function ADecider({ demandes }: { demandes: Demande[] }) {
   if (demandes.length === 0) return null
@@ -312,87 +412,52 @@ async function ADecider({ demandes }: { demandes: Demande[] }) {
   const zone = await zoneDuPro(pro.id)
 
   return (
-    <section className="mt-8 rounded-bloc bg-fond p-6">
-      <h2 className="text-sm font-bold tracking-widest text-texte-secondaire uppercase">
-        {D.$aEcrire.titre}
+    <section className="flex flex-col gap-2 rounded-carte bg-attente px-3.5 py-3">
+      <h2 className="text-[12px] font-extrabold">
+        {remplir(T.gabarits.aDecider, { n: String(demandes.length) })}
       </h2>
-      <ul className="mt-4 space-y-3">
-        {demandes.map((demande) => (
-          <li
-            key={demande.id}
-            className="flex flex-wrap items-center gap-x-5 gap-y-3 rounded-carte border-2 border-trait-discret bg-surface p-5"
-          >
-            <span className="text-lg font-bold">{nomDe(clienteDe(demande.clients))}</span>
-            <span className="text-texte-secondaire">
-              {demande.service_name} · {formatEuros(demande.price_cents)}
-            </span>
-            <span className="font-mono font-bold">
-              {jourCourt.format(new Date(demande.starts_at))}
-              {' · '}
-              {heure.format(new Date(demande.starts_at))}
-            </span>
-            {demande.address_line1 ? (
-              <span className="w-full text-texte-secondaire">
-                {demande.address_line1}
-                {demande.city ? `, ${demande.city}` : ''}
-              </span>
-            ) : null}
-            {demande.stay_from && demande.stay_to ? (
-              <span className="w-full font-semibold">
-                {remplir(D.$aEcrire.sejour, {
-                  du: jourCourt.format(new Date(`${demande.stay_from}T12:00:00Z`)),
-                  au: jourCourt.format(new Date(`${demande.stay_to}T12:00:00Z`)),
-                })}
-              </span>
-            ) : null}
-            {demande.out_of_zone ? (
-              <span className="w-full font-semibold">{detailHorsZone(demande, zone)}</span>
-            ) : null}
-
-            <div className="ml-auto flex gap-3">
-              <form action={validerDemande}>
-                <input type="hidden" name="id" value={demande.id} />
-                <button
-                  type="submit"
-                  className="tactile rounded-pilule bg-action px-6 font-bold text-texte-sur-plein hover:bg-action-survol active:bg-action-pressee"
-                >
-                  {D.actions.valider}
-                </button>
-              </form>
-              <form action={refuserDemande}>
-                <input type="hidden" name="id" value={demande.id} />
-                <button
-                  type="submit"
-                  className="tactile rounded-pilule border-2 border-trait-discret px-6 font-bold hover:border-erreur hover:text-erreur"
-                >
-                  {D.actions.refuser}
-                </button>
-              </form>
-            </div>
-          </li>
-        ))}
-      </ul>
-      <p className="mt-4 text-sm text-texte-secondaire">{D.$aEcrire.prevenir}</p>
+      {demandes.map((demande) => (
+        <Link
+          key={demande.id}
+          href={`/app/agenda/${demande.id}`}
+          className="flex items-center justify-between gap-2.5 rounded-champ bg-surface px-3 py-2.5"
+        >
+          <span className="min-w-0 text-[12px] font-bold">
+            {nomDe(clienteDe(demande.clients))} · {jourCourt.format(new Date(demande.starts_at))} ·{' '}
+            {heure.format(new Date(demande.starts_at))}{' '}
+            <span className="font-semibold text-texte-attenue">· {motif(demande, zone)}</span>
+          </span>
+          <span aria-hidden className="shrink-0 text-[14px]">
+            ›
+          </span>
+        </Link>
+      ))}
     </section>
   )
 }
 
 /**
- * De combien la demande sort de la zone.
+ * Pourquoi cette demande attend une décision, en trois mots.
  *
- * Recalculé à l'affichage plutôt que stocké : la zone du pro change (il ajoute
- * une commune), et un chiffre figé mentirait dès le lendemain.
+ * L'écart à la zone est recalculé à l'affichage plutôt que stocké : la zone du
+ * pro change quand il ajoute une commune, et un chiffre figé mentirait dès le
+ * lendemain.
  */
-function detailHorsZone(demande: Demande, zone: Awaited<ReturnType<typeof zoneDuPro>>): string {
-  if (demande.lat === null || demande.lng === null) return D.badge
+function motif(demande: Demande, zone: Awaited<ReturnType<typeof zoneDuPro>>): string {
+  if (demande.stay_from && demande.stay_to) return D.badge
+  if (!demande.out_of_zone) return T.etats.sousReserve
+  if (demande.lat === null || demande.lng === null) return T.etats.sousReserve
   const ecart = distanceALaZone(zone, { lat: demande.lat, lng: demande.lng })
-  if (!ecart) return D.badge
   // Distance routière approchée : la ligne droite sous-estime toujours.
-  const km = formatDistance(ecart.distanceKm * FACTEUR_DETOUR)
-  return ecart.repere
-    ? remplir(D.$aEcrire.horsZoneRepere, { km, repere: ecart.repere })
-    : remplir(D.gabarits.horsZoneApresRdv, { km })
+  const km = ecart ? ecart.distanceKm * FACTEUR_DETOUR : 0
+  // Un « hors zone +0 m » ne dit rien à personne : sous ce seuil, c'est le
+  // motif qui parle, pas la distance.
+  if (km < 0.1) return T.etats.sousReserve
+  return remplir(T.gabarits.horsZoneCourt, { km: formatDistance(km) })
 }
+
+/** « jeudi 3 septembre » devient « Jeudi 3 septembre » : c'est un statement. */
+const capitale = (texte: string) => texte.charAt(0).toUpperCase() + texte.slice(1)
 
 /** N'accepte qu'une date « AAAA-MM-JJ » plausible ; sinon, aujourd'hui. */
 function ancreValide(le: string | undefined): Date {

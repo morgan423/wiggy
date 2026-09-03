@@ -62,27 +62,28 @@ const VUES = [
   { nom: '05-pro-conges-rempli', compte: 'rempli', url: '/app/parametrage/conges' },
   { nom: '06-pro-profil-rempli', compte: 'rempli', url: '/app/parametrage/profil' },
   { nom: '07-pro-agenda', compte: 'rempli', url: '/app/agenda' },
-  { nom: '08-pro-agenda-nouveau', compte: 'rempli', url: '/app/agenda/nouveau' },
-  { nom: '09-pro-tournee', compte: 'rempli', url: '/app/tournee' },
-  { nom: '10-pro-accueil', compte: 'rempli', url: '/app' },
-  { nom: '11-galerie-composants', compte: 'rempli', url: '/app/galerie' },
+  { nom: '08-pro-rendez-vous', compte: 'rempli', url: '/app/agenda/{rdv}' },
+  { nom: '09-pro-agenda-nouveau', compte: 'rempli', url: '/app/agenda/nouveau' },
+  { nom: '10-pro-tournee', compte: 'rempli', url: '/app/tournee' },
+  { nom: '11-pro-accueil', compte: 'rempli', url: '/app' },
+  { nom: '12-galerie-composants', compte: 'rempli', url: '/app/galerie' },
   // Espace pro, compte du jour un : les états vides
-  { nom: '12-pro-hub-vide', compte: 'vide', url: '/app/parametrage' },
-  { nom: '13-pro-prestations-vide', compte: 'vide', url: '/app/parametrage/prestations' },
-  { nom: '14-pro-zone-vide', compte: 'vide', url: '/app/parametrage/zone' },
-  { nom: '15-pro-horaires-vide', compte: 'vide', url: '/app/parametrage/horaires' },
-  { nom: '16-pro-conges-vide', compte: 'vide', url: '/app/parametrage/conges' },
+  { nom: '13-pro-hub-vide', compte: 'vide', url: '/app/parametrage' },
+  { nom: '14-pro-prestations-vide', compte: 'vide', url: '/app/parametrage/prestations' },
+  { nom: '15-pro-zone-vide', compte: 'vide', url: '/app/parametrage/zone' },
+  { nom: '16-pro-horaires-vide', compte: 'vide', url: '/app/parametrage/horaires' },
+  { nom: '17-pro-conges-vide', compte: 'vide', url: '/app/parametrage/conges' },
   // Web cliente, sans compte
-  { nom: '17-site-accueil', url: '/' },
-  { nom: '18-site-recherche', url: '/recherche?ville=Pau' },
-  { nom: '19-cliente-page-publique', url: `/${COMPTES.rempli.slug}` },
-  { nom: '20-cliente-prestation', url: `/${COMPTES.rempli.slug}/reserver` },
+  { nom: '18-site-accueil', url: '/' },
+  { nom: '19-site-recherche', url: '/recherche?ville=Pau' },
+  { nom: '20-cliente-page-publique', url: `/${COMPTES.rempli.slug}` },
+  { nom: '21-cliente-prestation', url: `/${COMPTES.rempli.slug}/reserver` },
   {
-    nom: '21-cliente-adresse',
+    nom: '22-cliente-adresse',
     url: `/${COMPTES.rempli.slug}/reserver?p={service}`,
   },
   {
-    nom: '22-cliente-creneaux',
+    nom: '23-cliente-creneaux',
     url: `/${COMPTES.rempli.slug}/reserver?p={service}&a=${encodeURIComponent(ADRESSE.ligne)}&cp=${ADRESSE.cp}&v=${ADRESSE.ville}`,
   },
 ]
@@ -198,7 +199,59 @@ async function semer(client) {
     ]),
   })
 
-  return { serviceId: prestation.id }
+  // Une journée réelle, sinon l'agenda et la tournée se capturent toujours
+  // vides et leurs états remplis ne sont jamais regardés. C'est exactement
+  // comme ça que leur écart aux planches 16a et 16d est passé inaperçu.
+  const clientes = await client.rest('clients?select=id,first_name', {
+    method: 'POST',
+    headers: { Prefer: 'return=representation' },
+    body: JSON.stringify([
+      { pro_id: id, first_name: 'Marie', last_name: 'L.' },
+      { pro_id: id, first_name: 'Chantal', last_name: 'M.' },
+      { pro_id: id, first_name: 'Amélie', last_name: 'D.' },
+      { pro_id: id, first_name: 'Léa', last_name: 'B.' },
+    ]),
+  })
+  const min = (minutes) => new Date(Date.now() + minutes * 60_000).toISOString()
+  const lieu = {
+    address_line1: `12 rue des Lilas`,
+    postal_code: COMMUNE.cp,
+    city: COMMUNE.nom,
+    lat: COMMUNE.lat,
+    lng: COMMUNE.lng,
+  }
+  // Toutes les lignes portent exactement les mêmes clés : PostgREST refuse un
+  // lot dont les objets diffèrent (PGRST102).
+  const rdv = (cliente, debut, fin, status, horsZone = false) => ({
+    pro_id: id,
+    client_id: cliente.id,
+    service_id: prestation.id,
+    service_name: prestation.name,
+    price_cents: prestation.price_cents,
+    starts_at: debut,
+    ends_at: fin,
+    status,
+    source: 'online',
+    out_of_zone: horsZone,
+    ...lieu,
+  })
+  const rdvs = await client.rest('appointments?select=id', {
+    method: 'POST',
+    headers: { Prefer: 'return=representation' },
+    body: JSON.stringify([
+      // Terminé, en cours, à venir : les trois pastilles de la planche 16a,
+      // et le fil de pastilles de 16d, quelle que soit l'heure de la capture.
+      rdv(clientes[0], min(-180), min(-120), 'done'),
+      rdv(clientes[1], min(-30), min(30), 'in_progress'),
+      rdv(clientes[2], min(150), min(210), 'confirmed'),
+      // Une demande qui attend une décision : la carte abricot de 16a.
+      rdv(clientes[3], dans(5), min(5 * 1440 + 60), 'conditional', true),
+    ]),
+  })
+
+  // Le rendez-vous en cours : c'est lui qu'on ouvre pour capturer la
+  // consultation de la planche 16b.
+  return { serviceId: prestation.id, rdvId: rdvs[1].id }
 }
 
 async function nettoyer(client) {
@@ -235,7 +288,7 @@ async function executer() {
     await rm(DOSSIER, { recursive: true, force: true })
     await mkdir(DOSSIER, { recursive: true })
 
-    const { serviceId } = await semer(client)
+    const { serviceId, rdvId } = await semer(client)
     console.log('Comptes de test semés.\n')
 
     navigateur = await chromium.launch({ channel: 'chrome' })
@@ -256,7 +309,7 @@ async function executer() {
         connecte = null
       }
 
-      const url = serveur.base + vue.url.replace('{service}', serviceId)
+      const url = serveur.base + vue.url.replace('{service}', serviceId).replace('{rdv}', rdvId)
       await page.goto(url, { waitUntil: 'networkidle' }).catch(() => undefined)
 
       const releves = await releverContrastes(page)
