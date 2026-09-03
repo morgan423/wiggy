@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { usePanneau } from './panneau'
-import { SURFACE_CHAMP, LIBELLE, AIDE, PANNEAU, bordure, DESACTIVE } from './styles'
+import { SURFACE_CHAMP, LIBELLE, AIDE, PANNEAU, bordure, DESACTIVE, SURVOL_PANNEAU } from './styles'
 
 /**
  * Le sélecteur de date de Wiggy.
@@ -132,7 +132,7 @@ export function SelecteurDate({
                 onClick={() => {
                   glisser(-1)
                 }}
-                className="tactile rounded-pilule px-3 font-bold hover:bg-fond"
+                className={`tactile rounded-pilule px-3 font-bold ${SURVOL_PANNEAU}`}
               >
                 ‹
               </button>
@@ -145,7 +145,7 @@ export function SelecteurDate({
                 onClick={() => {
                   glisser(1)
                 }}
-                className="tactile rounded-pilule px-3 font-bold hover:bg-fond"
+                className={`tactile rounded-pilule px-3 font-bold ${SURVOL_PANNEAU}`}
               >
                 ›
               </button>
@@ -176,7 +176,7 @@ export function SelecteurDate({
                     className={`flex h-11 items-center justify-center rounded-champ font-semibold transition-colors ${
                       iso(annee, mois, jour) === valeur
                         ? 'bg-action text-texte-sur-plein'
-                        : 'hover:bg-fond'
+                        : SURVOL_PANNEAU
                     }`}
                   >
                     {jour}

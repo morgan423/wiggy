@@ -3,7 +3,13 @@ import { ZONE, visitesEffectives, depuisQuand } from '@wiggy/core'
 import { copy, remplir } from '@wiggy/copy'
 import { requirePro } from '@/lib/auth'
 import { supabaseServer } from '@/lib/supabase/server'
-import { EnteteEcran, CorpsEcran, EtatVide, RANGEE } from '@/components/composition'
+import {
+  EnteteEcran,
+  CorpsEcran,
+  EtatVide,
+  RANGEE,
+  RANGEE_ACTIVABLE,
+} from '@/components/composition'
 import { Avatar } from '@/components/avatar'
 import { ChampGet } from '@/components/champ-get'
 
@@ -91,7 +97,10 @@ export default async function Clientes({
                   const depuis = depuisQuand(c.visites)
                   return (
                     <li key={c.id}>
-                      <Link href={`/app/clientes/${c.id}`} className={`${RANGEE} hover:bg-fond`}>
+                      <Link
+                        href={`/app/clientes/${c.id}`}
+                        className={`${RANGEE} ${RANGEE_ACTIVABLE}`}
+                      >
                         <Avatar nom={nomComplet(c)} taille="sm" />
                         <span className="flex min-w-0 flex-1 flex-col gap-px">
                           <span className="text-[13.5px] font-bold">{nomComplet(c)}</span>

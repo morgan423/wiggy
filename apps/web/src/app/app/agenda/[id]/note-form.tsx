@@ -3,7 +3,7 @@
 import { useActionState, useState } from 'react'
 import { copy } from '@wiggy/copy'
 import { Zone, Erreur, Succes, BoutonPrincipal } from '@/components/champs'
-import { BoutonPointille } from '@/components/composition'
+import { BoutonPointille, RANGEE_ACTIVABLE } from '@/components/composition'
 import { VIDE, type EtatForm } from '@/lib/forms'
 import { enregistrerNoteRdv } from '@/app/app/clientes/actions'
 
@@ -40,7 +40,7 @@ export function FormNoteRdv({ id, note }: { id: string; note: string | null }) {
         onClick={() => {
           setOuvert(true)
         }}
-        className="block w-full rounded-[14px] bg-surface px-3 py-2.5 text-left text-[12.5px] leading-[1.5] hover:bg-fond"
+        className={`block w-full rounded-[14px] bg-surface px-3 py-2.5 text-left text-[12.5px] leading-[1.5] ${RANGEE_ACTIVABLE}`}
       >
         <span className="font-extrabold">{F.$aEcrire.noteDuRdv}</span> · {valeur}
       </button>

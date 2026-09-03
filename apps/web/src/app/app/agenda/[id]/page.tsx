@@ -5,7 +5,7 @@ import { copy, remplir } from '@wiggy/copy'
 import { requirePro } from '@/lib/auth'
 import { supabaseServer } from '@/lib/supabase/server'
 import { photosDuRendezVous } from '@/lib/photos'
-import { EnteteEcran, CorpsEcran } from '@/components/composition'
+import { EnteteEcran, CorpsEcran, RANGEE_ACTIVABLE } from '@/components/composition'
 import { annulerRdv, validerDemande, refuserDemande, terminerRdv } from '../actions'
 import { FormNoteRdv } from './note-form'
 import { FormProposition } from './proposer/form'
@@ -120,7 +120,7 @@ export default async function RendezVous({ params }: { params: Promise<{ id: str
         {cliente?.technical_notes ? (
           <Link
             href={`/app/clientes/${cliente.id}`}
-            className="block rounded-[14px] bg-surface px-3 py-2.5 text-[12.5px] leading-[1.5] hover:bg-fond"
+            className={`block rounded-[14px] bg-surface px-3 py-2.5 text-[12.5px] leading-[1.5] ${RANGEE_ACTIVABLE}`}
           >
             <span className="font-extrabold">{F.$aEcrire.profilTechnique}</span> ·{' '}
             {cliente.technical_notes}
@@ -132,7 +132,7 @@ export default async function RendezVous({ params }: { params: Promise<{ id: str
         {derniereEntree ? (
           <Link
             href={`/app/clientes/${cliente?.id ?? ''}`}
-            className="block rounded-[14px] bg-surface px-3 py-2.5 text-[12.5px] leading-[1.5] hover:bg-fond"
+            className={`block rounded-[14px] bg-surface px-3 py-2.5 text-[12.5px] leading-[1.5] ${RANGEE_ACTIVABLE}`}
           >
             <span className="font-extrabold">{F.$aEcrire.journalDerniere}</span> ·{' '}
             {derniereEntree.contenu}

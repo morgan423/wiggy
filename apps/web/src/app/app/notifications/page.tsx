@@ -3,8 +3,14 @@ import { ZONE } from '@wiggy/core'
 import { copy, remplir } from '@wiggy/copy'
 import { requirePro } from '@/lib/auth'
 import { supabaseServer } from '@/lib/supabase/server'
-import { Cloche } from '@/components/cloche'
-import { EnteteEcran, CorpsEcran, EtatVide, EtiquetteSection } from '@/components/composition'
+import { IconesEntete } from '@/components/icones-entete'
+import {
+  EnteteEcran,
+  CorpsEcran,
+  EtatVide,
+  EtiquetteSection,
+  RANGEE_ACTIVABLE,
+} from '@/components/composition'
 import { RETENTION_JOURS } from '@/lib/notifications'
 import { ToutMarquerLu } from './form'
 
@@ -56,7 +62,7 @@ export default async function Notifications() {
     <>
       {/* D17 ⑤ : aucun lien de retour. La cloche est devenue une croix, et
           c'est elle qui referme le panneau, là où il s'est ouvert. */}
-      <EnteteEcran variante="jour" statement={N.cloche.titre} cloche={<Cloche />} />
+      <EnteteEcran variante="jour" statement={N.cloche.titre} cloche={<IconesEntete />} />
       <CorpsEcran serre>
         {/*
           L'épingle. Elle RENVOIE, elle ne duplique pas : ni carte, ni bouton.
@@ -124,7 +130,7 @@ function Ligne({ ligne }: { ligne: LigneJournal }) {
     ligne.lu_le === null ? '' : 'opacity-70'
   }`
   return ligne.lien ? (
-    <Link href={ligne.lien} className={`${classes} hover:bg-fond`}>
+    <Link href={ligne.lien} className={`${classes} ${RANGEE_ACTIVABLE}`}>
       {contenu}
     </Link>
   ) : (

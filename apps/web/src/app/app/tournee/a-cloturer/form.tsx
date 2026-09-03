@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { copy } from '@wiggy/copy'
 import { Champ, Zone } from '@/components/champs'
-import { RANGEE } from '@/components/composition'
+import { RANGEE, RANGEE_ACTIVABLE } from '@/components/composition'
 import { terminerRdv } from '@/app/app/agenda/actions'
 
 /**
@@ -54,7 +54,7 @@ export function FormCloture({
         onClick={() => {
           setOuvert(true)
         }}
-        className={`${RANGEE} items-start text-left hover:bg-fond`}
+        className={`${RANGEE} items-start text-left ${RANGEE_ACTIVABLE}`}
       >
         <span className="flex min-w-0 flex-col gap-px">
           <span className="text-[13.5px] font-bold">

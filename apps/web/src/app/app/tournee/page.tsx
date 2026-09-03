@@ -29,8 +29,8 @@ import { FormRetard } from './retard'
 import { journeeEstLancee, departDuJour } from '@/lib/journee'
 import { LienGps } from './lien-gps'
 import { Lancement } from './lancement'
-import { Cloche } from '@/components/cloche'
-import { EnteteEcran, CorpsEcran, RANGEE } from '@/components/composition'
+import { IconesEntete } from '@/components/icones-entete'
+import { EnteteEcran, CorpsEcran, RANGEE, RANGEE_ACTIVABLE } from '@/components/composition'
 
 /**
  * C0, « Ma tournée » : le copilote du jour. Planche 16d.
@@ -215,7 +215,7 @@ export default async function MaTournee({
       {bouclee ? null : (
         <EnteteEcran
           variante="jour"
-          cloche={<Cloche />}
+          cloche={<IconesEntete />}
           statement={remplir(T.tournee.statement, { pro: prenom })}
           sousTitre={
             prochain
@@ -292,7 +292,7 @@ export default async function MaTournee({
         {reprise ? (
           <Link
             href={reprise.lien}
-            className="flex flex-col gap-1 rounded-carte border-2 border-action bg-surface px-3.5 py-3 hover:bg-fond"
+            className={`flex flex-col gap-1 rounded-carte border-2 border-action bg-surface px-3.5 py-3 ${RANGEE_ACTIVABLE}`}
           >
             <span className="text-[13.5px] font-bold">{T.$aEcrire.caler}</span>
             <span className="text-[11.5px] text-texte-attenue">{T.$aEcrire.calerAide}</span>
@@ -334,7 +334,7 @@ export default async function MaTournee({
                   <li key={r.id}>
                     <Link
                       href={`/app/agenda/${r.id}`}
-                      className={`${RANGEE} gap-2.5 rounded-[14px] px-3.5 py-[11px] hover:bg-fond ${
+                      className={`${RANGEE} gap-2.5 rounded-[14px] px-3.5 py-[11px] ${RANGEE_ACTIVABLE} ${
                         etatDe(r) === 'termine' ? 'opacity-70' : ''
                       }`}
                     >

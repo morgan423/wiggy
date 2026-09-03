@@ -19,7 +19,7 @@ import { zoneDuPro } from '@/lib/zone'
 import { libererPlage } from './actions'
 import { journeeEstLancee } from '@/lib/journee'
 import { trajetsDeLaJournee, type Trajets } from '@/lib/tournee'
-import { Cloche } from '@/components/cloche'
+import { IconesEntete } from '@/components/icones-entete'
 import {
   EnteteEcran,
   CorpsEcran,
@@ -27,6 +27,7 @@ import {
   BoutonPointille,
   RANGEE,
   PastilleEtat,
+  RANGEE_ACTIVABLE,
 } from '@/components/composition'
 
 /**
@@ -171,7 +172,7 @@ export default async function Agenda({
     <>
       <EnteteEcran
         variante="jour"
-        cloche={<Cloche />}
+        cloche={<IconesEntete />}
         statement={
           vue === 'jour'
             ? capitale(jourLong.format(debut))
@@ -275,7 +276,7 @@ export default async function Agenda({
                   ) : null}
                   <Link
                     href={`/app/agenda/${r.id}`}
-                    className={`${RANGEE} gap-2.5 px-3.5 py-3 hover:bg-fond ${
+                    className={`${RANGEE} gap-2.5 px-3.5 py-3 ${RANGEE_ACTIVABLE} ${
                       etat === 'en-cours' ? 'border-2 border-action' : ''
                     } ${annule ? 'opacity-55' : ''}`}
                   >
@@ -390,7 +391,7 @@ function Radar({ ancre, rdvs }: { ancre: Date; rdvs: { starts_at: string; status
             <li key={jour.toISOString()}>
               <Link
                 href={`/app/agenda?vue=jour&le=${instantVersHeureLocale(jour).slice(0, 10)}`}
-                className="flex items-center gap-2.5 rounded-[14px] bg-surface px-3.5 py-[11px] hover:bg-fond"
+                className={`flex items-center gap-2.5 rounded-[14px] bg-surface px-3.5 py-[11px] ${RANGEE_ACTIVABLE}`}
               >
                 <span className="w-[58px] shrink-0 text-[12px] font-extrabold capitalize">
                   {jourRadar.format(jour)}

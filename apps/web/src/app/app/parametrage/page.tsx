@@ -2,8 +2,7 @@ import { formatEuros } from '@wiggy/core'
 import { copy, remplir } from '@wiggy/copy'
 import { requirePro } from '@/lib/auth'
 import { supabaseServer } from '@/lib/supabase/server'
-import { Cloche } from '@/components/cloche'
-import { MenuCompte } from '@/components/menu-compte'
+import { IconesEntete } from '@/components/icones-entete'
 import {
   EnteteEcran,
   CorpsEcran,
@@ -94,12 +93,7 @@ export default async function Parametrage() {
       */}
       <EnteteEcran
         variante="hub"
-        cloche={
-          <>
-            <Cloche />
-            <MenuCompte />
-          </>
-        }
+        cloche={<IconesEntete />}
         vignette={<Avatar nom={pro.display_name} taille="sm" />}
         statement={pro.display_name.split(' ')[0]}
         sousTitre={

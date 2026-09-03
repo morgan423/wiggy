@@ -261,6 +261,42 @@ async function semer(client) {
     ]),
   })
 
+  /*
+    Le JOURNAL de la cloche (B14, planche 18a).
+
+    Sans lui, la cloche se capturait toujours sans badge, et ni le compte ni le
+    plafond « 9+ » n'étaient jamais rendus par un vrai écran : deux états
+    dessinés sur la planche que personne n'aurait vus tourner. C'est exactement
+    ce qui avait laissé passer les divergences de l'agenda, quand le semis ne
+    créait aucun rendez-vous.
+
+    ONZE lignes non lues, dont une lue : onze dépasse neuf, donc la capture
+    prouve le plafond « 9+ » et pas seulement le compte.
+  */
+  const journal = (kind, titre, detail, lien, lu = null) => ({
+    pro_id: id,
+    kind,
+    titre,
+    detail,
+    lien,
+    lu_le: lu,
+  })
+  await client.rest('notifications', {
+    method: 'POST',
+    body: JSON.stringify([
+      ...Array.from({ length: 10 }, (_, i) =>
+        journal(
+          'reponse_proposition',
+          `Réponse à ta proposition (${String(i + 1)})`,
+          'Le nouveau créneau convient.',
+          '/app/agenda',
+        ),
+      ),
+      journal('acompte_recu', 'Acompte reçu', '10,00 € encaissés.', '/app/agenda'),
+      journal('avis_recu', 'Nouvel avis', 'Cinq étoiles.', null, new Date().toISOString()),
+    ]),
+  })
+
   // Le rendez-vous en cours : c'est lui qu'on ouvre pour capturer la
   // consultation de la planche 16b.
   return { serviceId: prestation.id, rdvId: rdvs[1].id, clienteId: clientes[1].id }

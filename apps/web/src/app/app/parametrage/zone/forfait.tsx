@@ -2,7 +2,7 @@
 
 import { useActionState, useState } from 'react'
 import { Champ, Erreur, Succes, BoutonPrincipal } from '@/components/champs'
-import { Prix, RANGEE } from '@/components/composition'
+import { Prix, RANGEE, RANGEE_ACTIVABLE } from '@/components/composition'
 import { VIDE, type EtatForm } from '@/lib/forms'
 import { enregistrerForfait } from './actions'
 
@@ -33,7 +33,7 @@ export function FormForfait({ montant, centimes }: { montant: string; centimes: 
         onClick={() => {
           setOuvert(true)
         }}
-        className={`${RANGEE} items-start text-left hover:bg-fond`}
+        className={`${RANGEE} items-start text-left ${RANGEE_ACTIVABLE}`}
       >
         <span className="flex min-w-0 flex-col gap-px">
           <span className="text-[13px] font-bold">Forfait déplacement de base</span>

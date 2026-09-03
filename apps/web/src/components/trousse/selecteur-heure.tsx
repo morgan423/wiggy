@@ -11,6 +11,7 @@ import {
   LIGNE_RETENUE,
   bordure,
   DESACTIVE,
+  SURVOL_PANNEAU,
 } from './styles'
 
 /**
@@ -112,7 +113,7 @@ export function SelecteurHeure({
                     onValeur(heure)
                     setOuvert(false)
                   }}
-                  className={`${LIGNE_PANNEAU} font-mono hover:bg-fond ${heure === valeur ? LIGNE_RETENUE : ''}`}
+                  className={`${LIGNE_PANNEAU} font-mono ${SURVOL_PANNEAU} ${heure === valeur ? LIGNE_RETENUE : ''}`}
                 >
                   {heure}
                 </button>

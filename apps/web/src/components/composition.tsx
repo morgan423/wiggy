@@ -22,6 +22,45 @@ export const RANGEE =
   'flex items-center justify-between gap-2.5 rounded-carte bg-surface px-3.5 py-[13px]'
 
 /**
+ * L'état d'interaction d'une rangée cliquable. **Aucun changement de fond.**
+ *
+ * La rangée faisait `hover:bg-fond` : au survol, une carte prenait exactement
+ * la couleur du corps de l'écran. Elle ne se mettait pas en valeur, elle
+ * DISPARAISSAIT dans le fond. La règle qui en sort vaut au-delà de ce cas et
+ * vit dans CLAUDE.md : **un état d'interaction n'emprunte jamais une couleur
+ * qui sert déjà de fond dans le même écran.**
+ *
+ * Une rangée se détache donc au lieu de changer de couleur, par deux effets
+ * qui restent justes sur n'importe quel fond — le jour où une rangée sera
+ * posée sur du blanc ou sur du prune, rien à reprendre :
+ *
+ * ① **L'élévation.** Rien au repos, l'ombre douce des cartes au survol. La
+ *    rangée monte vers la pro plutôt que de se teinter.
+ * ② **Le chevron en framboise**, via `group-hover` (voir `RangeeEcran`).
+ *
+ * ③ **Le pressé, et c'est LUI qui compte.** La bêta tourne sur mobile, où le
+ *    survol n'existe pas : l'état qui décide de la qualité perçue est celui du
+ *    doigt, pas celui du curseur.
+ *
+ *    ⚠️ **L'enfoncement n'est PAS écrit ici, et ce n'est pas un oubli.** Il
+ *    existe déjà, globalement, dans `globals.css` : tout `button`, tout
+ *    `a[href]` et tout `[role=button]` s'enfonce au `--tap-scale` sur
+ *    `--duree-tap`, et redevient plat sous `prefers-reduced-motion`. Une
+ *    rangée est un lien : elle l'avait donc déjà. Le rajouter ici composerait
+ *    avec lui — `scale:` et `transform: scale()` sont deux propriétés qui se
+ *    multiplient, et l'appui vaudrait 0,94 au lieu de 0,97.
+ *
+ *    Ce que l'appui gagne ici, c'est l'ombre : la rangée **repose la sienne**.
+ *    Elle monte sous le curseur, elle redescend sous le doigt. Le survol et
+ *    l'appui restent donc bien deux réponses distinctes.
+ *
+ * `duree-tap` sur l'ombre à l'appui, `duree-fondu` au repos : un doigt doit
+ * être répondu plus vite que l'œil, une élévation peut être douce.
+ */
+export const RANGEE_ACTIVABLE =
+  'group transition-[box-shadow] duration-[var(--duree-fondu)] hover:shadow-carte active:shadow-none active:duration-[var(--duree-tap)]'
+
+/**
  * Le bandeau prune qui ouvre chaque écran.
  *
  * Trois tailles de statement, celles des planches, et rien entre les deux :
@@ -198,7 +237,10 @@ export function RangeeEcran({
         <span className="shrink-0 text-[12px] text-texte-attenue">
           {resume}
           {chevron ? (
-            <span aria-hidden className={resume ? 'ml-1' : undefined}>
+            <span
+              aria-hidden
+              className={`transition-colors group-hover:text-action ${resume ? 'ml-1' : ''}`}
+            >
               ›
             </span>
           ) : null}
@@ -214,7 +256,7 @@ export function RangeeEcran({
   const base = invite ? RANGEE.replace('bg-surface', 'bg-attente') : RANGEE
   const classes = `${base} ${attenue ? 'opacity-55' : ''} ${secondaire ? 'items-start' : ''}`
   return href ? (
-    <Link href={href} className={`${classes} ${invite ? 'hover:opacity-90' : 'hover:bg-fond'}`}>
+    <Link href={href} className={`${classes} ${RANGEE_ACTIVABLE}`}>
       {contenu}
     </Link>
   ) : (

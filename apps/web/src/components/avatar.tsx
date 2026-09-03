@@ -34,9 +34,12 @@ const TEXTE: Record<'surPlein' | 'surMiel', string> = {
   surMiel: 'text-texte-sur-miel',
 }
 
-export type TailleAvatar = 'sm' | 'md' | 'lg'
+export type TailleAvatar = 'xs' | 'sm' | 'md' | 'lg'
 
 const TAILLES: Record<TailleAvatar, { px: number; classe: string }> = {
+  // 24 px : le dessin DANS une zone tactile de 44 px. C'est la taille de
+  // l'icône d'en-tête (18a), où le visage de la pro remplace la silhouette.
+  xs: { px: 24, classe: 'size-6 text-[10px]' },
   // 44 px : la zone tactile minimale, quand l'avatar est cliquable.
   sm: { px: 44, classe: 'size-11 text-base' },
   md: { px: 64, classe: 'size-16 text-2xl' },

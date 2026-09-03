@@ -80,6 +80,40 @@ for (const chemin of fichiers) {
     // l'agenda » de Design vise la LISTE, pas la tête d'écran. C'est
     // volontaire et écrit ici pour que personne ne le découvre par surprise.
 
+    // ②ter Un état d'interaction n'emprunte jamais une couleur de fond.
+    //
+    // La rangée d'écran faisait `hover:bg-fond` : au survol, une carte prenait
+    // exactement la couleur du corps de l'écran et DISPARAISSAIT au lieu de se
+    // détacher. Elle n'était pas seule, elles étaient treize.
+    //
+    // J'ai d'abord écrit ce contrôle sur le critère « un élément qui déclare
+    // son propre fond ne bascule pas vers un autre fond ». Remis le défaut
+    // d'origine pour l'éprouver : il n'a PAS sonné. Le `bg-surface` de la
+    // rangée vit dans une variable, la ligne ne contient que `${classes}`, et
+    // le critère est donc indécidable exactement là où il servait.
+    //
+    // Le critère qui tient est structurel, celui de l'exception Fraunces :
+    // **la crème est LE fond de page, rien ne bascule vers elle**, sauf dans
+    // un panneau flottant — un plan posé au-dessus de l'écran, où la crème
+    // n'est le fond de rien. Cette exception a UN seul point d'écriture,
+    // `SURVOL_PANNEAU` dans la trousse. Le reste du produit y passe ou s'en
+    // passe. Aucune liste d'exemptions à tenir à jour, donc aucune à pourrir.
+    const estStylesTrousse = /\/components\/trousse\/styles\.ts$/.test(chemin)
+    const estCommentaire = /^\s*(\*|\/\/|\/\*)/.test(ligne)
+    //
+    // Un voile translucide (`hover:bg-fond/12`) n'est PAS visé : il ne
+    // remplace aucun fond, il pose un film par-dessus. C'est ce que fait
+    // l'en-tête prune, et c'est l'inverse du défaut.
+    const emprunteLaCreme = /(hover|active|focus):bg-fond(?![/\w-])/.test(ligne)
+    if (!estStylesTrousse && !estCommentaire && emprunteLaCreme) {
+      signaler(
+        chemin,
+        n,
+        'interaction-emprunte-un-fond',
+        'la crème est le fond de page : l’élément s’y fond au lieu de s’en détacher. Une rangée passe par `RANGEE_ACTIVABLE` (élévation), un panneau par `SURVOL_PANNEAU`',
+      )
+    }
+
     // ③ WONK réservé aux statements du site et aux chiffres héros.
     //
     // Le board 8a écrit « WONK réservé aux statements ET aux chiffres héros »,

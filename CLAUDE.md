@@ -132,6 +132,20 @@ Côté cliente finale, tout reste web : zéro installation pour réserver.
   hiérarchie de la planche. L'exception est structurelle et pas déclarative : elle passe par le
   composant `Prix` de la trousse, qui prend des **centimes** et non une chaîne, et `design:check`
   refuse la classe `prix` partout ailleurs. Aucun texte ne peut donc l'emprunter.
+- **Un état d'interaction n'emprunte JAMAIS une couleur qui sert déjà de fond dans le même
+  écran** (tranchée le 04/09). Sinon l'élément survolé se fond au lieu de se détacher : la rangée
+  faisait `hover:bg-fond` et prenait au survol exactement la couleur du corps de l'écran. Un
+  élément se détache par l'**élévation** (une ombre plus marquée qu'au repos) et par la
+  **couleur de son chevron**, jamais par un changement de fond : ces deux effets restent justes
+  sur n'importe quel fond, y compris le jour où une rangée sera posée sur du blanc ou du prune.
+  Exception unique : un **panneau flottant**, plan posé au-dessus de l'écran où la crème n'est le
+  fond de rien. Elle est structurelle et pas déclarative, comme celle de Fraunces : elle passe par
+  `SURVOL_PANNEAU` dans la trousse, seul point d'écriture de `hover:bg-fond`, et `design:check`
+  la refuse partout ailleurs.
+- **L'état qui compte est le PRESSÉ, pas le survolé.** La bêta tourne sur mobile, où le survol
+  n'existe pas : construire un état de survol sans état d'appui, c'est soigner ce que la cible ne
+  verra jamais. Tout élément cliquable répond au doigt, franchement et immédiatement
+  (`--tap-scale`, `--duree-tap`), et cette réponse est **distincte** du survol.
 - Zone tactile 44 px minimum. Zéro animation ambiante. `prefers-reduced-motion` respecté sans
   exception. Deux célébrations seulement (confirmation cliente, journée bouclée), aux timings des
   tokens.
