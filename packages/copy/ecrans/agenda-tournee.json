@@ -58,7 +58,16 @@
     "aVenir": "À venir",
     "photosCliente": "Ce que ta cliente a envoyé",
     "sansAdresse": "Adresse non reconnue : pas de trajet calculé.",
-    "voirLendemain": "Voir le lendemain"
+    "voirLendemain": "Voir le lendemain",
+    "bloquer": "Bloquer une plage",
+    "blocageTitre": "Tu n'es pas disponible ?",
+    "blocageAide": "Cette plage disparaît des créneaux proposés à tes clientes. Personne ne pourra réserver dessus.",
+    "blocageMotif": "Pourquoi (facultatif)",
+    "blocageMotifAide": "Pour toi seule. Tes clientes ne le voient jamais.",
+    "blocagePose": "Plage bloquée.",
+    "blocageLiberer": "Libérer",
+    "blocageIndisponible": "Indisponible",
+    "terminer": "Terminé"
   },
   "tournee": {
     "statement": "Ta tournée, {pro}.",

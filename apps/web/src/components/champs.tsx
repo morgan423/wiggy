@@ -120,44 +120,6 @@ export function Zone({
   )
 }
 
-export function Choix({
-  id,
-  label,
-  options,
-  defaultValue,
-  aide,
-  onChange,
-}: {
-  id: string
-  label: string
-  options: { valeur: string; texte: string }[]
-  defaultValue?: string
-  aide?: string
-  onChange?: (valeur: string) => void
-}) {
-  return (
-    <div className="mt-3">
-      <label htmlFor={id} className={LIBELLE}>
-        {label}
-      </label>
-      <select
-        id={id}
-        name={id}
-        defaultValue={defaultValue}
-        onChange={(e) => onChange?.(e.target.value)}
-        className={`${SURFACE_CHAMP} border-transparent`}
-      >
-        {options.map((o) => (
-          <option key={o.valeur} value={o.valeur}>
-            {o.texte}
-          </option>
-        ))}
-      </select>
-      {aide ? <p className={AIDE}>{aide}</p> : null}
-    </div>
-  )
-}
-
 /**
  * Le message de succès, en bloc miel plein.
  *

@@ -23,6 +23,6 @@
     "compteur": "2 modifications en attente"
   },
   "gabarits": {
-    "villeSansPro": "Pas encore de pro à {ville}. Laissez votre numéro, on vous prévient dès qu'une arrive."
+    "villeSansPro": "Pas encore de pro à {ville}. Laissez votre e-mail, on vous prévient dès qu'une arrive."
   }
 }

@@ -6,7 +6,8 @@ import { requirePro } from '@/lib/auth'
 import { supabaseServer } from '@/lib/supabase/server'
 import { photosDuRendezVous } from '@/lib/photos'
 import { EnteteEcran, CorpsEcran } from '@/components/composition'
-import { annulerRdv, validerDemande, refuserDemande } from '../actions'
+import { annulerRdv, validerDemande, refuserDemande, terminerRdv } from '../actions'
+import { FormNoteRdv } from './note-form'
 
 /**
  * Le rendez-vous, EN LECTURE. Planche 16b, colonne « CONSULTATION ».
@@ -24,6 +25,7 @@ import { annulerRdv, validerDemande, refuserDemande } from '../actions'
 
 const T = copy.agendaTournee
 const D = copy.demandesPro
+const F = copy.ficheCliente
 
 const jourLong = new Intl.DateTimeFormat('fr-FR', {
   timeZone: ZONE,
@@ -47,7 +49,7 @@ export default async function RendezVous({ params }: { params: Promise<{ id: str
   const { data: rdv } = await supabase
     .from('appointments')
     .select(
-      'id, service_name, price_cents, starts_at, ends_at, address_line1, postal_code, city, lat, lng, access_notes, note, status, travel_min_from_previous, client_id, clients(first_name, last_name)',
+      'id, service_name, price_cents, starts_at, ends_at, address_line1, postal_code, city, lat, lng, access_notes, note, status, travel_min_from_previous, client_id, clients(id, first_name, last_name, technical_notes)',
     )
     .eq('id', id)
     .maybeSingle()
@@ -98,7 +100,22 @@ export default async function RendezVous({ params }: { params: Promise<{ id: str
           ) : null}
         </BlocLecture>
 
-        {rdv.note ? <BlocLecture titre={T.rendezVous.notes} precision={rdv.note} /> : null}
+        {/*
+          B2 — les notes de la FICHE, pré-affichées à chaque rendez-vous. C'est
+          la promesse anti-carnet-papier : la pro n'a pas à aller les chercher,
+          elles sont là où elle en a besoin.
+        */}
+        {cliente?.technical_notes ? (
+          <Link
+            href={`/app/clientes/${cliente.id}`}
+            className="block rounded-[14px] bg-surface px-3 py-2.5 text-[12.5px] leading-[1.5] hover:bg-fond"
+          >
+            <span className="font-extrabold">{F.notes.titre}</span> · {cliente.technical_notes}
+          </Link>
+        ) : null}
+
+        {/* B3 — la note de CE rendez-vous, distincte de la fiche. */}
+        <FormNoteRdv id={rdv.id} note={rdv.note} />
 
         {photos.length > 0 ? (
           <div className="flex flex-col gap-2 rounded-[14px] bg-surface px-3 py-2.5">
@@ -149,10 +166,22 @@ export default async function RendezVous({ params }: { params: Promise<{ id: str
 
         {/*
           L'action principale suit le statut (planche 16b) : à venir, c'est le
-          trajet. En cours, la planche met « Terminer » ; la clôture en un tap
-          est B6, phase 2, et elle n'existe pas encore. On ne met donc rien
-          plutôt qu'un bouton qui n'enregistrerait rien.
+          trajet ; en cours, c'est « Terminé ». B6 : la clôture enregistre le
+          temps RÉELLEMENT passé, et c'est cette mesure qui affine les créneaux
+          proposés ensuite. Un tap, une mesure, rien à saisir.
         */}
+        {!annule && !termine && enCours ? (
+          <form action={terminerRdv}>
+            <input type="hidden" name="id" value={rdv.id} />
+            <button
+              type="submit"
+              className="tactile w-full rounded-pilule bg-action py-3 text-center text-[13px] font-bold text-texte-sur-plein hover:bg-action-survol"
+            >
+              {T.$aEcrire.terminer}
+            </button>
+          </form>
+        ) : null}
+
         {!annule && !termine && !enCours && rdv.lat !== null && rdv.lng !== null ? (
           <a
             href={`https://www.google.com/maps/dir/?api=1&destination=${String(rdv.lat)},${String(rdv.lng)}`}
@@ -242,7 +271,12 @@ function StatutRdv({
   )
 }
 
-type Cliente = { first_name: string; last_name: string | null }
+type Cliente = {
+  id: string
+  first_name: string
+  last_name: string | null
+  technical_notes: string | null
+}
 
 function clienteDe(relation: unknown): Cliente | undefined {
   const brut: unknown = Array.isArray(relation) ? relation[0] : relation
@@ -250,8 +284,10 @@ function clienteDe(relation: unknown): Cliente | undefined {
   const c = brut as Record<string, unknown>
   if (typeof c.first_name !== 'string') return undefined
   return {
+    id: typeof c.id === 'string' ? c.id : '',
     first_name: c.first_name,
     last_name: typeof c.last_name === 'string' ? c.last_name : null,
+    technical_notes: typeof c.technical_notes === 'string' ? c.technical_notes : null,
   }
 }
 

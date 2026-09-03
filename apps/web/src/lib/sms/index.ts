@@ -18,6 +18,35 @@ export type ResultatEnvoi =
   | { statut: 'non-configure'; codeDeDeveloppement?: string }
   | { statut: 'echec' }
 
+/**
+ * G4, tranché le 03/09 : **l'expéditeur est « Wiggy »**, sender ID
+ * alphanumérique unique, à enregistrer auprès de l'écosystème SMS français au
+ * nom de la société **au moment du choix du fournisseur** (les modalités
+ * d'enregistrement évoluent, elles se vérifient à ce moment-là).
+ *
+ * Trois raisons, et aucune n'est cosmétique.
+ * ① **Conformité anti-usurpation** : les sender IDs se déclarent, un par
+ *    entité. Un prénom de pro ne passe pas à l'échelle, et n'est pas
+ *    déclarable.
+ * ② **Fil de discussion unique** côté cliente : tous les messages Wiggy se
+ *    rangent au même endroit dans son téléphone, au lieu de s'éparpiller sous
+ *    autant d'expéditeurs que de coiffeuses.
+ * ③ **Liste STOP et traçabilité unifiées**, ce que la réglementation demande.
+ *
+ * **Le corps du message, lui, parle au nom de la pro et ouvre par elle** :
+ * « Bonjour Mme Riva, c'est Sophie… ». Et **les messages qui appellent une
+ * réponse** (retard C5, relance B8) **portent le numéro de la pro dans le
+ * texte** : un sender ID alphanumérique ne se répond pas, et une cliente qui
+ * répond dans le vide est une cliente qu'on a lâchée.
+ *
+ * Le principe : **la relation vit dans le texte, l'infrastructure dans
+ * l'en-tête.**
+ *
+ * Aucune constante n'est posée ici tant qu'aucun fournisseur ne l'utilise :
+ * une valeur sans consommateur se périme sans que personne s'en aperçoive. La
+ * décision vit dans ce commentaire, à l'endroit exact où elle s'appliquera, et
+ * dans le copy deck (`notification-copilote.$aEcrire.$noteG4`).
+ */
 const enDeveloppement = () => process.env.WIGGY_ENV === 'developpement'
 
 /**

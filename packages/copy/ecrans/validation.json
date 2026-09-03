@@ -46,6 +46,9 @@
     "proPlafondAppelant": "Trop de demandes depuis cet appareil. Réessaie dans une heure.",
     "proPlafondGlobal": "L’envoi de codes est momentanément suspendu. Réessaie plus tard.",
     "proSmsIndisponible": "L’envoi n’a pas abouti. Réessaie dans un instant.",
-    "proDestinationSms": "Wiggy n’envoie de codes qu’en France métropolitaine et dans les DOM."
+    "proDestinationSms": "Wiggy n’envoie de codes qu’en France métropolitaine et dans les DOM.",
+    "blocageDebut": "Indique à partir de quand tu n'es pas disponible.",
+    "blocageFin": "Indique jusqu'à quand tu n'es pas disponible.",
+    "blocageOrdre": "La fin doit venir après le début."
   }
 }

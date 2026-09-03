@@ -2,13 +2,14 @@
 
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
-import { RdvInput } from '@wiggy/api'
-import { heureLocaleVersInstant, finRendezVous } from '@wiggy/core'
+import { RdvInput, BlocageInput } from '@wiggy/api'
+import { heureLocaleVersInstant, finRendezVous, dureeReelle } from '@wiggy/core'
+import { copy } from '@wiggy/copy'
 import { requirePro } from '@/lib/auth'
 import { supabaseServer } from '@/lib/supabase/server'
 import { geocoder } from '@/lib/adresse'
 import { centreDeCommune } from '@/lib/lieu-approche'
-import { erreur, erreurBase, type EtatForm, champTexte } from '@/lib/forms'
+import { erreur, erreurBase, ok, champ, type EtatForm, champTexte } from '@/lib/forms'
 
 /**
  * B10 : ajout manuel d'un rendez-vous.
@@ -220,5 +221,103 @@ async function deciderDemande(donnees: FormData, decision: 'valider' | 'refuser'
     .in('status', ['pending', 'conditional'])
   if (error) console.error('decision_demande_failed', error.code)
 
+  revalidatePath('/app/agenda')
+}
+
+/**
+ * B6 — la clôture en un tap.
+ *
+ * Elle enregistre le temps RÉELLEMENT passé, et c'est tout l'intérêt : c'est
+ * cette mesure qui affine les créneaux proposés ensuite (`dureeApprise`). Sans
+ * elle, l'agenda reproduit indéfiniment les durées du catalogue, que personne
+ * ne tient jamais tout à fait.
+ *
+ * La durée se mesure entre le début du rendez-vous et le tap. Une clôture
+ * tardive (« j'ai oublié, je clos le lendemain ») retombe sur la durée prévue
+ * plutôt que d'empoisonner l'apprentissage avec vingt heures.
+ */
+export async function terminerRdv(donnees: FormData) {
+  const id = champ(donnees, 'id')
+  if (typeof id !== 'string') return
+
+  await requirePro()
+  const supabase = await supabaseServer()
+
+  const { data: rdv } = await supabase
+    .from('appointments')
+    .select('starts_at, ends_at')
+    .eq('id', id)
+    .maybeSingle()
+  if (!rdv) return
+
+  const cloture = new Date()
+  const prevue = Math.round(
+    (new Date(rdv.ends_at).getTime() - new Date(rdv.starts_at).getTime()) / 60_000,
+  )
+  const reelle = dureeReelle(new Date(rdv.starts_at), cloture, prevue)
+
+  const { error } = await supabase
+    .from('appointments')
+    .update({
+      status: 'done',
+      completed_at: cloture.toISOString(),
+      actual_duration_min: reelle,
+    })
+    .eq('id', id)
+  if (error) console.error('cloture_rdv_failed', error.code)
+
+  revalidatePath('/app/agenda')
+  revalidatePath('/app/tournee')
+  revalidatePath(`/app/agenda/${id}`)
+}
+
+/**
+ * B4 — bloquer une plage.
+ *
+ * Le pilier de « l'app propose, le pro dispose », et l'outil qui remplace la
+ * synchronisation d'agenda tant qu'elle n'existe pas (D2). Une plage bloquée
+ * disparaît des créneaux proposés, exactement comme un congé.
+ */
+export async function bloquerPlage(precedent: EtatForm, donnees: FormData): Promise<EtatForm> {
+  const saisie = BlocageInput.safeParse({
+    debut: champ(donnees, 'debut'),
+    fin: champ(donnees, 'fin'),
+    label: champ(donnees, 'label'),
+  })
+  if (!saisie.success) {
+    const faute = saisie.error.issues[0]
+    return erreur(precedent, faute.message, donnees, String(faute.path[0] ?? ''))
+  }
+
+  // Le schéma a exigé deux chaînes non vides ; il ne peut pas savoir si
+  // « 2026-13-45T99:00 » est une date. C'est le domaine qui le dit.
+  const debut = heureLocaleVersInstant(saisie.data.debut)
+  const fin = heureLocaleVersInstant(saisie.data.fin)
+  if (!debut || !fin) {
+    return erreur(precedent, copy.validation.$aEcrire.blocageDebut, donnees, 'debut')
+  }
+
+  const { pro } = await requirePro()
+  const supabase = await supabaseServer()
+  const { error } = await supabase.from('blocked_slots').insert({
+    pro_id: pro.id,
+    starts_at: debut.toISOString(),
+    ends_at: fin.toISOString(),
+    label: saisie.data.label,
+  })
+  if (error) return erreurBase(precedent, 'blocage_failed', error, donnees)
+
+  revalidatePath('/app/agenda')
+  return ok(precedent, copy.agendaTournee.$aEcrire.blocagePose)
+}
+
+/** Libérer une plage : le pro reprend la main aussi vite qu'il l'a donnée. */
+export async function libererPlage(donnees: FormData) {
+  const id = champ(donnees, 'id')
+  if (typeof id !== 'string') return
+  await requirePro()
+  const supabase = await supabaseServer()
+  const { error } = await supabase.from('blocked_slots').delete().eq('id', id)
+  if (error) console.error('liberation_plage_failed', error.code)
   revalidatePath('/app/agenda')
 }

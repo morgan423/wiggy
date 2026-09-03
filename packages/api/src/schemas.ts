@@ -126,6 +126,23 @@ export const ReglagesInput = z.object({
 })
 
 /** Identité publique du pro (A1). Le slug porte l'URL partageable. */
+/**
+ * B4 — blocage manuel d'une plage.
+ *
+ * Les bornes sont des heures murales françaises (« 2026-09-07T14:00 »), comme
+ * partout ailleurs : la conversion en instant absolu appartient au domaine,
+ * jamais à l'écran.
+ */
+export const BlocageInput = z
+  .object({
+    debut: z.string().min(1, V.blocageDebut),
+    fin: z.string().min(1, V.blocageFin),
+    label: facultatif(z.string().trim().max(120).nullable()),
+  })
+  .refine((v) => v.fin > v.debut, { message: V.blocageOrdre, path: ['fin'] })
+
+export type BlocageInput = z.infer<typeof BlocageInput>
+
 export const ProfilInput = z.object({
   display_name: z.string().trim().min(1, V.proNomProfessionnel).max(80),
   headline: facultatif(z.string().trim().max(120).nullable()),

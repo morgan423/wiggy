@@ -16,14 +16,144 @@ question qui ne vit que dans le chat disparaît avec la session. Trois lignes : 
 qu'elle bloque, la date. À la clôture, la question et sa réponse basculent dans l'entrée de
 l'étape et cette section se vide.
 
-- **La liste d'attente promet de prendre un numéro et demande une adresse e-mail.** Le texte
-  ratifié par Design écrit « Laissez votre numéro, on vous prévient dès qu'une arrive », alors que
-  le formulaire A9 collecte un e-mail, et que `city_waitlist` ne porte que ça. Bloque la
-  cohérence de l'écran de recherche par ville. Le texte vient d'être ratifié : c'est la liste
-  d'attente qui est à trancher, collecter un numéro ou réécrire la phrase. Trouvée le 2026-09-02,
-  non corrigée.
+_Rien en attente : les trois questions ouvertes ont été tranchées le 03/09._
 
 ---
+
+## 2026-09-03 (4) Étape : D3, la fiche cliente (B1 B2 B3), le créneau et la clôture (B4 B6)
+
+**Fait :**
+
+### Chantier 1, D3 : la contrainte d'architecture
+
+- **Règle inscrite dans `CLAUDE.md`** : la logique, les écrans, le copy et les jetons vivent dans
+  les packages communs, jamais dans une enveloppe. Avec le motif de l'urgence, écrit noir sur
+  blanc : chaque écran construit dehors est un écran à réécrire le jour du natif.
+- **`npm run archi:check` rend la règle exécutable**, et le critère est mécanique plutôt que
+  jugé : un module d'enveloppe est **portable** si tout ce qu'il importe est portable
+  (`@wiggy/*`, Node, ou un autre module portable). Un module portable tournerait tel quel en
+  React Native, donc sa place est dans un package. Prouvé en le faisant échouer exprès sur une
+  règle métier posée dans `apps/web/src/lib`.
+- **L'ampleur, mesurée.** Six modules sont totalement portables aujourd'hui. Un seul est de la
+  vraie dette (`lib/forms.ts`), un a été déplacé sur-le-champ (les libellés de jours, partis dans
+  `packages/core`), et quatre sont des **écarts justifiés** : les classes Tailwind de la trousse
+  (vocabulaire du web) et les trois clients d'API tierces (`apps/web` est aussi l'hôte de l'API,
+  et déplacer des clés serveur vers un package que le mobile embarquerait serait l'inverse de la
+  sécurité). Le tout est écrit dans `docs/architecture-dette.md`, avec les motifs, et le contrôle
+  échoue sur toute ligne qui n'y figure pas : **l'inventaire ne peut que se réduire.**
+- **L'ampleur réelle est plus grande que ces six-là, et le script le dit** : 27 modules
+  d'enveloppe touchent au domaine sans être portables (ils appellent la base au passage), et 28
+  fonctions d'aide vivent au pied de 6 écrans. Rien de tout cela n'est bloquant, tout serait à
+  reprendre le jour du natif. Le chiffre est affiché à chaque exécution pour qu'il ne s'oublie pas.
+
+### Chantier 2, la fiche cliente
+
+- **B1, la fiche** (`/app/clientes/[id]`, structure de la planche 16c) : le prénom en tête, le
+  résumé de la relation sous lui, puis les notes, l'adresse et le téléphone, puis l'historique.
+  L'ordre est un ordre de travail : ce qu'on vient chercher avant un rendez-vous d'abord, ce
+  qu'on consulte ensuite.
+- **La liste** (`/app/clientes`) : recherche et tri par dernière visite, parce qu'une pro cherche
+  « celle que j'ai vue la dernière fois » avant de chercher un nom.
+- **Le rythme de retour est CALCULÉ, jamais stocké** : `packages/core/src/fiche.ts`. Médiane et
+  non moyenne, et **rien avant trois rendez-vous** : avec deux visites on n'a qu'un intervalle, et
+  un intervalle n'est pas un rythme. C'est ce chiffre qui armera la relance (11c) ; le poser trop
+  tôt ferait relancer des clientes sur une régularité inventée.
+- **B2, les annotations techniques**, éditables sur la fiche et **pré-affichées** à deux endroits :
+  sur la consultation d'un rendez-vous, et dès qu'une fiche est choisie à la création d'un
+  rendez-vous. C'est là toute la promesse anti-carnet-papier : elles sont là où on en a besoin,
+  sans aller les chercher.
+- **Le garde-fou santé est tenu par l'INTERFACE, pas par un filtre.** Le texte d'aide et l'exemple
+  orientent vers la formule, le dosage, le produit et le geste. Aucun filtre n'est posé sur la
+  saisie, et c'est délibéré : filtrer des mots reviendrait à lire les notes de la pro, ce qui
+  serait pire que le mal. On éduque l'usage, on ne surveille pas.
+- **B3, la note par rendez-vous**, distincte de la fiche, avec le texte qui dit la différence :
+  « elle avait les cheveux mouillés en arrivant » ne doit pas se réafficher aux dix visites
+  suivantes ; « formule 6.35 » doit se réafficher à toutes.
+- **R3-1 corrigé, et pour de bon.** La liste native `Choix` s'ouvrait sur la première cliente par
+  ordre alphabétique, et n'étant pas contrôlée, elle ne remplissait l'adresse qu'au changement,
+  donc jamais au premier rendu. Elle est remplacée par `ListeDeroulante`, qui **impose une option
+  neutre** et est contrôlée. Le composant `Choix` a été **supprimé du dépôt** : tant qu'il
+  existait, le défaut pouvait revenir.
+- **La quatrième entrée « Clientes » est dans la barre de navigation** : elle mène quelque part,
+  l'écart ratifié à la recette 6 se referme.
+
+### Chantier 3, le créneau et la clôture
+
+- **B4, le blocage manuel** : écran de pose, affichage des plages bloquées **dans la journée** (à
+  leur place, pas dans une liste à part), et libération en un tap. Le motif est facultatif et ne
+  sort jamais de l'app.
+- **L'instrumentation de D2 est en place** : `blocked_slots.created_at` (migration 0011) et
+  `npm run mesure:blocages`, en **lecture seule** (R2-4), qui compte les blocages par pro et par
+  semaine et applique le seuil de décision écrit dans le script : au-dessus de la moitié des
+  testeuses à un blocage par semaine, besoin confirmé.
+- **B6, « Terminé »** : un tap sur un rendez-vous en cours enregistre le temps réellement passé.
+- **L'apprentissage des durées vit dans le cœur** (`packages/core/src/durees.ts`), à deux
+  niveaux : la cliente prime sur la pro, la pro prime sur le catalogue. Médiane, arrondi vers le
+  haut, et **une borne à la moitié du catalogue dans les deux sens** : un rendez-vous clos le
+  lendemain produit une mesure de vingt heures, et sans borne cette seule ligne viderait une
+  semaine d'agenda. Les créneaux proposés en tiennent compte au niveau de la pro (dans le tunnel,
+  on ne sait pas encore qui réserve).
+
+### Les petites choses
+
+- **A9 tranché** : la liste d'attente collecte l'**e-mail**, et le texte le dit enfin. La ligne
+  quitte la section d'arbitrage, qui est désormais vide.
+- **G4 tranché** : la décision est écrite là où elle s'appliquera, dans `lib/sms`, et dans le copy
+  deck. Aucune constante n'est posée tant qu'aucun fournisseur ne l'utilise : une valeur sans
+  consommateur se périme sans que personne s'en aperçoive.
+- **`/app/abonnement` existe** : une pro en offre 1 tombait sur un 404 depuis toujours. La page
+  nomme la fonctionnalité demandée, nomme l'offre qui la contient, et rouvre la porte. **Ce n'est
+  pas G1** : ni choix d'offre, ni paiement, ni résiliation, ces textes sont contractuels.
+- **`db-bundle` annonce le fichier qu'il écrit**, et non plus un autre.
+- **`npm run vues` capture trois écrans de plus** : la liste des fiches, une fiche remplie avec
+  ses notes techniques, et l'écran de blocage.
+
+**Schéma :** migration **0011_blocages_et_cloture.sql**, EN ATTENTE d'application par Morgan.
+
+**Décisions :** D3 (architecture), D2 (instrumentation seulement), B1, B2, B3, B4, B6, A9, G4,
+R3-1.
+
+**Écarts au brief :**
+
+- **La fiche n'a pas la pagination par année de la planche** au-delà de vingt rendez-vous : elle
+  affiche les cinq derniers puis le compte total. La pagination viendra avec une fiche qui a
+  vingt visites, pas avant.
+- **La suppression de fiche n'est pas construite** : la planche 16c la renvoie à la modale
+  destructive 9b, qui n'existe pas. Supprimer une fiche sans la modale qui dit ce que devient
+  l'historique serait exactement le genre de geste qu'on ne rattrape pas.
+- **L'apprentissage par CLIENTE n'est pas branché dans le tunnel**, seulement le niveau pro. Ce
+  n'est pas un oubli : au moment où les créneaux se calculent, la cliente n'est pas encore
+  identifiée. Il se branchera sur la création manuelle d'un rendez-vous, où la fiche est connue.
+- **Le blocage se pose sur une journée**, pas sur plusieurs jours d'affilée. Une absence longue
+  est un congé (14f), et il existe déjà.
+
+**Questions ouvertes :** aucune. Les trois qui restaient ont été tranchées.
+
+**À recetter par Morgan :**
+
+1. Colle `0011_blocages_et_cloture.sql`, puis coche la ligne dans `supabase/ETAT.md`.
+2. La barre du bas a **quatre entrées**. Tape « Clientes » : la liste s'ouvre, triée par dernière
+   visite. Cherche un prénom, la liste filtre.
+3. Ouvre une fiche : prénom en tête, résumé (« 3 RDV · depuis mars 2026 »), notes, adresse,
+   historique. Le rythme « revient toutes les N sem. » n'apparaît qu'à partir de trois visites.
+4. Écris des notes techniques, enregistre, recharge : elles sont là. Ouvre ensuite un rendez-vous
+   de cette cliente : **elles s'affichent sans que tu ailles les chercher**.
+5. Sur ce rendez-vous, ajoute une **note de rendez-vous**. Vérifie qu'elle n'apparaît PAS sur les
+   autres rendez-vous de la même cliente : les deux champs ne vivent pas à la même échelle.
+6. Agenda, « Nouveau rendez-vous » : la liste des fiches s'ouvre sur **« Choisis dans tes
+   fiches »**, pas sur un nom. Choisis-en une : son adresse et ses notes apparaissent aussitôt.
+7. Depuis une fiche, tape « Nouveau rendez-vous » : la cliente est déjà choisie.
+8. Agenda en vue jour, « + Bloquer une plage ». Pose-la, elle apparaît en pointillés dans la
+   journée. Va sur ta page publique : **le créneau bloqué n'est plus proposé**. Reviens, « Libérer ».
+9. Un rendez-vous en cours porte le bouton **« Terminé »**. Tape-le : il passe terminé.
+10. Ouvre une fonctionnalité que ton offre ne contient pas (le copilote de tournée en offre 1) :
+    tu arrives sur une page qui dit quelle offre la contient, plus sur un 404.
+11. Recherche par ville sans pro : le texte dit « Laissez votre **e-mail** ».
+
+**Statut à reporter dans la roadmap :** B1, B2, B3, B4, B6 : « Construit, recette à valider ».
+D3 : « Contrainte outillée, `npm run archi:check` ». D2 : « Instrumentation en place ». G4 :
+« Expéditeur tranché et inscrit ; implémentation avec le fournisseur ». A9 : « Tranché,
+e-mail ». R3-1 : « Corrigé, recette à valider ».
 
 ## 2026-09-03 (3) Étape : D13, le prix, le mode d'exercice et les correctifs du site
 

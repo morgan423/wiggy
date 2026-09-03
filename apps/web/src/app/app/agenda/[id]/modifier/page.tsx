@@ -33,7 +33,10 @@ export default async function ModifierRdv({ params }: { params: Promise<{ id: st
       .select('id, name, price_cents, duration_min')
       .eq('active', true)
       .order('position'),
-    supabase.from('clients').select('id, first_name, last_name').order('first_name'),
+    supabase
+      .from('clients')
+      .select('id, first_name, last_name, technical_notes')
+      .order('first_name'),
   ])
 
   const { data: cliente } = await supabase
@@ -108,7 +111,12 @@ export default async function ModifierRdv({ params }: { params: Promise<{ id: st
  */
 async function avecDerniereAdresse(
   supabase: Awaited<ReturnType<typeof supabaseServer>>,
-  clientes: { id: string; first_name: string; last_name: string | null }[],
+  clientes: {
+    id: string
+    first_name: string
+    last_name: string | null
+    technical_notes: string | null
+  }[],
 ) {
   if (clientes.length === 0) return []
   const { data: historique } = await supabase

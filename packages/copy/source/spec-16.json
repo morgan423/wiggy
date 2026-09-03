@@ -1,6 +1,6 @@
 {
   "bloc": "spec-16",
-  "source": "Spécification Design, itération 16, planches 16a (agenda), 16b (le rendez-vous) et 16d (ma tournée). Les valeurs d'exemple des planches sont remplacées par leurs variables : « Ta tournée, Sophie. » devient « Ta tournée, {pro}. »",
+  "source": "Spécification Design, itération 16, planches 16a (agenda), 16b (le rendez-vous) et 16d (ma tournée). Les valeurs d'exemple des planches sont remplacées par leurs variables : « Ta tournée, Sophie. » devient « Ta tournée, {pro}. » Planche 16c ajoutée le 03/09 pour la fiche cliente (B1, B2).",
   "chaines": [
     "Jour · Semaine",
     "{n} rendez-vous · {trajet} de trajet · fini à {fin}",
@@ -35,6 +35,17 @@
     "Modifier le rendez-vous",
     "Nouveau rendez-vous",
     "Annuler le rendez-vous",
-    "Wiggy te signale si le moment casse ta tournée, tu peux le garder quand même."
+    "Wiggy te signale si le moment casse ta tournée, tu peux le garder quand même.",
+    "Historique",
+    "Voir les {n}",
+    "{n} RDV · depuis {depuis} · revient toutes les {semaines} sem.",
+    "1ʳᵉ visite {quand}",
+    "Note sa formule, ses préférences, son code d'entrée, tu les retrouveras à chaque rendez-vous.",
+    "L'historique s'écrira tout seul après son premier rendez-vous.",
+    "Tout lire",
+    "Clientes",
+    "Tes fiches se créeront toutes seules",
+    "Choisis dans tes fiches",
+    "+ Nouvelle cliente"
   ]
 }

@@ -11,6 +11,7 @@ import {
   type AdresseTrouvee,
   type SubscriptionState,
   type SuggestionAdresse,
+  dureeApprise,
 } from '@wiggy/core'
 import { supabaseAdmin, supabaseConfigured } from '@/lib/supabase/admin'
 import { geocoder } from '@/lib/adresse'
@@ -92,7 +93,7 @@ export async function creneauxProposables(options: {
   // cliente apprend qu'un horaire est pris, rien de plus.
   const supabase = supabaseAdmin()
 
-  const [service, reglages, horaires, abonnement] = await Promise.all([
+  const [service, reglages, horaires, abonnement, apprentissage] = await Promise.all([
     supabase
       .from('services')
       .select('duration_min')
@@ -109,6 +110,17 @@ export async function creneauxProposables(options: {
       .select('weekday, starts_at, ends_at')
       .eq('pro_id', options.proId),
     supabase.from('subscriptions').select('tier, status').eq('pro_id', options.proId).maybeSingle(),
+    // B6 — l'apprentissage des durées. Ce que cette pro met RÉELLEMENT pour
+    // cette prestation, mesuré à la clôture. Le niveau « cliente » n'est pas
+    // interrogeable ici : dans le tunnel, on ne sait pas encore qui réserve.
+    supabase
+      .from('appointments')
+      .select('actual_duration_min')
+      .eq('pro_id', options.proId)
+      .eq('service_id', options.serviceId)
+      .not('actual_duration_min', 'is', null)
+      .order('completed_at', { ascending: false })
+      .limit(20),
   ])
 
   if (!service.data || !horaires.data || horaires.data.length === 0)
@@ -199,7 +211,17 @@ export async function creneauxProposables(options: {
   }))
 
   const lookup = lieu ? await tableDesTrajets(rendezVous, lieu.point, geoFiltre) : () => 0
-  const duree = service.data.duration_min + (reglages.data?.new_client_buffer_min ?? 0)
+  // La durée apprise remplace celle du catalogue, puis le tampon nouvelle
+  // cliente (B5) s'y ajoute : le tampon est un temps de découverte, pas un
+  // temps de prestation, et il n'a donc rien à faire dans l'apprentissage.
+  const duree =
+    dureeApprise({
+      dureeCatalogue: service.data.duration_min,
+      historiquePro: (apprentissage.data ?? [])
+        .map((r) => r.actual_duration_min)
+        .filter((n): n is number => typeof n === 'number')
+        .map((minutes) => ({ minutes })),
+    }) + (reglages.data?.new_client_buffer_min ?? 0)
 
   const proposables: JourProposable[] = []
   for (const jour of jours) {

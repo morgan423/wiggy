@@ -46,12 +46,7 @@ en attendant un arbitrage, et ce qui reste **ouvert**. Rien ne doit être « ré
 
 ## Ouvert : arbitrage attendu
 
-- **Sender ID des SMS** : au nom du pro ou « Wiggy » (G4, explicitement « à trancher »).
 - **Noms commerciaux et montants des 3 paliers** (§2 : à confirmer par les entretiens).
-- **Statut de A1** : la ligne porte « Fait, recette validée » depuis le 30/08, alors que la
-  section 3 des retours de recette (page du pro peu vendeuse, bio et Instagram absents) liste des
-  corrections ouvertes. Le tableau de synthèse du document ne mentionne pas A1 : la ligne n'a donc
-  pas été touchée, mais elle est probablement à repasser en « En cours ».
 - **Places API** : A5 ② (« je suis à l'hôtel ») attend l'activation d'une seconde API Google,
   facturée à part. Le code est écrit et inerte tant que `GOOGLE_PLACES_API_KEY` est vide ; la
   cliente saisit alors l'adresse de son hôtel à la main, avec les communes desservies affichées.

@@ -1,10 +1,38 @@
 {
   "$ecran": "Fiche cliente (B1/B2)",
-  "$source": "board phase 2, blocs 7a et 4b",
+  "$source": "board phase 2 (blocs 7a et 4b) et spécification Design, planche 16c",
   "$registre": "pro",
   "notes": {
     "titre": "Tes notes",
     "exemple": "Formule couleur : 6.35 + 20 vol. Temps de pose 35 min. Café sans sucre.",
-    "$regle": "Les exemples éduquent l'usage : formule, dosage, temps de pose, préférences. Jamais d'invite vers des données de santé."
+    "$regle": "Les exemples éduquent l'usage : formule, dosage, temps de pose, préférences. Jamais d'invite vers des données de santé.",
+    "modifier": "Modifier",
+    "invite": "Note sa formule, ses préférences, son code d'entrée, tu les retrouveras à chaque rendez-vous.",
+    "toutLire": "Tout lire"
+  },
+  "liste": {
+    "titre": "Clientes",
+    "videTitre": "Tes fiches se créeront toutes seules"
+  },
+  "fiche": {
+    "historique": "Historique",
+    "nouveauRdv": "Nouveau rendez-vous",
+    "premiereVisiteAVenir": "L'historique s'écrira tout seul après son premier rendez-vous."
+  },
+  "gabarits": {
+    "resume": "{n} RDV · depuis {depuis} · revient toutes les {semaines} sem.",
+    "premiereVisite": "1ʳᵉ visite {quand}",
+    "voirTout": "Voir les {n}"
+  },
+  "$aEcrire": {
+    "$note": "Absent du board : à faire ratifier.",
+    "videInvitation": "Elles arrivent à la première réservation. Tu peux aussi en créer une en posant un rendez-vous.",
+    "recherche": "Chercher une cliente",
+    "aucunResultat": "Aucune fiche à ce nom.",
+    "resumeSimple": "{n} RDV · depuis {depuis}",
+    "jamaisVenue": "Aucun rendez-vous pour l'instant",
+    "noteDuRdv": "Note de ce rendez-vous",
+    "noteDuRdvAide": "Ce qui vaut pour CE rendez-vous seulement. Ce qui vaut pour toutes ses visites va dans ses notes de fiche.",
+    "notesAide": "Formule, dosage, temps de pose, produits, préférences. Reste sur le geste et le produit : Wiggy n'est pas un dossier médical."
   }
 }

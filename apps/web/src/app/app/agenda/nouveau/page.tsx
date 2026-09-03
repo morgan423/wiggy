@@ -5,7 +5,12 @@ import { supabaseServer } from '@/lib/supabase/server'
 import { FormRdv } from '../form'
 import { creerRdv } from '../actions'
 
-export default async function NouveauRdv() {
+export default async function NouveauRdv({
+  searchParams,
+}: {
+  searchParams: Promise<{ cliente?: string }>
+}) {
+  const { cliente } = await searchParams
   await requirePro()
   const supabase = await supabaseServer()
 
@@ -16,7 +21,10 @@ export default async function NouveauRdv() {
       .eq('active', true)
       .order('position')
       .order('created_at'),
-    supabase.from('clients').select('id, first_name, last_name').order('first_name'),
+    supabase
+      .from('clients')
+      .select('id, first_name, last_name, technical_notes')
+      .order('first_name'),
   ])
 
   // Par défaut : la prochaine heure ronde, l'heure de Paris faisant foi.
@@ -42,6 +50,7 @@ export default async function NouveauRdv() {
         <FormRdv
           prestations={prestations ?? []}
           clientes={await avecDerniereAdresse(supabase, clientes ?? [])}
+          clientePreChoisie={cliente ?? null}
           valeurs={{ debut: instantVersHeureLocale(prochaineHeure) }}
           action={creerRdv}
           libelle="Enregistrer le rendez-vous"
@@ -62,7 +71,12 @@ export default async function NouveauRdv() {
  */
 async function avecDerniereAdresse(
   supabase: Awaited<ReturnType<typeof supabaseServer>>,
-  clientes: { id: string; first_name: string; last_name: string | null }[],
+  clientes: {
+    id: string
+    first_name: string
+    last_name: string | null
+    technical_notes: string | null
+  }[],
 ) {
   if (clientes.length === 0) return []
   const { data: historique } = await supabase

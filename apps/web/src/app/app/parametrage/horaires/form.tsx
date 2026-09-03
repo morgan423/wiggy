@@ -1,12 +1,12 @@
 'use client'
 
 import { useActionState, useState } from 'react'
+import { JOURS_SEMAINE } from '@wiggy/core'
 import { ajouterPlage } from './actions'
 import { Erreur, Succes, BoutonPrincipal } from '@/components/champs'
 import { ActionPrincipale, BoutonPointille } from '@/components/composition'
 import { ListeDeroulante, SelecteurHeure } from '@/components/trousse'
 import { VIDE, type EtatForm } from '@/lib/forms'
-import { JOURS } from './jours'
 
 /**
  * L'ajout d'une plage. Comme en 14d et 14e, il s'ouvre sur un geste : un
@@ -51,7 +51,7 @@ export function FormHoraire({ premiere = false }: { premiere?: boolean }) {
         valeur={jour}
         onValeur={setJour}
         optionNeutre="Choisis un jour"
-        options={JOURS.map((nom, index) => ({ valeur: String(index), texte: nom }))}
+        options={JOURS_SEMAINE.map((nom, index) => ({ valeur: String(index), texte: nom }))}
       />
       <div className="grid grid-cols-2 gap-3">
         <SelecteurHeure id="starts_at" label="De" valeur={debut} onValeur={setDebut} />

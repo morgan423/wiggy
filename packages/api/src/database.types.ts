@@ -145,6 +145,7 @@ export type Database = {
         starts_at: string
         ends_at: string
         label: string | null
+        created_at: string
         }
         Insert: {
         id?: string
@@ -152,6 +153,7 @@ export type Database = {
         starts_at: string
         ends_at: string
         label?: string | null
+        created_at?: string
         }
         Update: {
         id?: string
@@ -159,6 +161,7 @@ export type Database = {
         starts_at?: string
         ends_at?: string
         label?: string | null
+        created_at?: string
         }
         Relationships: []
       }

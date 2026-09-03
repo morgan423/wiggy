@@ -8,7 +8,10 @@
     "Votre numéro sert à {Pro} pour le jour J. Confirmation et rappel arrivent par e-mail. Jamais de publicité.",
     "{Pro} vous répond rapidement. Vous serez prévenue par SMS.",
     "{Pro} vous répond rapidement. Vous serez prévenue par e-mail, et ici même sur cette page.",
-    "Pas encore de pro à {ville}. Laissez votre numéro, on vous prévient dès qu'une arrive.",
+    "Pas encore de pro à {ville}. Laissez votre e-mail, on vous prévient dès qu'une arrive.",
     "pour vous prévenir"
+  ],
+  "revisions": [
+    "A9 tranché le 03/09 : la liste d'attente collecte l'E-MAIL, pas le numéro. Le texte de Design promettait un numéro que le formulaire ne demandait pas et que `city_waitlist` ne porte pas. La promesse s'aligne sur ce qui est réellement fait."
   ]
 }

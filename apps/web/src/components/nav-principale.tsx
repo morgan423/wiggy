@@ -18,14 +18,16 @@ import { usePathname } from 'next/navigation'
  * La barre prune du bas et le bandeau prune du haut forment ensemble le ratio
  * de la planche 8a : la crème est la respiration entre deux masses pleines.
  *
- * ⚠️ La planche montre quatre entrées, dont « Clientes ». La fiche cliente est
- * spécifiée en 16c, livraison 3 : une entrée qui ne mène nulle part serait pire
- * que son absence. Écart ratifié par Morgan à la recette 6.
+ * Les quatre entrées de la planche sont là depuis le 03/09 : « Clientes » mène
+ * enfin à la liste des fiches (B1), et l'écart ratifié à la recette 6 se
+ * referme. Une entrée qui ne mène nulle part est pire que son absence ; une
+ * entrée qui mène quelque part n'a plus de raison de manquer.
  */
 
 const ENTREES = [
   { href: '/app/tournee', texte: 'Tournée' },
   { href: '/app/agenda', texte: 'Agenda' },
+  { href: '/app/clientes', texte: 'Clientes' },
   { href: '/app/parametrage', texte: 'Activité' },
 ]
 

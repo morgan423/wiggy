@@ -1,7 +1,9 @@
 'use client'
 
 import { useActionState, useState } from 'react'
-import { Champ, Zone, Choix, Erreur, BoutonPrincipal } from '@/components/champs'
+import { copy } from '@wiggy/copy'
+import { Champ, Zone, Erreur, BoutonPrincipal } from '@/components/champs'
+import { ListeDeroulante } from '@/components/trousse'
 import { VIDE, type EtatForm } from '@/lib/forms'
 
 type Prestation = { id: string; name: string; price_cents: number; duration_min: number }
@@ -11,6 +13,8 @@ type Cliente = {
   last_name: string | null
   /** Dernière adresse connue, reprise de son dernier rendez-vous. */
   adresse?: { address_line1: string | null; postal_code: string | null; city: string | null }
+  /** B2 — la mémoire technique, pré-affichée dès que la fiche est choisie. */
+  technical_notes?: string | null
 }
 
 /** Valeurs de départ, vides à la création, celles du rendez-vous à l'édition. */
@@ -43,6 +47,7 @@ export function FormRdv({
   action: actionServeur,
   libelle,
   edition = false,
+  clientePreChoisie = null,
 }: {
   prestations: Prestation[]
   clientes: Cliente[]
@@ -50,6 +55,8 @@ export function FormRdv({
   action: (precedent: EtatForm, donnees: FormData) => Promise<EtatForm>
   libelle: string
   edition?: boolean
+  /** Fiche pré-sélectionnée, quand on arrive depuis « Nouveau rendez-vous ». */
+  clientePreChoisie?: string | null
 }) {
   const [etat, action, enCours] = useActionState<EtatForm, FormData>(actionServeur, VIDE)
   const [prestation, setPrestation] = useState<Prestation | null>(null)
@@ -58,6 +65,20 @@ export function FormRdv({
   // sa dernière adresse connue, et le pro reste libre de les corriger.
   const [adresse, setAdresse] = useState<{ ligne: string; cp: string; ville: string } | null>(null)
   const [nouvelleCliente, setNouvelleCliente] = useState(!edition && clientes.length === 0)
+  /**
+   * R3-1, ouvert depuis la recette 3 : la liste des fiches s'ouvrait sur un nom
+   * que personne n'avait choisi, et sans ses informations. Deux défauts en un.
+   *
+   * ① La liste native `Choix` affichait sa première option, si bien que le
+   *    formulaire présentait une cliente sélectionnée par l'ordre alphabétique.
+   *    `ListeDeroulante` impose une option neutre : rien n'est choisi tant que
+   *    la pro n'a pas choisi.
+   * ② Elle était NON CONTRÔLÉE : l'adresse ne se remplissait qu'au changement,
+   *    donc jamais au premier rendu. L'état est ici, unique, et c'est lui qui
+   *    est affiché ET soumis.
+   */
+  const [clienteId, setClienteId] = useState(clientePreChoisie ?? '')
+  const clienteChoisie = clientes.find((c) => c.id === clienteId)
 
   // En cas d'erreur, on repart de ce que le pro venait de saisir plutôt que
   // d'un formulaire vide. `key` force le remontage : un champ non contrôlé
@@ -114,26 +135,53 @@ export function FormRdv({
             />
           </>
         ) : (
-          <Choix
-            id="client_id"
-            label="Fiche"
-            options={clientes.map((c) => ({
-              valeur: c.id,
-              texte: `${c.first_name} ${c.last_name ?? ''}`.trim(),
-            }))}
-            onChange={(id) => {
-              const choisie = clientes.find((c) => c.id === id)
-              setAdresse(
-                choisie?.adresse
-                  ? {
-                      ligne: choisie.adresse.address_line1 ?? '',
-                      cp: choisie.adresse.postal_code ?? '',
-                      ville: choisie.adresse.city ?? '',
-                    }
-                  : null,
-              )
-            }}
-          />
+          <>
+            <ListeDeroulante
+              id="client_id"
+              label="Fiche"
+              valeur={clienteId}
+              onValeur={(id) => {
+                setClienteId(id)
+                const choisie = clientes.find((c) => c.id === id)
+                setAdresse(
+                  choisie?.adresse
+                    ? {
+                        ligne: choisie.adresse.address_line1 ?? '',
+                        cp: choisie.adresse.postal_code ?? '',
+                        ville: choisie.adresse.city ?? '',
+                      }
+                    : null,
+                )
+              }}
+              optionNeutre="Choisis dans tes fiches"
+              options={clientes.map((c) => ({
+                valeur: c.id,
+                texte: `${c.first_name} ${c.last_name ?? ''}`.trim(),
+              }))}
+            />
+            {/*
+              R3-1 ② : la fiche choisie MONTRE ce qu'elle sait. Sans cela, le
+              nom seul ne disait pas si c'était la bonne cliente, et l'adresse
+              se remplissait plus bas sans qu'on comprenne pourquoi.
+              B2 : ses notes techniques s'affichent ici, avant le rendez-vous.
+            */}
+            {clienteChoisie ? (
+              <div className="mt-2 flex flex-col gap-1 rounded-[14px] bg-surface px-3 py-2.5 text-[12.5px] leading-[1.5]">
+                {clienteChoisie.adresse?.address_line1 ? (
+                  <span>
+                    <span className="font-extrabold">{clienteChoisie.adresse.address_line1}</span>
+                    {clienteChoisie.adresse.city ? `, ${clienteChoisie.adresse.city}` : ''}
+                  </span>
+                ) : null}
+                {clienteChoisie.technical_notes ? (
+                  <span>
+                    <span className="font-extrabold">{copy.ficheCliente.notes.titre}</span> ·{' '}
+                    {clienteChoisie.technical_notes}
+                  </span>
+                ) : null}
+              </div>
+            ) : null}
+          </>
         )}
       </fieldset>
 

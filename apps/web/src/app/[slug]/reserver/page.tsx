@@ -5,6 +5,7 @@ import { formatEuros, formatDistance, ZONE } from '@wiggy/core'
 import { copy, remplir } from '@wiggy/copy'
 import { supabaseServer } from '@/lib/supabase/server'
 import { modeDuPro } from '@/lib/mode'
+import { ChampGet } from '@/components/champ-get'
 import { supabaseConfigured } from '@/lib/supabase/admin'
 import { creneauxProposables } from '@/lib/creneaux'
 import { canalDeRappel } from '@/lib/rappel'
@@ -484,38 +485,5 @@ async function EtapeSejour({
         </form>
       </section>
     </>
-  )
-}
-
-function ChampGet({
-  id,
-  label,
-  defaultValue,
-  required = true,
-  inputMode,
-  type = 'text',
-}: {
-  id: string
-  label: string
-  defaultValue?: string
-  required?: boolean
-  inputMode?: 'numeric'
-  type?: string
-}) {
-  return (
-    <div className="mt-5">
-      <label htmlFor={id} className="block text-sm font-semibold">
-        {label}
-      </label>
-      <input
-        id={id}
-        name={id}
-        type={type}
-        defaultValue={defaultValue}
-        required={required}
-        inputMode={inputMode}
-        className="mt-2 w-full rounded-champ border-2 border-trait-discret px-5 py-4 text-lg"
-      />
-    </div>
   )
 }

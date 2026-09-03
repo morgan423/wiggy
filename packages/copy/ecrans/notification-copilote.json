@@ -13,5 +13,8 @@
     "titre": "Amélie · 14h30",
     "detail": "Départ conseillé : 14h18",
     "bouton": "Ouvrir le trajet"
+  },
+  "$aEcrire": {
+    "$noteG4": "G4, tranché le 03/09 : l'EXPÉDITEUR de tous les SMS est « Wiggy », sender ID alphanumérique unique. Le CORPS parle au nom de la pro et ouvre par elle (« Bonjour Mme Riva, c'est Sophie… »). Les messages qui appellent une réponse (retard C5, relance B8) portent le NUMÉRO DE LA PRO dans le texte : l'expéditeur ne se répond pas. Le principe : la relation vit dans le texte, l'infrastructure dans l'en-tête."
   }
 }

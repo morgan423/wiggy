@@ -196,34 +196,54 @@ Ce qui suit est de notre plume : les messages de refus des plafonds anti-pompage
 spécification ne traite pas, et quelques libellés de champ que la planche montre remplis
 sans les nommer.
 
-| Clé                                                        | Texte                                                                      |
-| ---------------------------------------------------------- | -------------------------------------------------------------------------- |
-| `authentification.$aEcrire.gabaritRenvoyer`                | « Renvoyer le code ({secondes} s) »                                        |
-| `authentification.$aEcrire.verifieOk`                      | « Ton numéro est vérifié. »                                                |
-| `authentification.$aEcrire.emailChamp`                     | « Ton e-mail »                                                             |
-| `authentification.$aEcrire.oubliNumero`                    | « Le numéro de ton compte »                                                |
-| `authentification.$aEcrire.codeDeveloppement`              | « Aucun fournisseur SMS configuré. Code de développement : {code} »        |
-| `authentification.$aEcrire.inviteVerification`             | « Vérifie ton téléphone et ta boîte mail pour mettre ta page en ligne. »   |
-| `authentification.$aEcrire.invitePartielle`                | « Il te reste {reste} à vérifier pour mettre ta page en ligne. »           |
-| `authentification.$aEcrire.telephoneChamp`                 | « Ton numéro de téléphone »                                                |
-| `authentification.$aEcrire.telephoneBouton`                | « Recevoir le code »                                                       |
-| `authentification.$aEcrire.plusCeNumero`                   | « Je n’ai plus ce numéro »                                                 |
-| `agenda-tournee.$aEcrire.voirLendemain`                    | « Voir le lendemain »                                                      |
-| `authentification.$aEcrire.pasDeCompte`                    | « Pas encore de compte ? »                                                 |
-| `authentification.$aEcrire.essai`                          | « Essaie 30 jours »                                                        |
-| `reservation-cliente.$aEcrire.forfaitTitre`                | « Au-delà de ta zone »                                                     |
-| `reservation-cliente.$aEcrire.fixeZoneIntervention`        | « Vous reçoit à »                                                          |
-| `reservation-cliente.$aEcrire.fixeAdresseDuLieu`           | « {pro} vous reçoit au {adresse}. »                                        |
-| `reservation-cliente.$aEcrire.fixeAccesTitre`              | « Comment entrer »                                                         |
-| `reservation-cliente.$aEcrire.fixeConfirmationDetailSms`   | « Rendez-vous chez {pro}. Vous recevrez un rappel par SMS la veille. »     |
-| `reservation-cliente.$aEcrire.fixeConfirmationDetailEmail` | « Rendez-vous chez {pro}. Vous recevrez un rappel la veille, par e-mail. » |
-| `reservation-cliente.$aEcrire.fixeAucunDeplacement`        | « {pro} ne se déplace pas : c'est vous qui venez. »                        |
-| `validation.$aEcrire.proMotDePasseCourt`                   | « 8 caractères minimum. »                                                  |
-| `validation.$aEcrire.proCodeFaux`                          | « Ce code ne correspond pas. Vérifie les cinq chiffres. »                  |
-| `validation.$aEcrire.proCodeExpire`                        | « Ce code a expiré. Demande-en un nouveau. »                               |
-| `validation.$aEcrire.proCodeTropDeTentatives`              | « Trop d’essais. Demande un nouveau code. »                                |
-| `validation.$aEcrire.proPlafondNumero`                     | « Trop de codes demandés pour ce numéro. Réessaie dans une heure. »        |
-| `validation.$aEcrire.proPlafondAppelant`                   | « Trop de demandes depuis cet appareil. Réessaie dans une heure. »         |
-| `validation.$aEcrire.proPlafondGlobal`                     | « L’envoi de codes est momentanément suspendu. Réessaie plus tard. »       |
-| `validation.$aEcrire.proSmsIndisponible`                   | « L’envoi n’a pas abouti. Réessaie dans un instant. »                      |
-| `validation.$aEcrire.proDestinationSms`                    | « Wiggy n’envoie de codes qu’en France métropolitaine et dans les DOM. »   |
+| Clé                                                        | Texte                                                                                                                             |
+| ---------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| `authentification.$aEcrire.gabaritRenvoyer`                | « Renvoyer le code ({secondes} s) »                                                                                               |
+| `authentification.$aEcrire.verifieOk`                      | « Ton numéro est vérifié. »                                                                                                       |
+| `authentification.$aEcrire.emailChamp`                     | « Ton e-mail »                                                                                                                    |
+| `authentification.$aEcrire.oubliNumero`                    | « Le numéro de ton compte »                                                                                                       |
+| `authentification.$aEcrire.codeDeveloppement`              | « Aucun fournisseur SMS configuré. Code de développement : {code} »                                                               |
+| `authentification.$aEcrire.inviteVerification`             | « Vérifie ton téléphone et ta boîte mail pour mettre ta page en ligne. »                                                          |
+| `authentification.$aEcrire.invitePartielle`                | « Il te reste {reste} à vérifier pour mettre ta page en ligne. »                                                                  |
+| `authentification.$aEcrire.telephoneChamp`                 | « Ton numéro de téléphone »                                                                                                       |
+| `authentification.$aEcrire.telephoneBouton`                | « Recevoir le code »                                                                                                              |
+| `authentification.$aEcrire.plusCeNumero`                   | « Je n’ai plus ce numéro »                                                                                                        |
+| `agenda-tournee.$aEcrire.voirLendemain`                    | « Voir le lendemain »                                                                                                             |
+| `authentification.$aEcrire.pasDeCompte`                    | « Pas encore de compte ? »                                                                                                        |
+| `authentification.$aEcrire.essai`                          | « Essaie 30 jours »                                                                                                               |
+| `fiche-cliente.$aEcrire.videInvitation`                    | « Elles arrivent à la première réservation. Tu peux aussi en créer une en posant un rendez-vous. »                                |
+| `fiche-cliente.$aEcrire.recherche`                         | « Chercher une cliente »                                                                                                          |
+| `fiche-cliente.$aEcrire.aucunResultat`                     | « Aucune fiche à ce nom. »                                                                                                        |
+| `fiche-cliente.$aEcrire.resumeSimple`                      | « {n} RDV · depuis {depuis} »                                                                                                     |
+| `fiche-cliente.$aEcrire.jamaisVenue`                       | « Aucun rendez-vous pour l'instant »                                                                                              |
+| `fiche-cliente.$aEcrire.noteDuRdv`                         | « Note de ce rendez-vous »                                                                                                        |
+| `fiche-cliente.$aEcrire.noteDuRdvAide`                     | « Ce qui vaut pour CE rendez-vous seulement. Ce qui vaut pour toutes ses visites va dans ses notes de fiche. »                    |
+| `fiche-cliente.$aEcrire.notesAide`                         | « Formule, dosage, temps de pose, produits, préférences. Reste sur le geste et le produit : Wiggy n'est pas un dossier médical. » |
+| `agenda-tournee.$aEcrire.bloquer`                          | « Bloquer une plage »                                                                                                             |
+| `agenda-tournee.$aEcrire.blocageTitre`                     | « Tu n'es pas disponible ? »                                                                                                      |
+| `agenda-tournee.$aEcrire.blocageAide`                      | « Cette plage disparaît des créneaux proposés à tes clientes. Personne ne pourra réserver dessus. »                               |
+| `agenda-tournee.$aEcrire.blocageMotif`                     | « Pourquoi (facultatif) »                                                                                                         |
+| `agenda-tournee.$aEcrire.blocageMotifAide`                 | « Pour toi seule. Tes clientes ne le voient jamais. »                                                                             |
+| `agenda-tournee.$aEcrire.blocagePose`                      | « Plage bloquée. »                                                                                                                |
+| `agenda-tournee.$aEcrire.blocageLiberer`                   | « Libérer »                                                                                                                       |
+| `agenda-tournee.$aEcrire.blocageIndisponible`              | « Indisponible »                                                                                                                  |
+| `agenda-tournee.$aEcrire.terminer`                         | « Terminé »                                                                                                                       |
+| `validation.$aEcrire.blocageDebut`                         | « Indique à partir de quand tu n'es pas disponible. »                                                                             |
+| `validation.$aEcrire.blocageFin`                           | « Indique jusqu'à quand tu n'es pas disponible. »                                                                                 |
+| `validation.$aEcrire.blocageOrdre`                         | « La fin doit venir après le début. »                                                                                             |
+| `reservation-cliente.$aEcrire.forfaitTitre`                | « Au-delà de ta zone »                                                                                                            |
+| `reservation-cliente.$aEcrire.fixeZoneIntervention`        | « Vous reçoit à »                                                                                                                 |
+| `reservation-cliente.$aEcrire.fixeAdresseDuLieu`           | « {pro} vous reçoit au {adresse}. »                                                                                               |
+| `reservation-cliente.$aEcrire.fixeAccesTitre`              | « Comment entrer »                                                                                                                |
+| `reservation-cliente.$aEcrire.fixeConfirmationDetailSms`   | « Rendez-vous chez {pro}. Vous recevrez un rappel par SMS la veille. »                                                            |
+| `reservation-cliente.$aEcrire.fixeConfirmationDetailEmail` | « Rendez-vous chez {pro}. Vous recevrez un rappel la veille, par e-mail. »                                                        |
+| `reservation-cliente.$aEcrire.fixeAucunDeplacement`        | « {pro} ne se déplace pas : c'est vous qui venez. »                                                                               |
+| `validation.$aEcrire.proMotDePasseCourt`                   | « 8 caractères minimum. »                                                                                                         |
+| `validation.$aEcrire.proCodeFaux`                          | « Ce code ne correspond pas. Vérifie les cinq chiffres. »                                                                         |
+| `validation.$aEcrire.proCodeExpire`                        | « Ce code a expiré. Demande-en un nouveau. »                                                                                      |
+| `validation.$aEcrire.proCodeTropDeTentatives`              | « Trop d’essais. Demande un nouveau code. »                                                                                       |
+| `validation.$aEcrire.proPlafondNumero`                     | « Trop de codes demandés pour ce numéro. Réessaie dans une heure. »                                                               |
+| `validation.$aEcrire.proPlafondAppelant`                   | « Trop de demandes depuis cet appareil. Réessaie dans une heure. »                                                                |
+| `validation.$aEcrire.proPlafondGlobal`                     | « L’envoi de codes est momentanément suspendu. Réessaie plus tard. »                                                              |
+| `validation.$aEcrire.proSmsIndisponible`                   | « L’envoi n’a pas abouti. Réessaie dans un instant. »                                                                             |
+| `validation.$aEcrire.proDestinationSms`                    | « Wiggy n’envoie de codes qu’en France métropolitaine et dans les DOM. »                                                          |

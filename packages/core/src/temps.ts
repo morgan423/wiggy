@@ -116,3 +116,20 @@ export function joursDeLaSemaine(instant: Date): Date[] {
 export function finRendezVous(debut: Date, dureeMin: number): Date {
   return new Date(debut.getTime() + dureeMin * 60_000)
 }
+
+/**
+ * Les jours de la semaine, dans l'ordre de `working_hours.weekday` : 0 = lundi.
+ *
+ * Ils vivent ici et non dans une enveloppe (D3) : ce sont des libellés que les
+ * deux surfaces afficheront, et l'ordre est une convention de schéma, pas une
+ * décision de rendu.
+ */
+export const JOURS_SEMAINE = [
+  'Lundi',
+  'Mardi',
+  'Mercredi',
+  'Jeudi',
+  'Vendredi',
+  'Samedi',
+  'Dimanche',
+] as const

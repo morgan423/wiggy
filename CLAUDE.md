@@ -43,6 +43,30 @@ installation).
 
 ## Structure
 
+**D3, tranchée le 03/09 : un seul produit logique, deux enveloppes.** La webapp pro est
+**pérenne** ; l'app native s'ajoutera comme **seconde enveloppe du même cœur**, jamais comme un
+second produit.
+
+**Contrainte à respecter dès maintenant, sur le code existant comme sur tout ce qui s'écrit :**
+la logique métier, les écrans, le copy et les jetons vivent dans `packages/core`, `packages/api`,
+`packages/copy` et `packages/tokens`. **Jamais dans `apps/web` ni dans `apps/pro`.** Une
+enveloppe ne porte que ce qui lui est propre : le rendu et les capacités de sa plateforme.
+
+Ce n'est pas une préférence de rangement, c'est une dette qui se paie plus tard au prix fort :
+**chaque écran construit hors des packages communs est un écran à réécrire le jour du natif**, et
+on en construit tous les jours.
+
+`npm run archi:check` rend la règle exécutable. Son critère : un module d'enveloppe est
+**portable** si tout ce qu'il importe est portable (`@wiggy/*`, Node, ou un autre module portable
+de la même enveloppe). Un module portable tournerait tel quel en React Native, donc sa place est
+dans un package. Le contrôle échoue sur tout module portable absent de
+`docs/architecture-dette.md` : la dette existante y est inventoriée avec ses motifs, et cet
+inventaire **ne peut que se réduire**.
+
+Une exception à cette règle : `apps/web` est aussi **l'hôte de l'API** des trois surfaces. Les
+clients d'API tierces et les secrets serveur y restent, et n'ont rien à faire dans un package que
+le mobile embarquerait.
+
 ```
 apps/web       Next.js : site public, page de réservation cliente, API, webhooks Stripe
 apps/pro       Expo / React Native : l'app du pro (D3 : natif obligatoire pour C1/C6/C8/G3/G6)
@@ -234,6 +258,7 @@ npm run db:check   # rejoue les migrations sur un Postgres jetable + garde-fou R
 npm run db:test    # cloisonnement prouvé, pas supposé
 npm run db:matrice # matrice d'accès, échoue sur une lecture anonyme non justifiée
 npm run design:check
+npm run archi:check  # D3 : aucune logique portable dans une enveloppe
 npm run copy:manques
 npm test
 ```

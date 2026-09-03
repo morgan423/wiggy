@@ -23,10 +23,8 @@ if (fichiers.length === 0) {
   process.exit(1)
 }
 
-const sortie = join(
-  racine,
-  depuis ? `MIGRATIONS-A-COLLER-DEPUIS-${depuis}.sql` : 'MIGRATIONS-A-COLLER.sql',
-)
+const nom = depuis ? `MIGRATIONS-A-COLLER-DEPUIS-${depuis}.sql` : 'MIGRATIONS-A-COLLER.sql'
+const sortie = join(racine, nom)
 
 const entete = `-- Wiggy — migrations
 -- Concaténation des ${fichiers.length} migrations, dans l'ordre.
@@ -46,4 +44,7 @@ const corps = fichiers
   .join('\n')
 
 writeFileSync(sortie, entete + corps + '\n')
-console.log(`MIGRATIONS-A-COLLER.sql — ${fichiers.length} migrations`)
+// Le message annonçait toujours « MIGRATIONS-A-COLLER.sql » alors que le
+// fichier écrit porte le suffixe quand `--depuis` est passé : on cherchait le
+// fichier au mauvais nom.
+console.log(`${nom} — ${fichiers.length} migrations`)

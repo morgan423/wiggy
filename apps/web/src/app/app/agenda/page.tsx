@@ -13,8 +13,15 @@ import { copy, remplir } from '@wiggy/copy'
 import { requirePro } from '@/lib/auth'
 import { supabaseServer } from '@/lib/supabase/server'
 import { zoneDuPro } from '@/lib/zone'
+import { libererPlage } from './actions'
 import { trajetsDeLaJournee, libelleTrajet, type Trajets } from '@/lib/tournee'
-import { EnteteEcran, CorpsEcran, RANGEE, PastilleEtat } from '@/components/composition'
+import {
+  EnteteEcran,
+  CorpsEcran,
+  BoutonPointille,
+  RANGEE,
+  PastilleEtat,
+} from '@/components/composition'
 
 /**
  * B10, l'agenda de planification. Planche 16a.
@@ -107,7 +114,7 @@ export default async function Agenda({
   const fin = ajouterJours(debut, vue === 'jour' ? 1 : 7)
 
   const supabase = await supabaseServer()
-  const [{ data: rdvs }, { data: aDecider }] = await Promise.all([
+  const [{ data: rdvs }, { data: aDecider }, { data: blocages }] = await Promise.all([
     supabase
       .from('appointments')
       .select(CHAMPS)
@@ -121,6 +128,15 @@ export default async function Agenda({
       .select(CHAMPS)
       .in('status', ['pending', 'conditional'])
       .gte('starts_at', new Date().toISOString())
+      .order('starts_at'),
+    // B4 : les plages bloquées se lisent DANS la journée, à leur place, pas
+    // dans une liste à part. Une plage qu'on ne voit pas est une plage qu'on
+    // croit libre.
+    supabase
+      .from('blocked_slots')
+      .select('id, starts_at, ends_at, label')
+      .gte('starts_at', debut.toISOString())
+      .lt('starts_at', fin.toISOString())
       .order('starts_at'),
   ])
 
@@ -186,6 +202,38 @@ export default async function Agenda({
 
         <ADecider demandes={aDecider ?? []} />
 
+        {vue === 'jour'
+          ? (blocages ?? []).map((b) => (
+              <div
+                key={b.id}
+                className="flex items-center justify-between gap-2.5 rounded-carte border-[1.5px] border-dashed border-texte-principal/30 px-3.5 py-3"
+              >
+                <span className="w-[42px] shrink-0 text-[13px] font-extrabold text-texte-attenue">
+                  {heure.format(new Date(b.starts_at))}
+                </span>
+                <span className="flex min-w-0 flex-1 flex-col gap-px">
+                  <span className="text-[13px] font-bold text-texte-attenue">
+                    {T.$aEcrire.blocageIndisponible}
+                    {' · '}
+                    {heure.format(new Date(b.ends_at))}
+                  </span>
+                  {b.label ? (
+                    <span className="text-[11.5px] text-texte-attenue">{b.label}</span>
+                  ) : null}
+                </span>
+                <form action={libererPlage} className="shrink-0">
+                  <input type="hidden" name="id" value={b.id} />
+                  <button
+                    type="submit"
+                    className="text-[12px] font-bold text-action hover:text-action-survol"
+                  >
+                    {T.$aEcrire.blocageLiberer}
+                  </button>
+                </form>
+              </div>
+            ))
+          : null}
+
         {vue === 'semaine' ? (
           <Radar ancre={ancre} rdvs={duJour} />
         ) : duJour.length === 0 ? (
@@ -234,6 +282,10 @@ export default async function Agenda({
             })}
           </ul>
         )}
+        {vue === 'jour' ? (
+          <BoutonPointille href="/app/agenda/bloquer">+ {T.$aEcrire.bloquer}</BoutonPointille>
+        ) : null}
+
         <nav className="flex justify-between pt-2 text-[12px] font-bold text-texte-attenue">
           <Link href={`/app/agenda?vue=${vue}&le=${precedent}`} className="hover:text-prune">
             ‹ {vue === 'jour' ? 'Veille' : 'Semaine précédente'}

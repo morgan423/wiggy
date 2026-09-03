@@ -63,6 +63,9 @@ const VUES = [
   { nom: '06-pro-profil-rempli', compte: 'rempli', url: '/app/parametrage/profil' },
   { nom: '07-pro-agenda', compte: 'rempli', url: '/app/agenda' },
   { nom: '08-pro-rendez-vous', compte: 'rempli', url: '/app/agenda/{rdv}' },
+  { nom: '08b-pro-clientes', compte: 'rempli', url: '/app/clientes' },
+  { nom: '08c-pro-fiche-cliente', compte: 'rempli', url: '/app/clientes/{cliente}' },
+  { nom: '08d-pro-bloquer', compte: 'rempli', url: '/app/agenda/bloquer' },
   { nom: '09-pro-agenda-nouveau', compte: 'rempli', url: '/app/agenda/nouveau' },
   { nom: '10-pro-tournee', compte: 'rempli', url: '/app/tournee' },
   { nom: '11-pro-accueil', compte: 'rempli', url: '/app' },
@@ -206,10 +209,16 @@ async function semer(client) {
     method: 'POST',
     headers: { Prefer: 'return=representation' },
     body: JSON.stringify([
-      { pro_id: id, first_name: 'Marie', last_name: 'L.' },
-      { pro_id: id, first_name: 'Chantal', last_name: 'M.' },
-      { pro_id: id, first_name: 'Amélie', last_name: 'D.' },
-      { pro_id: id, first_name: 'Léa', last_name: 'B.' },
+      { pro_id: id, first_name: 'Marie', last_name: 'L.', technical_notes: null },
+      {
+        pro_id: id,
+        first_name: 'Chantal',
+        last_name: 'M.',
+        technical_notes:
+          'Formule couleur 6.35 + 20 vol. Temps de pose 35 min. Shampooing sans sulfate.',
+      },
+      { pro_id: id, first_name: 'Amélie', last_name: 'D.', technical_notes: null },
+      { pro_id: id, first_name: 'Léa', last_name: 'B.', technical_notes: null },
     ]),
   })
   const min = (minutes) => new Date(Date.now() + minutes * 60_000).toISOString()
@@ -251,7 +260,7 @@ async function semer(client) {
 
   // Le rendez-vous en cours : c'est lui qu'on ouvre pour capturer la
   // consultation de la planche 16b.
-  return { serviceId: prestation.id, rdvId: rdvs[1].id }
+  return { serviceId: prestation.id, rdvId: rdvs[1].id, clienteId: clientes[1].id }
 }
 
 async function nettoyer(client) {
@@ -288,7 +297,7 @@ async function executer() {
     await rm(DOSSIER, { recursive: true, force: true })
     await mkdir(DOSSIER, { recursive: true })
 
-    const { serviceId, rdvId } = await semer(client)
+    const { serviceId, rdvId, clienteId } = await semer(client)
     console.log('Comptes de test semés.\n')
 
     navigateur = await chromium.launch({ channel: 'chrome' })
@@ -309,7 +318,12 @@ async function executer() {
         connecte = null
       }
 
-      const url = serveur.base + vue.url.replace('{service}', serviceId).replace('{rdv}', rdvId)
+      const url =
+        serveur.base +
+        vue.url
+          .replace('{service}', serviceId)
+          .replace('{rdv}', rdvId)
+          .replace('{cliente}', clienteId)
       await page.goto(url, { waitUntil: 'networkidle' }).catch(() => undefined)
 
       const releves = await releverContrastes(page)

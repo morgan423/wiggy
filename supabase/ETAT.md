@@ -37,8 +37,9 @@ Rejouer un lot déjà appliqué échoue sur les types et les tables qui existent
 | `0006_geocodage_refus.sql`     | Moniteur des refus de géocodage, avec purge à 90 jours.                                                                                       | Appliquée (date non tracée) | Projet inexistant |
 | `0007_hors_zone_et_photos.sql` | A5 et A6 (hors zone, séjour, jeton de suivi), A4 (seau des photos), pronom du pro, retrait des coordonnées du domicile de la lecture anonyme. | Appliquée le 2026-08-31     | Projet inexistant |
 | `0008_communes.sql`            | D6 : référentiel des communes en base, créé **vide**. Alimenté par `npm run communes:import`.                                                 | Appliquée le 2026-08-31     | Projet inexistant |
-| `0009_auth_et_forfait.sql`     | D9 : téléphone vérifié du pro et de la cliente, table des codes verrouillée. A8 : `distance_fees` perd sa lecture publique.                   | En attente                  | Projet inexistant |
-| `0010_mode_exercice.sql`       | D10 ① : colonne `mode` sur `pros`, itinerant par défaut ou fixe. Drapeau d'affichage, jamais un droit.                                        | En attente                  | Projet inexistant |
+| `0009_auth_et_forfait.sql`     | D9 : téléphone vérifié du pro et de la cliente, table des codes verrouillée. A8 : `distance_fees` perd sa lecture publique.                   | Appliquée le 2026-09-03     | Projet inexistant |
+| `0010_mode_exercice.sql`       | D10 ① : colonne `mode` sur `pros`, itinerant par défaut ou fixe. Drapeau d'affichage, jamais un droit.                                        | Appliquée le 2026-09-03     | Projet inexistant |
+| `0011_blocages_et_cloture.sql` | B4 : `blocked_slots.created_at`, pour mesurer la fréquence de blocage (D2). B6 : index d'apprentissage des durées réelles.                    | En attente                  | Projet inexistant |
 
 ## Notes
 

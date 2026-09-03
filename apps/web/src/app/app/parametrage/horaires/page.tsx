@@ -1,9 +1,9 @@
+import { JOURS_SEMAINE } from '@wiggy/core'
 import { requirePro } from '@/lib/auth'
 import { supabaseServer } from '@/lib/supabase/server'
 import { EnteteEcran, CorpsEcran, RANGEE, EtatVide } from '@/components/composition'
 import { FormHoraire } from './form'
 import { supprimerPlage } from './actions'
-import { JOURS } from './jours'
 
 /**
  * Les journées de travail, planche 14f.
@@ -28,7 +28,7 @@ export default async function Horaires() {
     .order('starts_at')
 
   const liste = plages ?? []
-  const parJour = JOURS.map((nom, index) => ({
+  const parJour = JOURS_SEMAINE.map((nom, index) => ({
     nom,
     index,
     plages: liste.filter((p) => p.weekday === index),
