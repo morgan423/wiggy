@@ -2,8 +2,15 @@
   C9 ② et ③ — le service worker de Wiggy.
 
   DEUX MISSIONS, ET AUCUNE AUTRE :
-    ② rendre la TOURNÉE DU JOUR consultable hors-ligne ;
+    ② rendre la JOURNÉE consultable hors-ligne : la tournée, l'agenda, ET LES
+       FICHES DES CLIENTES DU JOUR ;
     ③ recevoir les notifications push.
+
+  ⚠️ LES FICHES SONT LE CAS D'USAGE LE PLUS FORT, et elles manquaient. En zone
+  blanche chez une cliente, la pro n'a pas besoin de son agenda : elle est déjà
+  sur place. Elle a besoin de la formule couleur et du temps de pose de la
+  personne assise devant elle. C8 le disait, D4 l'avait avancé dans C9, et le
+  cadrage s'était rétréci entre les deux.
 
   Ce n'est pas un cache général. « Tout mettre en cache » sur une app de
   réservation, c'est montrer un créneau libre qui ne l'est plus, et envoyer une
@@ -11,12 +18,24 @@
   jamais ce qui s'écrit.
 */
 
-const VERSION = 'wiggy-v1'
-const TOURNEE = `${VERSION}-tournee`
+const VERSION = 'wiggy-v2'
 const STATIQUE = `${VERSION}-statique`
 
+/*
+  LE CACHE DU JOUR PORTE SA DATE, et c'est ce qui le fait expirer tout seul.
+
+  Une fiche mise en cache hier n'a aucune raison d'être lisible aujourd'hui : la
+  pro n'est plus chez cette cliente. Le nom du cache contient donc la date, et
+  tout cache d'un autre jour est supprimé au premier passage. Aucune tâche
+  planifiée : une purge liée à l'usage se répare d'elle-même, une tâche qui ne
+  tourne plus laisse grossir sans que personne le voie.
+*/
+const jourCourant = () => new Date().toISOString().slice(0, 10)
+const cacheDuJour = () => `${VERSION}-jour-${jourCourant()}`
+
 // Les chemins dont la dernière version consultée doit survivre au réseau.
-const HORS_LIGNE = ['/app/tournee', '/app/agenda']
+// `/app/clientes/` en fait partie : c'est la fiche, le cœur du hors-ligne.
+const HORS_LIGNE = ['/app/tournee', '/app/agenda', '/app/clientes/']
 
 self.addEventListener('install', (evenement) => {
   // On prend la main tout de suite : une pro qui vient d'installer l'app et
@@ -32,7 +51,8 @@ self.addEventListener('activate', (evenement) => {
       // Les caches d'une version précédente sont jetés : garder l'ancien
       // reviendrait à servir un jour l'écran d'avant-hier.
       const noms = await caches.keys()
-      await Promise.all(noms.filter((n) => !n.startsWith(VERSION)).map((n) => caches.delete(n)))
+      const garder = [STATIQUE, cacheDuJour()]
+      await Promise.all(noms.filter((n) => !garder.includes(n)).map((n) => caches.delete(n)))
       await self.clients.claim()
     })(),
   )
@@ -70,7 +90,8 @@ self.addEventListener('fetch', (evenement) => {
  * tout — elle ne saurait pas qu'elle regarde une photo ancienne.
  */
 async function reseauPuisCache(requete) {
-  const cache = await caches.open(TOURNEE)
+  await purgerLesAutresJours()
+  const cache = await caches.open(cacheDuJour())
   try {
     const reponse = await fetch(requete)
     /*
@@ -111,6 +132,59 @@ async function cachePuisReseau(requete) {
   if (reponse.ok && !reponse.redirected) cache.put(requete, reponse.clone()).catch(() => {})
   return reponse
 }
+
+/** Tout cache d'un autre jour s'en va. Appelée à chaque lecture : gratuite. */
+async function purgerLesAutresJours() {
+  const garder = [STATIQUE, cacheDuJour()]
+  const noms = await caches.keys()
+  await Promise.all(noms.filter((n) => !garder.includes(n)).map((n) => caches.delete(n)))
+}
+
+/*
+  ── Les messages de la page ───────────────────────────────────────────────
+
+  `precharger` : la pro consulte sa tournée AVANT de partir, encore connectée.
+  C'est le seul moment où l'on peut remplir le cache — en zone blanche, il est
+  trop tard. La page envoie les adresses des fiches du jour, le worker les va
+  chercher.
+
+  `oublier` : la DÉCONNEXION. Un cache qui survit à un logout est un défaut, et
+  celui-ci contient des notes techniques de clientes nommées. Tout part.
+*/
+self.addEventListener('message', (evenement) => {
+  const message = evenement.data
+  if (!message || typeof message !== 'object') return
+
+  if (message.type === 'precharger' && Array.isArray(message.chemins)) {
+    evenement.waitUntil(
+      (async () => {
+        await purgerLesAutresJours()
+        const cache = await caches.open(cacheDuJour())
+        await Promise.all(
+          message.chemins.slice(0, 40).map(async (chemin) => {
+            try {
+              const reponse = await fetch(chemin, { credentials: 'same-origin' })
+              if (reponse.ok && !reponse.redirected) await cache.put(chemin, reponse)
+            } catch {
+              // Hors ligne au moment du préchargement : on ne fait rien. La
+              // fiche déjà en cache reste, et l'échec ne se signale pas.
+            }
+          }),
+        )
+      })(),
+    )
+    return
+  }
+
+  if (message.type === 'oublier') {
+    evenement.waitUntil(
+      (async () => {
+        const noms = await caches.keys()
+        await Promise.all(noms.map((n) => caches.delete(n)))
+      })(),
+    )
+  }
+})
 
 /* ── ③ Le push ────────────────────────────────────────────────────────── */
 

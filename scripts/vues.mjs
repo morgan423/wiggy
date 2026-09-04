@@ -91,6 +91,10 @@ const VUES = [
   { nom: '17-pro-conges-vide', compte: 'vide', url: '/app/parametrage/conges' },
   // Web cliente, sans compte
   { nom: '18-site-accueil', url: '/' },
+  // La planche 19a est une composition de RÉFÉRENCE en 1180 : la vérifier à
+  // 390 ne dirait rien de sa grille. Les états mobiles 19b et 19c, eux, se
+  // regardent sur la capture ci-dessus.
+  { nom: '18b-site-accueil-large', url: '/', largeur: 1280 },
   { nom: '19-site-recherche', url: '/recherche?ville=Pau' },
   { nom: '20-cliente-page-publique', url: `/${COMPTES.rempli.slug}` },
   { nom: '21-cliente-prestation', url: `/${COMPTES.rempli.slug}/reserver` },
@@ -413,6 +417,10 @@ async function executer() {
           .replace('{service}', serviceId)
           .replace('{rdv}', rdvId)
           .replace('{cliente}', clienteId)
+      // Une vue peut demander sa propre largeur : le mobile reste la référence
+      // du produit, mais une composition dessinée en 1180 ne se vérifie qu'en
+      // 1180. On repose la largeur de référence juste après.
+      if (vue.largeur) await page.setViewportSize({ width: vue.largeur, height: 900 })
       await page.goto(url, { waitUntil: 'networkidle' }).catch(() => undefined)
 
       /*
@@ -453,6 +461,7 @@ async function executer() {
       capturees.push(vue)
       const marque = illisibles.length > 0 ? '✖' : souslAA.length > 0 ? '⚠' : '✓'
       console.log(`  ${marque} ${vue.nom}`)
+      if (vue.largeur) await page.setViewportSize({ width: 390, height: 844 })
     }
 
     await writeFile(

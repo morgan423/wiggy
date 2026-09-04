@@ -1,4 +1,5 @@
 import reservationCliente from '../ecrans/reservation-cliente.json' with { type: 'json' }
+import siteAccueil from '../ecrans/site-accueil.json' with { type: 'json' }
 import etatsVides from '../ecrans/etats-vides.json' with { type: 'json' }
 import agendaTournee from '../ecrans/agenda-tournee.json' with { type: 'json' }
 import notificationCopilote from '../ecrans/notification-copilote.json' with { type: 'json' }
@@ -22,6 +23,7 @@ import authentification from '../ecrans/authentification.json' with { type: 'jso
  */
 export const copy = {
   reservationCliente,
+  siteAccueil,
   etatsVides,
   agendaTournee,
   notificationCopilote,

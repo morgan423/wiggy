@@ -104,6 +104,73 @@ async function executer() {
     }
     await contexte.setOffline(false)
 
+    /*
+      ② bis — LES FICHES CLIENTES DU JOUR, le cas d'usage le plus fort.
+
+      En zone blanche chez une cliente, la pro n'a pas besoin de son agenda :
+      elle est déjà sur place. Elle a besoin de la formule couleur de la
+      personne assise devant elle. Ce contrôle vérifie que la fiche a bien été
+      PRÉCHARGÉE depuis la tournée, puis qu'elle revient réseau coupé.
+    */
+    await page.goto(`${base}/app/tournee`, { waitUntil: 'networkidle' }).catch(() => undefined)
+    await page.waitForTimeout(2500) // le préchargement part après le rendu
+    const ficheEnCache = await page.evaluate(async () => {
+      for (const nom of await caches.keys()) {
+        const cache = await caches.open(nom)
+        const cles = await cache.keys()
+        const fiche = cles.find((r) => new URL(r.url).pathname.startsWith('/app/clientes/'))
+        if (fiche) return new URL(fiche.url).pathname
+      }
+      return null
+    })
+    if (!ficheEnCache) {
+      echecs.push(
+        'Aucune fiche cliente du jour n’est préchargée : en zone blanche, la pro perdrait ' +
+          'la formule couleur de la cliente devant elle.',
+      )
+    } else {
+      await contexte.setOffline(true)
+      const horsReseau = await page.goto(`${base}${ficheEnCache}`).catch(() => null)
+      const contenu = horsReseau ? await page.content() : ''
+      if (!horsReseau || contenu.includes('Pas de réseau ici')) {
+        echecs.push(`Hors ligne, la fiche ${ficheEnCache} ne revient pas du cache.`)
+      }
+      await contexte.setOffline(false)
+    }
+
+    // La déconnexion doit tout effacer : un cache qui survit à un logout est un
+    // défaut, et celui-ci contient des notes techniques de clientes nommées.
+    await page.evaluate(async () => {
+      const sw = await navigator.serviceWorker.ready
+      sw.active?.postMessage({ type: 'oublier' })
+    })
+    await page.waitForTimeout(1200)
+    /*
+      On vérifie la propriété qui COMPTE, pas une propriété facile à énoncer.
+
+      « Aucun cache ne survit » serait faux et invérifiable : le cache des
+      fichiers de Next se reremplit au premier chargement de page suivant, et
+      ce sont des fichiers publics, servis à qui les demande. Ce qui ne doit
+      pas survivre, c'est la DONNÉE DE CLIENTE : toute entrée sous `/app/`.
+    */
+    const restesPersonnels = await page.evaluate(async () => {
+      const restes = []
+      for (const nom of await caches.keys()) {
+        const cache = await caches.open(nom)
+        for (const r of await cache.keys()) {
+          const chemin = new URL(r.url).pathname
+          if (chemin.startsWith('/app/')) restes.push(chemin)
+        }
+      }
+      return restes
+    })
+    if (restesPersonnels.length > 0) {
+      echecs.push(
+        `${String(restesPersonnels.length)} page(s) de l'espace pro survivent à la déconnexion ` +
+          `(${restesPersonnels[0]}) : les notes techniques des clientes resteraient sur l'appareil.`,
+      )
+    }
+
     // ③ Le push.
     const sw = await page.evaluate(async () => (await fetch('/sw.js')).text())
     if (!sw.includes("addEventListener('push'")) {
@@ -120,7 +187,7 @@ async function executer() {
     for (const e of echecs) console.error(`   ${e}`)
     process.exit(1)
   }
-  console.log('PWA : installable, tournée consultable hors-ligne, push reçu.')
+  console.log('PWA : installable, tournée ET fiches du jour hors-ligne, purgées à la déconnexion, push reçu.')
 }
 
 if (lanceDirectement(import.meta.url)) await executer()

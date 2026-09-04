@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { copy } from '@wiggy/copy'
 import { SURVOL_PANNEAU } from './trousse/styles'
+import { BoutonDeconnexion } from './hors-ligne'
 import { seDeconnecter } from '@/app/(pro)/actions'
 
 /**
@@ -104,10 +105,13 @@ export function MenuCompte({ avatar }: { avatar?: React.ReactNode }) {
             {/* La déconnexion quitte le bas de l'onglet pour rejoindre le
                 menu : elle concerne le compte, pas l'activité. Le trait la
                 détache (18a) : c'est la seule ligne qui fait sortir. */}
+            {/*
+              C9 ② — le bouton vide le cache AVANT d'envoyer le formulaire : un
+              cache qui survit à un logout est un défaut, et celui-ci contient
+              des notes techniques de clientes nommées.
+            */}
             <form action={seDeconnecter} className="mt-1 border-t border-trait-discret pt-1">
-              <button type="submit" className={`${ligne} text-erreur`}>
-                {T.$aEcrire.deconnexion}
-              </button>
+              <BoutonDeconnexion>{T.$aEcrire.deconnexion}</BoutonDeconnexion>
             </form>
           </div>
         </>

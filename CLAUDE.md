@@ -48,20 +48,28 @@ installation).
    action, jamais quand il est seulement agréable à savoir. `npm run journal:inventaire` génère
    `docs/journal-evenements.md` et **échoue** si un événement dont la fonctionnalité existe n'est
    journalisé nulle part.
-9. **D18, tranchée le 04/09 : pas de messagerie, des échanges BORNÉS.** Il n'y aura pas de fil de
-   discussion entre la cliente et la pro. **Le motif n'est pas la charge de développement, c'est
-   le positionnement** : le problème que Wiggy résout, ce sont une à deux heures de gestion chaque
-   soir à répondre par téléphone, SMS et Instagram. Une messagerie ramène exactement cette charge
-   à l'intérieur du produit, et y ajoute une astreinte de réponse.
-   Le besoin existe mais il n'a pas la forme d'un fil : ce sont des échanges **ponctuels, bornés,
-   qui ont un objet**. On les traite par des mécaniques fermées, avec un début et une fin : la
-   contre-proposition (A11), le bouton retard (C5), les photos (A4), le report (A10).
-   **La règle pour les cas futurs** : quand un besoin d'échange apparaît, on lui construit **une
-   maille bornée de plus**, jamais un fil ouvert. Un besoin qui ne rentre dans aucune maille est
-   le signal qu'il en faut une nouvelle, pas une messagerie.
-10. **Pas de scope creep** : une fonctionnalité « évidente » mais absente de la roadmap se propose
+9. **D19, tranchée le 04/09 : une page de vente décrit la FINALITÉ du produit, pas l'état du
+   dépôt.** En contrepartie **stricte**, toute promesse portée par une page de vente doit avoir sa
+   **ligne de roadmap avec un identifiant**. Sans ligne, la promesse ne s'écrit pas.
+   **Quand on repère une formulation en avance sur le produit, on la SIGNALE SANS LA CORRIGER** :
+   on vérifie qu'elle est à la roadmap ; si elle y est, elle reste, sinon Morgan tranche entre
+   l'inscrire et la retirer. Corriger soi-même reviendrait à retirer une promesse tenue exprès.
+   ⚠️ **Cette règle ne lève PAS le principe n°4** : une promesse peut être en avance, un **chiffre**
+   affiché ne peut jamais être inventé. Un compteur se branche sur le réel ou ne s'affiche pas.
+10. **D18, tranchée le 04/09 : pas de messagerie, des échanges BORNÉS.** Il n'y aura pas de fil de
+    discussion entre la cliente et la pro. **Le motif n'est pas la charge de développement, c'est
+    le positionnement** : le problème que Wiggy résout, ce sont une à deux heures de gestion chaque
+    soir à répondre par téléphone, SMS et Instagram. Une messagerie ramène exactement cette charge
+    à l'intérieur du produit, et y ajoute une astreinte de réponse.
+    Le besoin existe mais il n'a pas la forme d'un fil : ce sont des échanges **ponctuels, bornés,
+    qui ont un objet**. On les traite par des mécaniques fermées, avec un début et une fin : la
+    contre-proposition (A11), le bouton retard (C5), les photos (A4), le report (A10).
+    **La règle pour les cas futurs** : quand un besoin d'échange apparaît, on lui construit **une
+    maille bornée de plus**, jamais un fil ouvert. Un besoin qui ne rentre dans aucune maille est
+    le signal qu'il en faut une nouvelle, pas une messagerie.
+11. **Pas de scope creep** : une fonctionnalité « évidente » mais absente de la roadmap se propose
     en commentaire, elle ne se construit pas.
-11. **Toute ambiguïté dans une spécification donne lieu à une question avant de coder**, jamais à
+12. **Toute ambiguïté dans une spécification donne lieu à une question avant de coder**, jamais à
     une interprétation silencieuse.
 
 ## Structure

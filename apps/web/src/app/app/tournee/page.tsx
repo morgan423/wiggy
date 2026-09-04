@@ -24,6 +24,7 @@ import {
 import { copy, remplir } from '@wiggy/copy'
 import { requireCapability } from '@/lib/auth'
 import { mesurerPro } from '@/lib/telemetrie'
+import { PrechargerLesFiches } from '@/components/hors-ligne'
 import { supabaseServer } from '@/lib/supabase/server'
 import { trajetsDeLaJournee, type Trajets } from '@/lib/tournee'
 import { FormRetard } from './retard'
@@ -215,8 +216,24 @@ export default async function MaTournee({
   const lendemain = instantVersHeureLocale(ajouterJours(jour, 1)).slice(0, 10)
   const prenom = pro.display_name.split(' ')[0]
 
+  /*
+    C9 ② — les fiches des clientes DU JOUR, préchargées tant qu'il y a du
+    réseau. Seulement celles du jour, jamais le carnet entier : c'est ce
+    qu'exige le métier, et c'est aussi ce qui borne ce qu'on écrit sur le
+    téléphone de la pro.
+  */
+  const fichesDuJour = [
+    ...new Set(
+      (rdvs ?? [])
+        .map((r) => r.client_id)
+        .filter((id): id is string => id !== null)
+        .map((id) => `/app/clientes/${id}`),
+    ),
+  ]
+
   return (
     <>
+      <PrechargerLesFiches chemins={fichesDuJour} />
       {/*
         Journée bouclée : la planche retire le bandeau prune. La célébration
         occupe l'écran, elle ne partage pas la tête avec un résumé.
