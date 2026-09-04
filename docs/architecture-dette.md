@@ -15,6 +15,13 @@ portable de la même enveloppe. Un module portable tournerait tel quel dans Reac
 
 ## Dette : à déplacer
 
+- `apps/web/src/lib/avis-placeholder.ts` : les trois faux témoignages de la planche 19a et la
+  garde qui les empêche d'atteindre la production. **Cette ligne est destinée à disparaître, pas
+  à être déplacée** : le jour où A7 aura collecté de vrais avis auprès des bêta-testeuses, la
+  section de la home les lira et ce module sera supprimé avec son appel. Il est resté dans
+  l'enveloppe parce que la home est une page du web et n'existera jamais dans l'app native. C'est
+  le seul module de cet inventaire dont la réduction se fera par suppression.
+
 - `apps/web/src/lib/forms.ts` — l'état commun des formulaires (`EtatForm`, `ok`, `erreur`,
   `champ`). La forme d'un résultat de formulaire ne doit rien à Next : les deux enveloppes en
   auront besoin, et l'app native devra présenter les mêmes erreurs. À déplacer dans

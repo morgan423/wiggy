@@ -1,7 +1,7 @@
 {
-  "$ecran": "wiggy.fr — la home",
+  "$ecran": "wiggy.fr : la home",
   "$source": "planche 19a (composition de référence 1180), états mobiles 19b et 19c",
-  "$registre": "pro, tutoiement (S6)",
+  "$registre": "pro",
   "$note": "Textes RATIFIÉS, relevés au mot près sur la planche 19a. Ils ne se réécrivent pas, y compris ceux qui sembleraient améliorables : deux d'entre eux ont déjà coûté un aller-retour. La ponctuation cadratin est corrigée au passage, comme la règle du dépôt le prévoit pour toute planche antérieure à l'itération 17.",
   "nav": {
     "produit": "Le produit",
@@ -33,8 +33,7 @@
       },
       {
         "heure": "14:30",
-        "libelle": "Amélie · Centre-ville",
-        "etat": ""
+        "libelle": "Amélie · Centre-ville"
       }
     ]
   },
@@ -146,7 +145,7 @@
         "lignes": [
           "Page publique + référencement local",
           "Réservation en ligne, créneaux simples",
-          "Fiches clientes et notes techniques",
+          "Fiches clientes & notes techniques",
           "Agenda complet, paiement en ligne",
           "Rappels par e-mail et notification, gratuits"
         ],
@@ -176,7 +175,7 @@
         "entete": "Toute la tournée, plus :",
         "lignes": [
           "Relance intelligente des semaines creuses",
-          "Stats d'optimisation du temps et pricing",
+          "Stats d'optimisation du temps & pricing",
           "SMS inclus, sans compteur qui facture"
         ],
         "resumeMobile": "relance intelligente, stats, SMS inclus"
@@ -190,7 +189,7 @@
     ],
     "noteSms": "SMS de service inclus avec Tournée et Intelligence, dans la limite d'un usage raisonnable fixé aux CGV. Jamais de facturation automatique, jamais de coupure.",
     "mentionsMobile": "Annuel : moins 17 % · sans engagement · résiliation en deux taps",
-    "parMoisCourt": "/ mois"
+    "parMoisCourt": "/ mois ›"
   },
   "ambassadrices": {
     "etiquette": "Programme Ambassadrices",
@@ -199,8 +198,6 @@
     "texte1": "Chaque coiffeuse parrainée qui reste après l'essai t'offre un mois. Cumulable, pour toutes, sans limite.",
     "titre2": "5 filleules = 5 ans.",
     "texte2": "Les 50 premières à convertir 5 filleules gagnent Wiggy offert 5 ans, hors SMS, facturés à la consommation.",
-    "compteur": "Compteur branché sur le réel : {restantes} restantes aujourd’hui.",
-    "conditions": "Conditions : compte nouveau, SIRET distinct, conversion encaissée au-delà de l’essai, filleule exerçant à domicile.",
     "action": "Devenir Ambassadrice"
   },
   "faq": {
@@ -246,5 +243,8 @@
     "confidentialite": "Confidentialité",
     "cgv": "CGV",
     "cliente": "Vous cherchez une coiffeuse à domicile ?"
+  },
+  "gabarits": {
+    "ambassadricesMention": "Compteur branché sur le réel : {restantes} restantes aujourd’hui. Conditions : compte nouveau, SIRET distinct, conversion encaissée au-delà de l’essai, filleule exerçant à domicile."
   }
 }

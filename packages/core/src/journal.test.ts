@@ -39,8 +39,9 @@ test('une bascule explicite prime sur le défaut', () => {
 
 test('les événements qui attendent leur fonctionnalité sont déclarés, pas masqués', () => {
   const enAttente = EVENEMENTS.filter((e) => e.attend !== null).map((e) => e.cle)
-  assert.deepEqual(enAttente, ['avis', 'acompte'])
-  assert.equal(evenementsActifs().length, 4)
+  // « avis » en est sorti le 04/09 : A7 lui a donné un émetteur.
+  assert.deepEqual(enAttente, ['acompte'])
+  assert.equal(evenementsActifs().length, 5)
 })
 
 test('aucune fonction ne permet de couper le JOURNAL lui-même', () => {

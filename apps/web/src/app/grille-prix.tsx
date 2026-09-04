@@ -168,12 +168,7 @@ function RangeeRepliee({ offre }: { offre: Offre }) {
           </span>
           <span className="shrink-0 text-right">
             <span className="text-[22px] leading-none font-bold">{offre.prix}</span>
-            <span className="block text-[11px] text-texte-attenue">
-              {P.parMoisCourt}
-              <span aria-hidden className="ml-1 group-open:hidden">
-                ›
-              </span>
-            </span>
+            <span className="block text-[11px] text-texte-attenue">{P.parMoisCourt}</span>
           </span>
         </span>
         <span className="mt-1.5 block text-[11.5px] text-texte-attenue group-open:hidden">

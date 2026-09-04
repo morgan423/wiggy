@@ -53,7 +53,6 @@ export function BalisageHome() {
   return (
     <script
       type="application/ld+json"
-      // eslint-disable-next-line react/no-danger -- JSON-LD n'a pas d'autre forme.
       dangerouslySetInnerHTML={{ __html: JSON.stringify(donnees) }}
     />
   )

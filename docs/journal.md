@@ -20,6 +20,133 @@ _Rien en attente : les trois questions ouvertes ont été tranchées le 03/09._
 
 ---
 
+## 2026-09-04 (7) Étape : la home, le hors-ligne des fiches, le site public
+
+**LES DEUX RÉPONSES QUE MORGAN ATTEND, EN TÊTE.**
+
+### ③ L'hébergement en Union européenne : JE NE PEUX PAS LE VÉRIFIER D'ICI
+
+**C'est un constat, pas une esquive.** La région d'un projet Supabase ne s'expose ni par
+PostgREST, ni par l'API de stockage : tout passe par Cloudflare, et l'en-tête `cf-ray` que j'obtiens
+dit `CDG` parce que c'est le point d'entrée le plus proche de MOI, pas l'endroit où vit la base.
+L'API de gestion, elle, demande un jeton personnel que ce dépôt n'a pas.
+
+**Ce que j'ai trouvé à la place, et qui compte** : l'UE est **une intention écrite, jamais un fait
+vérifié**. `docs/decisions.md` T2 dit « Région UE » comme motif de choix, et `docs/production.md`
+demande une région UE **pour le projet de production, qui n'existe pas encore**. La région du projet
+de **développement** — celui qui porte aujourd'hui les données — **n'est consignée nulle part.**
+
+⚠️ **La FAQ de la home affirme pourtant « Elles sont hébergées en Union européenne ».** C'est une
+affirmation juridique sur une page de vente, adossée à une intention. **La page est en `noindex` et
+la bêta n'a pas commencé** : il reste le temps de vérifier, mais il faut le faire avant le premier
+compte réel.
+
+**Où regarder, en trois clics** : dashboard Supabase → le projet `mpqmysszwmyeayiebhev` → Project
+Settings → General → **Region**. Le stockage des photos suit la région du projet, il n'a pas de
+réglage propre : la même page répond pour les deux. **Si ce n'est pas l'UE, je n'y touche pas** :
+la région est irréversible, c'est un arbitrage de Morgan avec des conséquences sur D7.
+
+### ② Ce que le cache contient exactement, et ce qui l'efface
+
+- **CE QUI EST MIS EN CACHE** : les pages `/app/tournee`, `/app/agenda`, et **les fiches des
+  clientes DU JOUR uniquement** — celles qui ont un rendez-vous aujourd'hui, jamais le carnet
+  entier. Ce sont des pages HTML rendues, donc elles contiennent ce que la pro voit déjà à
+  l'écran : prénom, adresse du rendez-vous, notes techniques métier. **Aucune donnée de santé**,
+  les annotations restent métier.
+- **QUAND** : au chargement de la tournée, tant qu'il y a du réseau. C'est le seul moment
+  possible — en zone blanche, il est trop tard.
+- **COMBIEN DE TEMPS** : **le nom du cache porte la DATE**. Tout cache d'un autre jour est
+  supprimé au premier passage. Une fiche mise en cache hier a disparu aujourd'hui, sans tâche
+  planifiée : une purge liée à l'usage se répare d'elle-même.
+- **CE QUI L'EFFACE** : ① le changement de jour, ci-dessus ; ② **la déconnexion**, et c'était ta
+  question. Le bouton vide les caches **avant** d'envoyer le formulaire — après la redirection, la
+  page est démontée et le message ne partirait jamais. L'effacement est fait deux fois, par le
+  worker et par la page, pour qu'un worker muet ne laisse rien derrière.
+- **CE QUI EST VÉRIFIÉ** : `npm run pwa:check` coupe le réseau, ouvre une fiche, et **échoue** si
+  elle ne revient pas du cache ; puis il déconnecte et **échoue si une seule page `/app/` survit**.
+  Éprouvé en cassant le préchargement exprès.
+- **CE QUE J'ASSUME** : sur un téléphone perdu et déverrouillé, ces pages sont lisibles hors ligne
+  jusqu'au lendemain. C'est le prix du cas d'usage, il est borné au jour et à la session, et il ne
+  dépasse pas ce que l'écran affichait déjà.
+
+**Fait :**
+
+### ① La home (19a, 19b, 19c)
+
+- **Onze sections, dans l'ordre arrêté.** Les textes sont **extraits des planches par script**,
+  jamais retapés : c'est ce qui garantit qu'ils sont verbatim. Ils vivent dans un nouveau bloc de
+  source ratifiée, `packages/copy/source/planche-19.json`, et le test du copy deck les vérifie un à
+  un — il a d'ailleurs refusé six de mes formulations, dont deux où j'avais remplacé l'esperluette
+  de la planche par « et ».
+- **Les faux avis ne peuvent pas atteindre la production.** La fonction qui les rend **lève** si
+  `WIGGY_ENV` ne vaut pas `developpement`, et la section entière disparaît hors développement.
+  Personne n'a à se souvenir de les retirer.
+- **`noindex`, et comment on le lève** : c'est écrit en tête de la page, en deux conditions
+  vérifiables — de vrais avis (A7) et des textes légaux non `-beta` (G7). Le balisage `Review` et
+  `AggregateRating` s'ajoute à ce moment-là, **pas avant** : décrire de faux avis en données
+  structurées serait d'un autre ordre que de les afficher.
+- **19b** : la hiérarchie change de moteur. L'ordre, la masse framboise contre deux rangées crème,
+  le prix en 50 contre 22, le seul bouton plein. Les deux autres offres se déplient en `<details>`,
+  donc sans JavaScript.
+- **19c** : rail vertical, pastille abricot pâle à cheval sur le trait, rien sous 11 px.
+
+### ④ A2 et ⑤ A7
+
+- **A2** : `LocalBusiness` + `Service`, **sans adresse, sans coordonnées, sans téléphone**. Le
+  constructeur vit dans le noyau et **n'accepte même pas** ces champs : ce qui ne rentre pas ne peut
+  pas fuir. Un test les cherche clé par clé. C'est la **zone d'intervention** qui porte le
+  référencement local, ce qui est aussi la modélisation juste : le service est rendu chez la
+  cliente.
+- **A7** : dépôt depuis la page de suivi par jeton — **pas de SMS** (D14), pas de second lien.
+  Modération simple, publier ou masquer, **jamais supprimer**. Affichage des seuls avis publiés, la
+  politique de la base ne laissant pas sortir les autres. **La table n'a aucune colonne où un nom
+  complet pourrait se ranger** : le prénom est tenu par le schéma, pas par la vigilance.
+
+### ⑥ D19
+
+Inscrite dans CLAUDE.md, avec une précision que je me suis permise : **elle ne lève pas le principe
+n°4**. Une promesse peut être en avance, un **chiffre** ne peut jamais être inventé. D'où le
+compteur Ambassadrices, calculé et non écrit en dur — la page dit elle-même « compteur branché sur
+le réel ».
+
+**Schéma :** **0027 EN ATTENTE.** `node scripts/db-bundle.mjs --depuis 0027`. 0026 est appliquée
+(constat `db:etat`), donc le nettoyage de l'e2e est débloqué.
+
+**Décisions :** D19 et sa précision sur le principe n°4.
+
+**Écarts au brief :**
+
+- ⚠️ **LA QUATRIÈME PROMESSE, signalée sans être corrigée comme D19 le demande** :
+  **« Réserver une démo »** (« 20 minutes, en visio ou au téléphone »). Elle apparaît deux fois sur
+  la page, avec un formulaire, et **elle n'a AUCUNE ligne de roadmap** — zéro occurrence. Les trois
+  autres que tu citais ont bien la leur (G6, B9, G1), comme Ambassadrices (G2), la relance (B8) et
+  l'export (G5). Le formulaire est donc posé **sans action serveur** : il ne fait rien, et il
+  attend ton arbitrage entre l'inscrire et le retirer.
+- **Un défaut de contraste corrigé** : l'encre atténuée sur la carte framboise tombe à **3,38:1**,
+  sous AA. Même leçon que sur l'abricot — atténuer hiérarchise sur une surface claire et **efface**
+  sur une couleur pleine. La hiérarchie y passe désormais par la graisse.
+- **`npm run vues` ne savait capturer qu'en 390.** Une composition de référence dessinée en 1180 ne
+  se vérifie pas à 390 : une vue peut maintenant demander sa largeur.
+
+**Questions ouvertes :** la région Supabase (③). La quatrième promesse (« Réserver une démo »).
+
+**À recetter par Morgan :**
+
+1. **Vérifie la région** du projet dans le dashboard, et dis-la-moi : la FAQ l'affirme déjà.
+2. **Ouvre la home** en large et en 390. Compare aux planches 19a, 19b, 19c.
+3. **Sur ton téléphone** : ouvre ta tournée avec du réseau, **passe en mode avion**, puis ouvre la
+   fiche d'une cliente du jour. Elle est là.
+4. **Déconnecte-toi, reviens hors ligne** : plus rien de l'espace pro n'est lisible.
+5. **Termine un rendez-vous**, ouvre le lien de suivi de la cliente : le formulaire d'avis y est.
+   Dépose-en un, puis va le publier dans Profil → Les avis. Il apparaît sur ta page publique.
+6. **Regarde la source d'une fiche pro** : le balisage ne contient **ni adresse, ni coordonnées**.
+
+**Statut à reporter dans la roadmap :** A2, A7 : « recette à valider ». C9 : « complété, fiches
+hors-ligne comprises ». D19 : « tranchée et inscrite ». La home : « recette à valider, noindex
+maintenu ».
+
+---
+
 ## 2026-09-04 (6) Correctif : une sonde doit pouvoir être vraie
 
 **Fait :**

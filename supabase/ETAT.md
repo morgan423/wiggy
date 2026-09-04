@@ -54,7 +54,8 @@ Rejouer un lot déjà appliqué échoue sur les types et les tables qui existent
 | `0023_push_web.sql`                            | C9 ③ : `push_subscriptions`, un abonnement par appareil.                                                                                      | Appliquée (constat db:etat du 04/09) | Projet inexistant |
 | `0024_telemetrie.sql`                          | E3 : `evenements`, verrouillée par conception, purge à 12 mois, vue de synthèse hebdomadaire.                                                 | En attente                           | Projet inexistant |
 | `0025_confidentialite_telemetrie.sql`          | E3 : la finalité « amélioration du service » entre dans la politique de confidentialité (version 0.2-beta).                                   | En attente                           | Projet inexistant |
-| `0026_acceptations_effacables_par_cascade.sql` | G7 : une acceptation part AVEC le compte. Corrige le droit à l'effacement, que 0021 bloquait.                                                 | En attente                           | Projet inexistant |
+| `0026_acceptations_effacables_par_cascade.sql` | G7 : une acceptation part AVEC le compte. Corrige le droit à l'effacement, que 0021 bloquait.                                                 | Appliquée (constat db:etat du 04/09) | Projet inexistant |
+| `0027_avis.sql`                                | A7 : les avis. PRÉNOM SEUL, aucune colonne où un nom complet pourrait se ranger.                                                              | En attente                           | Projet inexistant |
 
 ## Notes
 

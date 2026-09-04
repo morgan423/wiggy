@@ -87,7 +87,9 @@ export const EVENEMENTS: readonly Evenement[] = [
     libelle: 'Nouvel avis',
     explication: 'Une cliente a laissé un avis sur sa prestation.',
     nature: 'agreable_a_savoir',
-    attend: 'A7',
+    // A7 existe depuis le 04/09 : la collecte, la modération et l'affichage
+    // sont en place, donc l'événement a un émetteur.
+    attend: null,
   },
   {
     cle: 'acompte',

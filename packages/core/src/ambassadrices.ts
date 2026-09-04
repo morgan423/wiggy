@@ -1,5 +1,3 @@
-import { supabaseAdmin, supabaseConfigured } from '@/lib/supabase/admin'
-
 /**
  * G2 — les places restantes du programme Ambassadrices.
  *
@@ -16,11 +14,15 @@ import { supabaseAdmin, supabaseConfigured } from '@/lib/supabase/admin'
  */
 export const PLACES_AMBASSADRICES = 50
 
-export async function placesAmbassadricesRestantes(): Promise<number> {
-  if (!supabaseConfigured()) return PLACES_AMBASSADRICES
-  // La table du parrainage n'existe pas encore (G2). On compte donc zéro
-  // conversion, ce qui est la vérité et non un repli : aucune place n'a été
-  // prise puisque le programme n'a pas ouvert.
+/**
+ * ⚠️ **Synchrone tant que G2 n'existe pas, et pas « async pour plus tard ».**
+ * Il n'y a aujourd'hui aucune lecture à faire : la table du parrainage n'existe
+ * pas, donc zéro conversion, donc cinquante places. Déclarer la fonction
+ * asynchrone sans rien attendre ferait croire à une lecture qui n'a pas lieu.
+ * Le jour où G2 arrive, elle devient asynchrone et l'appelant ajoute son
+ * `await` : une ligne, et elle sera vraie.
+ */
+export function placesAmbassadricesRestantes(): number {
   const prises = 0
   return Math.max(0, PLACES_AMBASSADRICES - prises)
 }

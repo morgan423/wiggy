@@ -5,6 +5,7 @@ import { ZONE } from '@wiggy/core'
 import { copy, remplir } from '@wiggy/copy'
 import { supabaseAdmin, supabaseConfigured } from '@/lib/supabase/admin'
 import { canalDeRappel } from '@/lib/rappel'
+import { FormAvis } from './avis-form'
 import { WaitlistForm } from '@/app/recherche/waitlist-form'
 
 /**
@@ -41,7 +42,7 @@ export default async function SuiviDemande({ params }: { params: Promise<{ token
 
   const { data: rdv } = await supabaseAdmin()
     .from('appointments')
-    .select('pro_id, starts_at, status, service_name, city, pros(display_name, slug)')
+    .select('id, pro_id, starts_at, status, service_name, city, pros(display_name, slug)')
     .eq('public_token', token)
     .maybeSingle()
   if (!rdv) notFound()
@@ -53,6 +54,21 @@ export default async function SuiviDemande({ params }: { params: Promise<{ token
   const quand = quandFr.format(new Date(rdv.starts_at))
   const canal = await canalDeRappel(rdv.pro_id)
 
+  /*
+    A7 — la sollicitation d'avis passe par CETTE page, pas par un SMS : la bêta
+    tourne sans SMS de service (D14). Le canal changera le jour où le SMS
+    arrivera, le code métier ne bougera pas — c'est tout l'intérêt de
+    l'adaptateur.
+
+    On ne propose le formulaire que si le rendez-vous est terminé ET qu'aucun
+    avis n'existe : redemander son avis à quelqu'un qui l'a déjà donné est la
+    façon la plus sûre de ne plus jamais en obtenir.
+  */
+  const { data: dejaNote } =
+    rdv.status === 'done'
+      ? await supabaseAdmin().from('avis').select('id').eq('appointment_id', rdv.id).maybeSingle()
+      : { data: null }
+
   return (
     <main className="mx-auto max-w-2xl px-6 py-12">
       {fiche.slug ? (
@@ -63,6 +79,8 @@ export default async function SuiviDemande({ params }: { params: Promise<{ token
           ← {nomPro}
         </Link>
       ) : null}
+
+      {rdv.status === 'done' && !dejaNote ? <FormAvis token={token} prenomPro={prenom} /> : null}
 
       {rdv.status === 'cancelled' ? (
         /* A6 : le refus est une porte, pas une impasse. Il enchaîne sur A9. */

@@ -187,7 +187,9 @@ async function executer() {
     for (const e of echecs) console.error(`   ${e}`)
     process.exit(1)
   }
-  console.log('PWA : installable, tournée ET fiches du jour hors-ligne, purgées à la déconnexion, push reçu.')
+  console.log(
+    'PWA : installable, tournée ET fiches du jour hors-ligne, purgées à la déconnexion, push reçu.',
+  )
 }
 
 if (lanceDirectement(import.meta.url)) await executer()

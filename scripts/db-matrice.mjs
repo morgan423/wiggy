@@ -36,6 +36,12 @@ const { rows: grants } = await db.query(`
  * politique n'a rien à faire là.
  */
 const POURQUOI = {
+  avis_publies:
+    "A7 : les avis PUBLIÉS d'une pro, sur sa page publique. Un avis est fait pour être lu par " +
+    'une cliente qui hésite : le cacher le viderait de son sens. La politique ne laisse sortir ' +
+    'que le statut `publie` : ni les avis en attente de modération, ni ceux que la pro a ' +
+    "masqués. Aucune donnée personnelle n'y transite : la table ne porte QUE le prénom, et il " +
+    "n'existe aucune colonne où un nom complet, une adresse ou un téléphone pourrait se ranger.",
   legal_documents_lecture:
     'G7 : les textes contractuels. Une cliente doit pouvoir LIRE les CGU et le consentement SMS ' +
     "AVANT de cocher, et elle n'a pas de compte : un consentement qu'on ne peut pas lire sans " +

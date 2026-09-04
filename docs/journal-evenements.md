@@ -20,7 +20,7 @@ déclarée : c'est ce qui empêche la règle de se perdre au fil des ajouts.
 | Nouvelle demande | `demande_a_valider` | ✅ branché | journal toujours · badge par défaut · push ACTIF | `apps/web/src/app/app/agenda/actions.ts:281`<br>`apps/web/src/app/[slug]/reserver/actions.ts:266` |
 | Réponse à ta proposition | `reponse_cliente` | ✅ branché | journal toujours · badge par défaut · push ACTIF | `apps/web/src/app/proposition/[token]/actions.ts:86` |
 | Annulation | `annulation` | ✅ branché | journal toujours · badge par défaut · push ACTIF | `apps/web/src/app/app/agenda/actions.ts:125` |
-| Nouvel avis | `avis` | ⏳ en attente de A7 | journal toujours · badge par défaut · push inactif | — |
+| Nouvel avis | `avis` | ✅ branché | journal toujours · badge par défaut · push inactif | `apps/web/src/app/demande/[token]/avis-actions.ts:76` |
 | Acompte reçu | `acompte` | ⏳ en attente de B9 | journal toujours · badge par défaut · push inactif | — |
 
 ## Ce que « en attente » veut dire

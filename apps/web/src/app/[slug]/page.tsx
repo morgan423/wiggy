@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { formatEuros } from '@wiggy/core'
+import { formatEuros, balisageFiche } from '@wiggy/core'
 import { copy, remplir } from '@wiggy/copy'
 import { supabaseServer } from '@/lib/supabase/server'
 import { supabaseConfigured } from '@/lib/supabase/admin'
@@ -116,6 +116,40 @@ export default async function PagePublique({ params }: Parametres) {
   if (!fiche) notFound()
 
   const { pro, prestations, reglages, communes, realisations } = fiche
+
+  /*
+    A2 — le balisage de la fiche. Le constructeur vit dans `@wiggy/core` et
+    n'accepte AUCUNE donnée de localisation de la pro : ni adresse, ni
+    coordonnées, ni téléphone. Ce qui ne rentre pas ne peut pas fuir, et un test
+    du noyau le vérifie clé par clé.
+  */
+  /*
+    A7 — les avis PUBLIÉS, et seulement eux. La politique de la base ne laisse
+    d'ailleurs pas sortir les autres : ni ceux en attente de modération, ni ceux
+    que la pro a masqués.
+  */
+  const { data: avis } = await (
+    await supabaseServer()
+  )
+    .from('avis')
+    .select('id, prenom, note, texte')
+    .eq('pro_id', pro.id)
+    .eq('statut', 'publie')
+    .order('publie_le', { ascending: false })
+    .limit(6)
+
+  const balisage = balisageFiche({
+    nom: pro.display_name,
+    slug: pro.slug,
+    accroche: pro.headline,
+    communes: communes.map((c) => c.name),
+    prestations: prestations.map((p) => ({
+      nom: p.name,
+      prixCentimes: p.price_cents,
+      dureeMin: p.duration_min,
+    })),
+    url: `${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://wiggy.fr'}/${pro.slug}`,
+  })
   const prenom = pro.display_name.split(' ')[0] ?? pro.display_name
   const moinsChere = prestations.reduce<number | undefined>(
     (mini, p) => (mini === undefined || p.price_cents < mini ? p.price_cents : mini),
@@ -123,36 +157,42 @@ export default async function PagePublique({ params }: Parametres) {
   )
 
   return (
-    <main className="mx-auto max-w-2xl px-6 pt-12 pb-32">
-      <header className="flex flex-wrap items-center gap-5">
-        <Avatar nom={pro.display_name} photoUrl={pro.photo_url} taille="lg" />
-        <div>
-          <h1 className="display tracking-tight">{pro.display_name}</h1>
-          {/* Planche 15a : l'accroche et la zone sur une même ligne. La zone
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(balisage) }}
+      />
+
+      <main className="mx-auto max-w-2xl px-6 pt-12 pb-32">
+        <header className="flex flex-wrap items-center gap-5">
+          <Avatar nom={pro.display_name} photoUrl={pro.photo_url} taille="lg" />
+          <div>
+            <h1 className="display tracking-tight">{pro.display_name}</h1>
+            {/* Planche 15a : l'accroche et la zone sur une même ligne. La zone
               s'affiche en COMMUNES : jamais une adresse, jamais une carte
               centrée sur le domicile de la pro. */}
-          {(pro.headline ?? communes.length > 0) ? (
-            <p className="mt-2 text-lg text-texte-secondaire">
-              {[pro.headline, communes.map((c) => c.name).join(', ')].filter(Boolean).join(' · ')}
-            </p>
-          ) : null}
-        </div>
-      </header>
+            {(pro.headline ?? communes.length > 0) ? (
+              <p className="mt-2 text-lg text-texte-secondaire">
+                {[pro.headline, communes.map((c) => c.name).join(', ')].filter(Boolean).join(' · ')}
+              </p>
+            ) : null}
+          </div>
+        </header>
 
-      {/* La bio manquait à la page, relevé à la recette du 31/08. C'est
+        {/* La bio manquait à la page, relevé à la recette du 31/08. C'est
           pourtant elle qui donne envie : on choisit une personne. */}
-      {pro.bio ? <p className="mt-8 text-lg whitespace-pre-line">{pro.bio}</p> : null}
+        {pro.bio ? <p className="mt-8 text-lg whitespace-pre-line">{pro.bio}</p> : null}
 
-      <p className="mt-6 font-bold">{remplir(C.$aEcrire.seDeplaceChezVous, { pro: prenom })}</p>
+        <p className="mt-6 font-bold">{remplir(C.$aEcrire.seDeplaceChezVous, { pro: prenom })}</p>
 
-      <section className="mt-12">
-        <h2 className="titre tracking-tight">
-          {remplir(C.$aEcrire.prestationsTitre, { pro: prenom })}
-        </h2>
-        {prestations.length === 0 ? (
-          <p className="mt-4 text-texte-secondaire">Aucune prestation pour le moment.</p>
-        ) : (
-          /*
+        <section className="mt-12">
+          <h2 className="titre tracking-tight">
+            {remplir(C.$aEcrire.prestationsTitre, { pro: prenom })}
+          </h2>
+          {prestations.length === 0 ? (
+            <p className="mt-4 text-texte-secondaire">Aucune prestation pour le moment.</p>
+          ) : (
+            /*
             Planche 15a : les prestations sont des CARTES D'INFORMATION, pas des
             boutons. Une seule action sur la page, le bandeau du bas : taper une
             carte ne réserve pas.
@@ -161,129 +201,154 @@ export default async function PagePublique({ params }: Parametres) {
             n'aide pas la cliente à choisir, et elle engage la pro sur un temps
             qui varie d'une tête à l'autre.
           */
-          /*
+            /*
             B13 — affichage GROUPÉ quand la pro a catégorisé, LISTE PLATE
             sinon. Le groupe est un confort : une pro avec six prestations n'a
             rien à ranger, et sa page ne doit pas donner l'impression qu'il lui
             manque quelque chose.
           */
-          <div className="mt-6 flex flex-col gap-8">
-            {grouper(prestations).map(([groupe, liste]) => (
-              <section key={groupe ?? 'sans-groupe'}>
-                {groupe ? (
-                  <h3 className="text-sm font-bold tracking-widest text-texte-secondaire uppercase">
-                    {groupe}
-                  </h3>
-                ) : null}
-                <ul className={`space-y-3 ${groupe ? 'mt-4' : ''}`}>
-                  {liste.map((p) => (
-                    <li key={p.id} className="rounded-carte bg-surface p-5">
-                      <span className="flex flex-wrap items-baseline gap-x-4">
-                        <span className="text-lg font-bold">{p.name}</span>
-                        <span className="ml-auto text-lg font-bold">
-                          {formatEuros(p.price_cents)}
+            <div className="mt-6 flex flex-col gap-8">
+              {grouper(prestations).map(([groupe, liste]) => (
+                <section key={groupe ?? 'sans-groupe'}>
+                  {groupe ? (
+                    <h3 className="text-sm font-bold tracking-widest text-texte-secondaire uppercase">
+                      {groupe}
+                    </h3>
+                  ) : null}
+                  <ul className={`space-y-3 ${groupe ? 'mt-4' : ''}`}>
+                    {liste.map((p) => (
+                      <li key={p.id} className="rounded-carte bg-surface p-5">
+                        <span className="flex flex-wrap items-baseline gap-x-4">
+                          <span className="text-lg font-bold">{p.name}</span>
+                          <span className="ml-auto text-lg font-bold">
+                            {formatEuros(p.price_cents)}
+                          </span>
                         </span>
-                      </span>
-                      {p.description ? (
-                        <span className="mt-2 block text-texte-secondaire">{p.description}</span>
-                      ) : null}
-                      {p.deposit_percent ? (
-                        <span className="mt-2 block text-sm text-texte-secondaire">
-                          {remplir(C.$aEcrire.acompteSurCarte, {
-                            pourcent: String(p.deposit_percent),
-                          })}
-                        </span>
-                      ) : null}
-                    </li>
-                  ))}
-                </ul>
-              </section>
-            ))}
-          </div>
-        )}
-      </section>
+                        {p.description ? (
+                          <span className="mt-2 block text-texte-secondaire">{p.description}</span>
+                        ) : null}
+                        {p.deposit_percent ? (
+                          <span className="mt-2 block text-sm text-texte-secondaire">
+                            {remplir(C.$aEcrire.acompteSurCarte, {
+                              pourcent: String(p.deposit_percent),
+                            })}
+                          </span>
+                        ) : null}
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              ))}
+            </div>
+          )}
+        </section>
 
-      {/*
+        {/*
         Planche 15a : sans réalisation, la section DISPARAÎT. Jamais de bloc
         vide sur la page de quelqu'un qui débute : une page trouée dessert plus
         qu'une page courte.
       */}
-      {realisations.length > 0 ? (
-        <section className="mt-12">
-          <h2 className="titre tracking-tight">{C.$aEcrire.realisationsTitre}</h2>
-          <ul className="mt-6 flex snap-x gap-3 overflow-x-auto pb-2">
-            {realisations.map((photo) => (
-              <li key={photo.id} className="w-40 shrink-0 snap-start">
-                {/* Pas de `next/image` : ces URL viennent du stockage public et
+        {realisations.length > 0 ? (
+          <section className="mt-12">
+            <h2 className="titre tracking-tight">{C.$aEcrire.realisationsTitre}</h2>
+            <ul className="mt-6 flex snap-x gap-3 overflow-x-auto pb-2">
+              {realisations.map((photo) => (
+                <li key={photo.id} className="w-40 shrink-0 snap-start">
+                  {/* Pas de `next/image` : ces URL viennent du stockage public et
                     changent avec lui. */}
-                <img
-                  src={urlRealisation(photo.chemin)}
-                  alt=""
-                  className="aspect-[4/5] w-full rounded-carte object-cover"
-                />
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
+                  <img
+                    src={urlRealisation(photo.chemin)}
+                    alt=""
+                    className="aspect-[4/5] w-full rounded-carte object-cover"
+                  />
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
 
-      {reglages ? (
-        <section className="mt-12 rounded-bloc bg-surface p-8">
-          <h2 className="titre tracking-tight">Réserver avec {prenom}</h2>
-          <ConditionsReservation
-            prenomPro={prenom}
-            prixCents={moinsChere}
-            confirmationManuelle={reglages.booking_confirmation_mode === 'manual'}
-            reglages={{
-              mode: reglages.payment_mode,
-              defaultDepositPercent: reglages.default_deposit_percent,
-              freeCancellationHours: reglages.free_cancellation_hours,
-            }}
-          />
-          {/* A8 : la page annonce qu'un forfait PEUT s'appliquer, jamais son
+        {reglages ? (
+          <section className="mt-12 rounded-bloc bg-surface p-8">
+            <h2 className="titre tracking-tight">Réserver avec {prenom}</h2>
+            <ConditionsReservation
+              prenomPro={prenom}
+              prixCents={moinsChere}
+              confirmationManuelle={reglages.booking_confirmation_mode === 'manual'}
+              reglages={{
+                mode: reglages.payment_mode,
+                defaultDepositPercent: reglages.default_deposit_percent,
+                freeCancellationHours: reglages.free_cancellation_hours,
+              }}
+            />
+            {/* A8 : la page annonce qu'un forfait PEUT s'appliquer, jamais son
               montant. Un chiffre public ancrerait la pro trop bas quand le
               trajet est long, et la cliente le découvre dans sa proposition. */}
-          <p className="mt-4 text-sm text-texte-secondaire">
-            {remplir(C.$aEcrire.forfaitPossible, { pro: prenom })}
+            <p className="mt-4 text-sm text-texte-secondaire">
+              {remplir(C.$aEcrire.forfaitPossible, { pro: prenom })}
+            </p>
+          </section>
+        ) : null}
+
+        {pro.instagram_url ? (
+          <p className="mt-10">
+            <a
+              href={pro.instagram_url}
+              rel="noopener noreferrer nofollow"
+              target="_blank"
+              className="tactile font-semibold text-action hover:underline"
+            >
+              Voir son Instagram
+            </a>
           </p>
-        </section>
-      ) : null}
+        ) : null}
 
-      {pro.instagram_url ? (
-        <p className="mt-10">
-          <a
-            href={pro.instagram_url}
-            rel="noopener noreferrer nofollow"
-            target="_blank"
-            className="tactile font-semibold text-action hover:underline"
-          >
-            Voir son Instagram
-          </a>
-        </p>
-      ) : null}
-
-      {/*
+        {/*
         Planche 15a : le CTA est COLLANT en bas d'écran, et il est réécrit.
         « Réserver » sec en entrée de page ne dit ni quoi, ni avec qui, ni ce
         qui se passe ensuite.
       */}
-      <div
-        data-nav-fixe
-        className="sur-plein fixed inset-x-0 bottom-0 z-30 bg-prune px-6 py-4 text-texte-sur-plein"
-      >
-        <div className="mx-auto flex max-w-2xl flex-wrap items-center justify-between gap-3">
-          <span className="text-sm text-texte-sur-plein-doux">
-            {remplir(C.$aEcrire.ctaSousTitre, { pro: prenom })}
-          </span>
-          <a
-            href={`/${pro.slug}/reserver`}
-            className="tactile rounded-pilule bg-action px-8 font-bold text-texte-sur-plein hover:bg-action-survol active:bg-action-pressee"
-          >
-            {remplir(C.$aEcrire.ctaCollant, { pro: prenom })}
-          </a>
+        <div
+          data-nav-fixe
+          className="sur-plein fixed inset-x-0 bottom-0 z-30 bg-prune px-6 py-4 text-texte-sur-plein"
+        >
+          <div className="mx-auto flex max-w-2xl flex-wrap items-center justify-between gap-3">
+            <span className="text-sm text-texte-sur-plein-doux">
+              {remplir(C.$aEcrire.ctaSousTitre, { pro: prenom })}
+            </span>
+            <a
+              href={`/${pro.slug}/reserver`}
+              className="tactile rounded-pilule bg-action px-8 font-bold text-texte-sur-plein hover:bg-action-survol active:bg-action-pressee"
+            >
+              {remplir(C.$aEcrire.ctaCollant, { pro: prenom })}
+            </a>
+          </div>
         </div>
-      </div>
-    </main>
+        {avis?.length ? (
+          <section className="mt-14 border-t border-trait-discret pt-10">
+            <h2 className="text-sm font-bold tracking-widest text-texte-secondaire uppercase">
+              Ce qu’elles en disent
+            </h2>
+            <ul className="mt-5 flex flex-col gap-3">
+              {avis.map((a) => (
+                <li key={a.id} className="rounded-carte bg-surface p-5">
+                  <p className="flex items-center gap-2 text-[13px] font-bold">
+                    {a.prenom}
+                    <span aria-label={`${String(a.note)} sur 5`} className="text-celebration">
+                      {'★'.repeat(a.note)}
+                    </span>
+                  </p>
+                  {a.texte ? (
+                    <p className="mt-2 text-[13.5px] leading-[1.6] text-texte-secondaire">
+                      « {a.texte} »
+                    </p>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
+      </main>
+    </>
   )
 }
 

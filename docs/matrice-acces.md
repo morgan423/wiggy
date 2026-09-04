@@ -19,6 +19,8 @@ Trois rôles interviennent :
 | `acceptances` | `acceptances_les_miennes` : pro authentifié peut **lire** | `(user_id = auth.uid())` |
 | `appointment_photos` | `photo_via_appt` : pro authentifié peut **lire/écrire/modifier/supprimer** | `(EXISTS ( SELECT 1 FROM appointments a WHERE ((a.id = appointment_photos.appointment_id) AND (a.pro_id = auth.uid()))))` |
 | `appointments` | `pro_owns` : pro authentifié peut **lire/écrire/modifier/supprimer** | `(pro_id = auth.uid())` |
+| `avis` | `avis_du_pro` : pro authentifié peut **lire/écrire/modifier/supprimer** | `(pro_id = auth.uid())` |
+| `avis` | `avis_publies` : visiteuse anonyme peut **lire** | `(statut = 'publie'::avis_statut)` |
 | `blocked_slots` | `pro_owns` : pro authentifié peut **lire/écrire/modifier/supprimer** | `(pro_id = auth.uid())` |
 | `city_waitlist` | 🔒 RLS active, **aucune politique** | Verrouillée par conception : écriture via route serveur uniquement (service_role). |
 | `client_addresses` | `addr_via_client` : pro authentifié peut **lire/écrire/modifier/supprimer** | `(EXISTS ( SELECT 1 FROM clients c WHERE ((c.id = client_addresses.client_id) AND (c.pro_id = auth.uid()))))` |
@@ -31,6 +33,7 @@ Trois rôles interviennent :
 | `geocodage_refus` | 🔒 RLS active, **aucune politique** | Verrouillée par conception : écriture via route serveur uniquement (service_role). |
 | `journees` | `journees_self` : pro authentifié peut **lire/écrire/modifier/supprimer** | `(pro_id = auth.uid())` |
 | `legal_documents` | `legal_documents_lecture` : visiteuse anonyme, pro authentifié peut **lire** | `true` |
+| `migrations_marqueurs` | 🔒 RLS active, **aucune politique** | Verrouillée par conception : écriture via route serveur uniquement (service_role). |
 | `notifications` | `notifications_self` : pro authentifié peut **lire/écrire/modifier/supprimer** | `(pro_id = auth.uid())` |
 | `phone_verifications` | 🔒 RLS active, **aucune politique** | Verrouillée par conception : écriture via route serveur uniquement (service_role). |
 | `pro_photos` | `pro_photos_self` : pro authentifié peut **lire/écrire/modifier/supprimer** | `(pro_id = auth.uid())` |
@@ -61,6 +64,7 @@ base, quelle qu'en soit la provenance.
 
 | Table | Colonnes exposées |
 |---|---|
+| `avis` | `appointment_id`, `created_at`, `id`, `note`, `prenom`, `pro_id`, `publie_le`, `statut`, `texte` |
 | `communes` | `insee_code`, `lat`, `lng`, `name`, `population`, `postal_codes`, `search_key`, `updated_at` |
 | `legal_documents` | `corps`, `created_at`, `effective_on`, `slug`, `titre`, `version` |
 | `pro_photos` | `chemin`, `id`, `position`, `pro_id` |
@@ -75,6 +79,10 @@ base, quelle qu'en soit la provenance.
 Ce qui est ouvert à `anon` est ouvert au monde entier : la clé anonyme est publique.
 Chaque politique de lecture doit donc répondre à une seule question : **la cliente en a-t-elle
 besoin avant de réserver ?**
+
+### `avis_publies` · `avis`
+
+A7 : les avis PUBLIÉS d'une pro, sur sa page publique. Un avis est fait pour être lu par une cliente qui hésite : le cacher le viderait de son sens. La politique ne laisse sortir que le statut `publie` : ni les avis en attente de modération, ni ceux que la pro a masqués. Aucune donnée personnelle n'y transite : la table ne porte QUE le prénom, et il n'existe aucune colonne où un nom complet, une adresse ou un téléphone pourrait se ranger.
 
 ### `communes_publiques` · `communes`
 

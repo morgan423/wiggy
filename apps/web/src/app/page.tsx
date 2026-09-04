@@ -1,8 +1,8 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
 import { copy, remplir } from '@wiggy/copy'
+import { placesAmbassadricesRestantes } from '@wiggy/core'
 import { sectionAvisAffichable, temoignagesDePlanche } from '@/lib/avis-placeholder'
-import { placesAmbassadricesRestantes } from '@/lib/ambassadrices'
 import { BalisageHome } from './balisage-home'
 import { GrillePrix } from './grille-prix'
 
@@ -31,8 +31,8 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 }
 
-export default async function Accueil() {
-  const restantes = await placesAmbassadricesRestantes()
+export default function Accueil() {
+  const restantes = placesAmbassadricesRestantes()
 
   return (
     <>
@@ -135,7 +135,7 @@ function VignetteTournee() {
           >
             <span className="w-11 shrink-0 font-mono font-bold">{r.heure}</span>
             <span className="min-w-0 flex-1 truncate font-semibold">{r.libelle}</span>
-            {r.etat ? (
+            {'etat' in r && r.etat ? (
               <span
                 className={`shrink-0 rounded-pilule px-2.5 py-1 text-[10.5px] font-extrabold ${
                   r.etat === 'En cours'
@@ -377,8 +377,7 @@ function Ambassadrices({ restantes }: { restantes: number }) {
           quand la promesse qui l'entoure est légitimement en avance (D19).
         */}
         <p className="mt-8 text-[12px] leading-[1.6] text-texte-sur-plein-doux">
-          {remplir(S.ambassadrices.compteur, { restantes: String(restantes) })}{' '}
-          {S.ambassadrices.conditions}
+          {remplir(S.gabarits.ambassadricesMention, { restantes: String(restantes) })}
         </p>
         <Link
           href="/inscription"

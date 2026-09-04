@@ -10,6 +10,7 @@
 export type AcceptancePoint = 'inscription_pro' | 'reservation_cliente' | 'activation_paiement' | 'activation_parrainage'
 export type AppointmentSource = 'online' | 'manual'
 export type AppointmentStatus = 'pending' | 'conditional' | 'confirmed' | 'in_progress' | 'done' | 'cancelled'
+export type AvisStatut = 'en_attente' | 'publie' | 'masque'
 export type BookingConfirmationMode = 'auto' | 'manual'
 export type EvenementKind = 'creneau_choisi' | 'blocage_manuel' | 'tunnel_etape' | 'rdv_cree' | 'premiere_reservation' | 'contre_proposition' | 'sms_envoye' | 'usage_app'
 export type NotificationKind = 'reponse_proposition' | 'annulation' | 'acompte_recu' | 'avis_recu' | 'demande_traitee' | 'nouveau_rdv' | 'demande_a_valider'
@@ -176,6 +177,42 @@ export type Database = {
         stay_to?: string | null
         public_token?: string
         duration_declared?: boolean
+        }
+        Relationships: []
+      }
+      avis: {
+        Row: {
+        id: string
+        pro_id: string
+        appointment_id: string
+        prenom: string
+        note: number
+        texte: string | null
+        statut: AvisStatut
+        created_at: string
+        publie_le: string | null
+        }
+        Insert: {
+        id?: string
+        pro_id: string
+        appointment_id: string
+        prenom: string
+        note: number
+        texte?: string | null
+        statut?: AvisStatut
+        created_at?: string
+        publie_le?: string | null
+        }
+        Update: {
+        id?: string
+        pro_id?: string
+        appointment_id?: string
+        prenom?: string
+        note?: number
+        texte?: string | null
+        statut?: AvisStatut
+        created_at?: string
+        publie_le?: string | null
         }
         Relationships: []
       }
@@ -524,6 +561,21 @@ export type Database = {
         titre?: string
         corps?: string
         created_at?: string
+        }
+        Relationships: []
+      }
+      migrations_marqueurs: {
+        Row: {
+        migration: string
+        applique_le: string
+        }
+        Insert: {
+        migration: string
+        applique_le?: string
+        }
+        Update: {
+        migration?: string
+        applique_le?: string
         }
         Relationships: []
       }
@@ -1114,6 +1166,7 @@ export type Database = {
       acceptance_point: AcceptancePoint
       appointment_source: AppointmentSource
       appointment_status: AppointmentStatus
+      avis_statut: AvisStatut
       booking_confirmation_mode: BookingConfirmationMode
       evenement_kind: EvenementKind
       notification_kind: NotificationKind
