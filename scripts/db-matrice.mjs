@@ -198,7 +198,7 @@ ${justifications}
 
 ## Ce qui n'est jamais exposé
 
-Aucune politique anonyme ne touche \`clients\`, \`client_addresses\`, \`appointments\`,
+Aucune politique anonyme ne touche \`evenements\`, \`clients\`, \`client_addresses\`, \`appointments\`,
 \`appointment_photos\`, \`subscriptions\`, \`sms_usage\`, \`blocked_slots\`, \`time_off\`,
 \`working_hours\`, \`city_waitlist\` ni \`rate_limits\`. Les noms, téléphones, adresses de
 domicile et photos des clientes sont des données personnelles : elles ne sortent jamais du

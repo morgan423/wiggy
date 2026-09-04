@@ -27,6 +27,7 @@ Trois rôles interviennent :
 | `communes` | `communes_publiques` : visiteuse anonyme, pro authentifié peut **lire** | `true` |
 | `communes_import` | 🔒 RLS active, **aucune politique** | Verrouillée par conception : écriture via route serveur uniquement (service_role). |
 | `distance_fees` | `pro_owns` : pro authentifié peut **lire/écrire/modifier/supprimer** | `(pro_id = auth.uid())` |
+| `evenements` | 🔒 RLS active, **aucune politique** | Verrouillée par conception : écriture via route serveur uniquement (service_role). |
 | `geocodage_refus` | 🔒 RLS active, **aucune politique** | Verrouillée par conception : écriture via route serveur uniquement (service_role). |
 | `journees` | `journees_self` : pro authentifié peut **lire/écrire/modifier/supprimer** | `(pro_id = auth.uid())` |
 | `legal_documents` | `legal_documents_lecture` : visiteuse anonyme, pro authentifié peut **lire** | `true` |
@@ -109,7 +110,7 @@ La cliente doit voir prestations, prix et durées avant de réserver : des tarif
 
 ## Ce qui n'est jamais exposé
 
-Aucune politique anonyme ne touche `clients`, `client_addresses`, `appointments`,
+Aucune politique anonyme ne touche `evenements`, `clients`, `client_addresses`, `appointments`,
 `appointment_photos`, `subscriptions`, `sms_usage`, `blocked_slots`, `time_off`,
 `working_hours`, `city_waitlist` ni `rate_limits`. Les noms, téléphones, adresses de
 domicile et photos des clientes sont des données personnelles : elles ne sortent jamais du

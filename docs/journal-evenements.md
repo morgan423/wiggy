@@ -16,10 +16,10 @@ déclarée : c'est ce qui empêche la règle de se perdre au fil des ajouts.
 
 | Événement | Clé | État | Canaux | Où c'est écrit |
 |---|---|---|---|---|
-| Nouveau rendez-vous | `nouveau_rdv` | ✅ branché | journal toujours · badge par défaut · push ACTIF | `apps/web/src/app/[slug]/reserver/actions.ts:265` |
-| Nouvelle demande | `demande_a_valider` | ✅ branché | journal toujours · badge par défaut · push ACTIF | `apps/web/src/app/app/agenda/actions.ts:275`<br>`apps/web/src/app/[slug]/reserver/actions.ts:265` |
-| Réponse à ta proposition | `reponse_cliente` | ✅ branché | journal toujours · badge par défaut · push ACTIF | `apps/web/src/app/proposition/[token]/actions.ts:85` |
-| Annulation | `annulation` | ✅ branché | journal toujours · badge par défaut · push ACTIF | `apps/web/src/app/app/agenda/actions.ts:119` |
+| Nouveau rendez-vous | `nouveau_rdv` | ✅ branché | journal toujours · badge par défaut · push ACTIF | `apps/web/src/app/[slug]/reserver/actions.ts:266` |
+| Nouvelle demande | `demande_a_valider` | ✅ branché | journal toujours · badge par défaut · push ACTIF | `apps/web/src/app/app/agenda/actions.ts:281`<br>`apps/web/src/app/[slug]/reserver/actions.ts:266` |
+| Réponse à ta proposition | `reponse_cliente` | ✅ branché | journal toujours · badge par défaut · push ACTIF | `apps/web/src/app/proposition/[token]/actions.ts:86` |
+| Annulation | `annulation` | ✅ branché | journal toujours · badge par défaut · push ACTIF | `apps/web/src/app/app/agenda/actions.ts:125` |
 | Nouvel avis | `avis` | ⏳ en attente de A7 | journal toujours · badge par défaut · push inactif | — |
 | Acompte reçu | `acompte` | ⏳ en attente de B9 | journal toujours · badge par défaut · push inactif | — |
 

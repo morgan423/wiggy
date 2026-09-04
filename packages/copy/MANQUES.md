@@ -12,6 +12,28 @@ phase 2 (`packages/copy/source/1a.json` à `13b.json`) et la spécification écr
 écran de Claude Design (`spec-14.json`). Ce document ne liste que ce qui ne vient ni de
 l'un ni de l'autre.
 
+## A12 — les deux étages de créneaux (planche 15b, écran 3)
+
+Ces trois textes viennent de la **planche 15b**, écran « 3 · CRÉNEAUX », qui dessine l'affichage à
+deux étages. Ils sont donc du **contenu ratifié** et non du texte inventé, mais ils n'ont pas
+d'entrée dans le board de la phase 2 : ils sont déclarés ici pour que la relecture les voie passer.
+
+La ponctuation est corrigée au passage, comme la règle du dépôt le prévoit pour tout texte relevé
+sur une planche antérieure à l'itération 17.
+
+| Clé                                                    | Texte                                                   | Source      |
+| ------------------------------------------------------ | ------------------------------------------------------- | ----------- |
+| `reservation-cliente.$aEcrire.creneauxProchesLegende`  | « Ces moments-là, {pro} est déjà dans votre quartier. » | planche 15b |
+| `reservation-cliente.$aEcrire.creneauxAucunNeConvient` | « Aucun ne convient ? »                                 | planche 15b |
+| `reservation-cliente.$aEcrire.creneauxToutVoir`        | « Voir toutes les disponibilités »                      | planche 15b |
+
+⚠️ **Divergence à trancher avec Morgan.** La consigne du 04/09 donnait comme « titre exact »
+« Quand {prénom} est dans votre quartier » et comme « libellé exact » « Voir plus de créneaux ». La
+planche 15b écrit « Quand Sophie est près de chez vous. » et « Voir toutes les disponibilités », et
+la même consigne dit : « si un écran de réservation dessiné couvre déjà ce cas, la planche fait
+foi ». **La planche a été suivie.** Le titre lui-même reste celui du copy deck
+(`gabarits.creneauxTitre`), déjà ratifié et quasi identique à celui de la planche.
+
 ## Fonctionnalités déclarées absentes, à ne pas simuler
 
 Ces éléments EXISTENT dans l'interface mais n'ont **aucun émetteur** : la fonctionnalité qui les

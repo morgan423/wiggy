@@ -90,7 +90,10 @@
     "propositionDejaAcceptee": "Vous avez déjà accepté cette proposition. Votre rendez-vous est confirmé.",
     "propositionClose": "Cette proposition n'est plus d'actualité.",
     "propositionAcceptee": "C'est noté, votre rendez-vous est confirmé.",
-    "propositionDeclinee": "C'est noté. Vous serez recontactée."
+    "propositionDeclinee": "C'est noté. Vous serez recontactée.",
+    "creneauxProchesLegende": "Ces moments-là, {pro} est déjà dans votre quartier.",
+    "creneauxAucunNeConvient": "Aucun ne convient ?",
+    "creneauxToutVoir": "Voir toutes les disponibilités"
   },
   "rappel": {
     "$note": "Livrées par Design le 02/09. La cliente ne doit jamais pouvoir deviner l'offre de sa coiffeuse ni qu'une limite a été atteinte : le texte dit comment elle sera prévenue, jamais pourquoi.",

@@ -20,6 +20,141 @@ _Rien en attente : les trois questions ouvertes ont été tranchées le 03/09._
 
 ---
 
+## 2026-09-04 (5) Étape : A12, le score de cohérence, et E3, la télémétrie de bêta
+
+**LE POINT QUE MORGAN VÉRIFIERA EN PREMIER, dit d'emblée : je n'ai PAS eu à refactorer la
+faisabilité, et je n'ai ajouté AUCUN appel d'itinéraire. Mais la prémisse était inexacte sur un
+tiers, et c'est le seul écart de ce lot.**
+
+Le coût marginal demande trois durées. **Deux étaient bien déjà calculées** par le contrôle de
+faisabilité — `précédent → cliente` et `cliente → suivant` — et, mieux que « jetées », elles
+étaient **déjà conservées** sur chaque créneau. Rien à remonter, rien à refactorer.
+
+**La troisième, `précédent → suivant`, n'était calculée nulle part.** La table de trajets ne
+contient que les allers-retours avec la cliente, jamais les couples entre rendez-vous. Elle passe
+donc par le repli déjà en place, `dureeEstimeeMin`, l'estimation à vol d'oiseau calibrée utilisée
+partout comme filet. **Zéro appel ajouté**, conformément à la consigne.
+
+**Ce que ça coûte en justesse, sans enjoliver** : l'estimation étant toujours inférieure ou égale au
+trajet réel, le terme soustrait est sous-évalué, donc le coût marginal légèrement SUR-évalué. Le
+biais va dans le sens prudent, et il est identique pour tous les créneaux d'un même intervalle, donc
+il ne dérange pas leur ordre relatif. **Ce qu'il faudrait pour l'enlever** : une matrice
+`lieux × lieux` de plus par requête, une ligne à ajouter. On ne la paie pas avant que E3 dise que le
+biais dérange un choix réel.
+
+**Fait :**
+
+### A12 — le score de cohérence
+
+- **La règle d'or est tenue par la STRUCTURE, pas par la discipline.** `noterCreneau` rend un
+  nombre, jamais un booléen : le module ne peut pas retirer un créneau, il n'en a pas le moyen. Le
+  test « aucun créneau ne disparaît » compte les deux étages et vérifie qu'ils font le total.
+- **Le principe fondateur aussi** : rien dans ce lot ne lit un rendez-vous pour le déplacer. Les
+  rendez-vous posés sont des **données d'entrée**, et le seul objet façonné est la demande entrante.
+- **Le premier et le dernier créneau du jour sont traités explicitement** (D16) : le trajet amont
+  part du point de départ, le trajet aval y revient. Sans ça ils tombaient dans un cas par défaut à
+  coût nul et remontaient en tête sans l'avoir mérité, alors que ce sont eux qui allongent la
+  journée. Un test le vérifie.
+- **Les pondérations sont toutes dans un seul bloc `POIDS`**, nommées, documentées d'une ligne,
+  modifiables sans toucher à la logique. Aucun nombre magique ailleurs.
+- **Les deux cas de la roadmap sont des tests** : l'aller-retour de 45 minutes en plein milieu reste
+  **réservable** et se retrouve au second étage ; le créneau qui bouche un trou entre deux
+  rendez-vous du même coin remonte au premier.
+- **Un seul créneau distingué ne fait pas une recommandation** : le premier étage s'efface sous deux
+  créneaux, parce qu'un choix unique ne laisse aucun choix et que le titre promettrait plus que la
+  liste ne tient. Le second étage s'ouvre alors d'office.
+
+### E3 — la télémétrie
+
+- **Table `evenements`, verrouillée par conception** : RLS active, **aucune politique**, écriture
+  par le service serveur uniquement. Comme `city_waitlist` et `rate_limits`. Une mesure qu'on peut
+  fabriquer depuis un navigateur ne mesure plus rien, et celle-ci sert à régler A12.
+- **Les huit questions sont dans le SCHÉMA**, en énumération, pas dans une convention : une
+  neuvième suppose une migration, donc une décision.
+- **Le helper est le seul point d'écriture**, et il FILTRE : une liste de clés autorisées par
+  événement, et seuls des nombres, des booléens et des chaînes de 32 caractères au plus. Une chaîne
+  longue est le format naturel d'un nom, d'une adresse ou d'une note ; aucune des huit questions
+  n'en a besoin. **C'est ce filtre qui rend le cadrage RGPD vrai plutôt qu'annoncé.**
+- **Côté cliente, un identifiant de session éphémère et rien d'autre** : cookie `httpOnly`, sans
+  durée, mort à la fermeture du navigateur. Il ne relie que les étapes d'une même visite.
+- **Une contrainte de base interdit qu'un événement vise à la fois un pro et une session** : les
+  mélanger rendrait une visite anonyme rattachable à un compte.
+- **La politique de confidentialité est MODIFIÉE**, pas signalée : version 0.2-beta en base
+  (migration 0025). **G7 a été construit pour ce moment précis et il tient : aucune ligne de code
+  n'a bougé pour changer un texte contractuel.**
+- **La purge à douze mois est écrite** même si rien ne la déclenche encore, et le journal dit
+  comment la planifier (voir plus bas).
+- **La vue `synthese_hebdo`** agrège par semaine et par pro, et un test vérifie qu'elle n'expose ni
+  le détail ni l'identifiant d'un événement.
+
+### Deux défauts trouvés en chemin, et corrigés
+
+- **Le droit à l'effacement était CASSÉ depuis 0021**, et le test de bout en bout l'a révélé. Le
+  déclencheur d'immuabilité des acceptations refusait aussi les suppressions en CASCADE : depuis
+  cette migration, **un compte pro ne pouvait plus être supprimé du tout**. Ce n'est pas un défaut
+  de test, c'est G5 et le RGPD. La règle juste est qu'**une acceptation part avec son sujet, jamais
+  sans lui** : le déclencheur regarde si le parent existe encore, refuse la suppression isolée, et
+  laisse passer la cascade. Migration 0026, avec son test.
+- **`db:etat` allait mentir sur 0025.** Cette migration n'ajoute aucun objet de schéma, seulement un
+  texte : sa sonde empruntait celle de 0021 et se serait déclarée appliquée dès que 0021 l'était. Le
+  script accepte désormais une **sonde de LIGNE** (`table?filtre`), toujours en `GET` et toujours en
+  lecture seule.
+
+**Schéma :** **0024, 0025 et 0026, EN ATTENTE d'application par Morgan.**
+`node scripts/db-bundle.mjs --depuis 0024`. Les trois sont idempotentes.
+**0021 à 0023 sont désormais appliquées** : `npm run db:etat` le constate, et le registre a été
+corrigé d'après ce constat plutôt que de mon fait. **Conséquence directe : `npm run e2e` repasse au
+vert**, le blocage de toute la journée est levé.
+
+**Décisions :** A12 (score, deux étages, pondérations calibrables). E3 (huit événements, session
+éphémère, purge à 12 mois).
+
+**Écarts au brief :**
+
+- **Le troisième terme du coût marginal est ESTIMÉ, pas réel** : voir la note en tête. C'est le
+  seul moyen de respecter « aucun appel supplémentaire ».
+- **Le titre et le libellé suivent la PLANCHE 15b, pas la prose.** La consigne donnait « Quand
+  {prénom} est dans votre quartier » et « Voir plus de créneaux » comme textes exacts ; la planche
+  écrit « près de chez vous » et « Voir toutes les disponibilités », et la même consigne dit que la
+  planche fait foi si l'écran est dessiné. **Il l'est** (15b, écran 3). Le titre lui-même vient du
+  copy deck, déjà ratifié. Les trois textes de la planche sont déclarés dans MANQUES.md.
+- **Le générateur de types ignorait les colonnes d'identité** : `column_default` est nul pour
+  elles, donc la clé primaire de `evenements` sortait obligatoire à l'insertion. Corrigé dans le
+  générateur plutôt que contourné dans le schéma.
+- **Une neuvième instrumentation tentante, NON faite et signalée comme demandé** : l'abandon du
+  tunnel entre l'étape créneaux et l'étape coordonnées se déduit aujourd'hui de l'absence de
+  l'étape suivante. Mesurer le temps passé sur chaque étape le dirait mieux, mais ce n'est aucune
+  des huit questions. À trancher.
+
+**Comment on planifiera la purge**, à décider avant la fin de la bêta : soit `pg_cron` sur le projet
+Supabase, soit un appel depuis la vue de synthèse, sur le modèle du journal des notifications qui se
+purge à la lecture. **La seconde voie se répare d'elle-même** : une tâche planifiée qui ne tourne
+plus laisse grossir la table sans que personne le voie.
+
+**RAPPEL DE LECTURE, à ne pas perdre :** à **cinq testeuses**, ces données éclairent des
+**comportements individuels**, elles ne prouvent **aucune tendance**. L'observation directe et les
+débriefs restent l'instrument principal. **La télémétrie dit ce qui s'est passé, pas pourquoi.**
+
+**Questions ouvertes :** la neuvième instrumentation ci-dessus. Le troisième terme réel, si le biais
+gêne.
+
+**À recetter par Morgan :**
+
+1. **Colle 0024 à 0026** (`node scripts/db-bundle.mjs --depuis 0024`), puis `npm run db:etat`.
+2. **Sur ta page publique, va jusqu'aux créneaux** : les mieux notés en pastilles « ven. 4 · 13:00 »,
+   la légende du quartier dessous, puis « Aucun ne convient ? » et « Voir toutes les
+   disponibilités ». **Déroule-le : tout le reste est là.**
+3. **Le test qui compte** : pose-toi deux rendez-vous proches le matin, laisse du mou, et demande
+   une adresse éloignée. Le créneau du milieu **doit rester réservable**, et ne pas être en tête.
+4. **Réserve** : rien ne change pour la cliente, aucun avertissement, aucune friction.
+5. **Supprime un compte de test** : il part maintenant, acceptations comprises (c'était cassé).
+6. Après quelques réservations, regarde `select * from synthese_hebdo` : des volumes par semaine et
+   par pro, jamais un événement isolé.
+
+**Statut à reporter dans la roadmap :** A12 : « recette à valider ». E3 : « recette à valider ».
+
+---
+
 ## 2026-09-04 (4) Étape : les icônes de la nav, les interrupteurs, et la repasse de propreté
 
 **Fait :**

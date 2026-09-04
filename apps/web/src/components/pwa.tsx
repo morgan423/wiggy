@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
+import { mesurerUsageApp } from '@/app/app/usage-actions'
 
 /**
  * C9 — l'enregistrement du service worker.
@@ -17,6 +18,30 @@ export function EnregistrerServiceWorker() {
     // privée, réglage du navigateur) ne doit rien casser. L'app reste
     // parfaitement utilisable en ligne, elle perd seulement le hors-ligne.
     navigator.serviceWorker.register('/sw.js').catch(() => undefined)
+
+    /*
+      E3 ⑧ — deux faits que seul le navigateur connaît.
+
+      `display-mode: standalone` : l'app tourne DEPUIS l'écran d'accueil, donc
+      elle y a été installée. C'est la seule preuve d'installation qui existe —
+      une PWA installée envoie exactement les mêmes requêtes qu'un onglet.
+
+      Le retour du réseau après une coupure : une consultation hors-ligne
+      n'envoie rien par définition, elle ne peut se signaler qu'après coup.
+
+      Les deux appels échouent en silence : une mesure ne doit jamais gêner
+      l'usage qu'elle mesure.
+    */
+    if (window.matchMedia('(display-mode: standalone)').matches) {
+      void mesurerUsageApp('pwa_installee').catch(() => undefined)
+    }
+    const auRetour = () => {
+      void mesurerUsageApp('consultation_hors_ligne').catch(() => undefined)
+    }
+    window.addEventListener('online', auRetour)
+    return () => {
+      window.removeEventListener('online', auRetour)
+    }
   }, [])
   return null
 }

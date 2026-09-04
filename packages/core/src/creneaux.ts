@@ -5,6 +5,7 @@ import {
   debutDeJour,
 } from './temps.ts'
 import type { Minutes, Point } from './trajets.ts'
+import { noterCreneau } from './score.ts'
 
 /**
  * A3 : le moteur de créneaux géo-filtrés. Le différenciateur.
@@ -37,6 +38,16 @@ export type Creneau = {
   trajetAvant?: Minutes
   /** Trajet vers le rendez-vous suivant, si la journée en compte un. */
   trajetApres?: Minutes
+  /**
+   * A12 — minutes de conduite AJOUTÉES à la journée par ce rendez-vous.
+   *
+   * Ces valeurs étaient calculées puis JETÉES par le contrôle de faisabilité.
+   * Elles sont désormais conservées : c'est tout ce qu'il fallait pour passer
+   * d'un filtre à une recommandation.
+   */
+  coutMarginalMin: Minutes
+  /** A12 — cohérence avec la tournée. Ordonne, n'exclut jamais. */
+  score: number
 }
 
 export type DemandeCreneaux = {
@@ -59,6 +70,19 @@ export type DemandeCreneaux = {
   pasMin?: Minutes
   /** Rien avant cet instant : on ne propose pas un créneau déjà passé. */
   pasAvant?: Date
+  /**
+   * D16 — d'où la pro part le matin, et où elle rentre le soir.
+   *
+   * A12 en a besoin pour noter le PREMIER et le DERNIER créneau de la journée,
+   * qui n'ont respectivement pas de rendez-vous avant ni après. Sans lui, ces
+   * deux-là tomberaient dans un cas par défaut à coût nul et remonteraient en
+   * tête du premier étage sans l'avoir mérité, alors qu'ils sont justement ceux
+   * qui allongent la journée.
+   *
+   * `null` quand il n'est pas renseigné : on note alors sans terme amont ni
+   * aval plutôt que d'inventer un point de départ.
+   */
+  pointDeDepart?: Point | null
 }
 
 /** Durée de trajet entre deux points, déjà connue de l'appelant. */
@@ -119,7 +143,39 @@ export function creneauxDuJour(demande: DemandeCreneaux, trajet: LookupTrajet): 
         if (fin.getTime() > departAuPlusTard) continue
       }
 
-      creneaux.push({ debut, fin, trajetAvant, trajetApres })
+      /*
+        A12 — la note, calculée avec ce qu'on a DÉJÀ en main.
+
+        Le troisième terme du coût marginal, le trajet que la pro ferait du
+        précédent au suivant SANS ce rendez-vous, passe par le même `trajet()`
+        que les deux autres. Aucun appel de calcul d'itinéraire n'est ajouté :
+        voir la note en tête de `tableDesTrajets`, côté enveloppe.
+      */
+      const lieuAvant = precedent?.lieu ?? (precedent ? null : (demande.pointDeDepart ?? null))
+      const lieuApres = suivant?.lieu ?? (suivant ? null : (demande.pointDeDepart ?? null))
+
+      // Le premier et le dernier créneau du jour : le trajet amont part du
+      // point de départ, le trajet aval y revient. Traités explicitement, sans
+      // quoi ils seraient notés comme s'ils ne coûtaient aucun trajet.
+      if (trajetAvant === undefined && lieuAvant && demande.lieuCliente) {
+        trajetAvant = trajet(lieuAvant, demande.lieuCliente)
+      }
+      if (trajetApres === undefined && lieuApres && demande.lieuCliente) {
+        trajetApres = trajet(demande.lieuCliente, lieuApres)
+      }
+
+      const note = noterCreneau({
+        trajetAvant,
+        trajetApres,
+        trajetDirect:
+          lieuAvant && lieuApres && demande.lieuCliente ? trajet(lieuAvant, lieuApres) : undefined,
+        lieuCliente: demande.lieuCliente,
+        lieuAvant,
+        lieuApres,
+        entreDeuxRendezVous: Boolean(precedent && suivant),
+      })
+
+      creneaux.push({ debut, fin, trajetAvant, trajetApres, ...note })
     }
   }
 

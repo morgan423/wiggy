@@ -18,7 +18,11 @@ const { rows: enums } = await db.query(`
 
 const { rows: colonnes } = await db.query(`
   select table_name, column_name, data_type, udt_name, is_nullable,
-         column_default is not null as a_defaut
+         -- Une colonne d'IDENTITE (generated always as identity) n'a pas de
+         -- column_default : Postgres la remplit par une sequence interne. Sans
+         -- ce second terme, elle sortait OBLIGATOIRE a l'insertion, et le code
+         -- devait fournir une cle primaire que la base fabrique elle-meme.
+         (column_default is not null or is_identity = 'YES') as a_defaut
   from information_schema.columns
   where table_schema = 'public'
   order by table_name, ordinal_position

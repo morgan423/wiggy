@@ -27,7 +27,12 @@ async function executer() {
   const client = api(valeurs)
   await semer(client)
   const serveur = await preparerServeur(PORT)
-  const base = `http://localhost:${String(PORT)}`
+  // ⚠️ L'URL vient du serveur, elle ne se DEVINE pas : `preparerServeur`
+  // réutilise un serveur déjà en marche quand il en trouve un, et il tourne
+  // alors sur SON port. Reconstruire l'adresse depuis `PORT` faisait échouer ce
+  // contrôle dès que Morgan avait son `npm run dev` ouvert, ce qui est le cas
+  // normal.
+  const base = serveur.base
   const echecs = []
   let navigateur
 

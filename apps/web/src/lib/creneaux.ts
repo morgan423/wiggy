@@ -93,7 +93,7 @@ export async function creneauxProposables(options: {
   // cliente apprend qu'un horaire est pris, rien de plus.
   const supabase = supabaseAdmin()
 
-  const [service, reglages, horaires, abonnement, apprentissage] = await Promise.all([
+  const [service, reglages, horaires, abonnement, apprentissage, depart] = await Promise.all([
     supabase
       .from('services')
       .select('duration_min')
@@ -121,6 +121,11 @@ export async function creneauxProposables(options: {
       .not('actual_duration_min', 'is', null)
       .order('completed_at', { ascending: false })
       .limit(20),
+    // D16 — le point de départ de la journée. A12 en a besoin pour noter le
+    // premier et le dernier créneau, qui sinon paraîtraient gratuits alors
+    // qu'ils sont justement ceux qui allongent la journée. Une lecture de
+    // base de plus, aucun appel d'itinéraire de plus.
+    supabase.from('pros').select('start_lat, start_lng').eq('id', options.proId).maybeSingle(),
   ])
 
   if (!service.data || !horaires.data || horaires.data.length === 0)
@@ -243,6 +248,10 @@ export async function creneauxProposables(options: {
         dureeMin: duree,
         lieuCliente: lieu?.point ?? null,
         pasAvant: maintenant,
+        pointDeDepart:
+          depart.data?.start_lat != null && depart.data.start_lng != null
+            ? { lat: depart.data.start_lat, lng: depart.data.start_lng }
+            : null,
       },
       lookup,
     )
@@ -255,6 +264,29 @@ export async function creneauxProposables(options: {
 /**
  * Précalcule les trajets entre chaque rendez-vous localisé et la cliente, en
  * un seul appel. Le moteur de créneaux, lui, reste synchrone et pur.
+ *
+ * ⚠️ **A12 N'AJOUTE AUCUN APPEL D'ITINÉRAIRE, et voici exactement ce que cela
+ * implique.** Le score a besoin de trois durées :
+ *
+ * · `précédent → cliente` et `cliente → suivant` : **déjà dans cette table**.
+ *   Ce sont les valeurs que le contrôle de faisabilité calculait puis jetait ;
+ *   elles sont désormais conservées. Ce sont des durées **réelles**.
+ * · `précédent → suivant`, plus les trajets depuis et vers le **point de
+ *   départ** (D16) : ces couples ne sont PAS dans la table, qui ne contient que
+ *   les allers-retours avec la cliente. Ils passent donc par le repli
+ *   ci-dessous, `dureeEstimeeMin`, l'estimation à vol d'oiseau calibrée déjà
+ *   utilisée partout comme filet.
+ *
+ * **Ce que ça coûte en justesse, dit franchement** : l'estimation étant
+ * toujours inférieure ou égale au trajet réel, le terme soustrait est
+ * légèrement sous-évalué, donc le coût marginal légèrement SUR-évalué. Le biais
+ * va dans le sens prudent — il rend l'insertion un peu plus chère qu'elle ne
+ * l'est — et il est le même pour tous les créneaux d'un même intervalle, donc
+ * il ne dérange pas leur ordre relatif.
+ *
+ * **Ce qu'il faudrait pour l'enlever** : une matrice `lieux × lieux` de plus
+ * par requête. Une ligne à ajouter ici. On ne la paie pas avant que la
+ * télémétrie de E3 dise que le biais dérange un choix réel.
  */
 async function tableDesTrajets(
   rdvs: { lieu: Point | null }[],

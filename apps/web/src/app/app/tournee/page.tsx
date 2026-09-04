@@ -23,6 +23,7 @@ import {
 } from '@wiggy/core'
 import { copy, remplir } from '@wiggy/copy'
 import { requireCapability } from '@/lib/auth'
+import { mesurerPro } from '@/lib/telemetrie'
 import { supabaseServer } from '@/lib/supabase/server'
 import { trajetsDeLaJournee, type Trajets } from '@/lib/tournee'
 import { FormRetard } from './retard'
@@ -71,6 +72,14 @@ export default async function MaTournee({
   searchParams: Promise<{ le?: string; vient_de?: string }>
 }) {
   const { pro } = await requireCapability('tour_copilot')
+
+  /*
+    E3 ⑧ — la consultation de « Ma tournée ». C'est l'écran dont C9 promet
+    qu'il survit à la zone blanche : savoir s'il est REGARDÉ décide si le
+    hors-ligne valait la peine. Rien du contenu de la journée n'est mesuré,
+    juste le fait qu'elle a été ouverte.
+  */
+  await mesurerPro('usage_app', pro.id, { action: 'tournee_ouverte' })
   const { le, vient_de: vientDe } = await searchParams
 
   const jour = debutDeJour(ancreValide(le))

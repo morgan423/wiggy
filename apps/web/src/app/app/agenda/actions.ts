@@ -11,6 +11,7 @@ import { prevenirCliente } from '@/lib/messagerie/prevenance'
 import { lancerJournee, jourDe, retenirDepartDuJour } from '@/lib/journee'
 import { ajouterAuJournal } from '@/app/app/clientes/actions'
 import { journaliser } from '@/lib/notifications'
+import { mesurerPro } from '@/lib/telemetrie'
 import { geocoder } from '@/lib/adresse'
 import { centreDeCommune } from '@/lib/lieu-approche'
 import { erreur, erreurBase, ok, champ, type EtatForm, champTexte } from '@/lib/forms'
@@ -83,6 +84,11 @@ export async function creerRdv(precedent: EtatForm, donnees: FormData): Promise<
     note: saisie.data.note,
   })
   if (error) return erreurBase(precedent, 'creation_rdv_failed', error, donnees)
+
+  // E3 ④ — l'autre moitié du ratio « en ligne contre saisie manuelle ». Sans
+  // cette mesure-ci, on ne saurait compter que les réservations en ligne, et un
+  // ratio dont on ne connaît qu'un terme n'est pas un ratio.
+  await mesurerPro('rdv_cree', pro.id, { source: 'manual', statut: 'confirmed' })
 
   revalidatePath('/app/agenda')
   redirect(retour(precision))
@@ -429,6 +435,18 @@ export async function bloquerPlage(precedent: EtatForm, donnees: FormData): Prom
     label: saisie.data.label,
   })
   if (error) return erreurBase(precedent, 'blocage_failed', error, donnees)
+
+  /*
+    E3 ② — l'usage du blocage manuel, qui décidera de D2 (synchronisation
+    Google). Une pro qui bloque beaucoup à la main tient un second agenda
+    ailleurs ; une pro qui ne bloque jamais n'en a pas besoin. On mesure la
+    DURÉE, jamais le motif : le libellé d'un blocage est souvent personnel
+    (« dentiste », « école des enfants »), et il n'a rien à faire ici.
+  */
+  await mesurerPro('blocage_manuel', pro.id, {
+    duree_min: Math.round((fin.getTime() - debut.getTime()) / 60_000),
+    recurrent: false,
+  })
 
   revalidatePath('/app/agenda')
   return ok(precedent, copy.agendaTournee.$aEcrire.blocagePose)

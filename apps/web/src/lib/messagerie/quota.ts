@@ -1,5 +1,6 @@
 import { etatQuotaSms, moisDeFacturation, type EtatQuotaSms } from '@wiggy/core'
 import { supabaseAdmin, supabaseConfigured } from '@/lib/supabase/admin'
+import { mesurerPro } from '@/lib/telemetrie'
 
 /**
  * B7 — le compteur mensuel de SMS de service, côté base.
@@ -44,6 +45,15 @@ export async function consommerSms(proId: string, quand = new Date()): Promise<E
     // On ne bloque pas un envoi déjà parti sur un compteur qui n'a pas répondu.
     return etatQuotaSms(0)
   }
+  /*
+    E3 ⑦ — le volume SMS mensuel, qui valide le plafond de 300 et le coût de B7.
+
+    Mesuré ICI, au point de consommation, et nulle part ailleurs : c'est le seul
+    endroit par lequel tout envoi passe, donc le seul où le compte ne peut pas
+    diverger. Le mois et le motif, jamais le destinataire ni le texte.
+  */
+  await mesurerPro('sms_envoye', proId, { mois: moisDeFacturation(quand) })
+
   return etatQuotaSms(typeof data === 'number' ? data : 0)
 }
 

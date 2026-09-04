@@ -1,6 +1,6 @@
 'use server'
 
-import { finRendezVous, ZONE } from '@wiggy/core'
+import { finRendezVous, ZONE, repartirEnEtages } from '@wiggy/core'
 import { ReservationInput } from '@wiggy/api'
 import { supabaseAdmin, supabaseConfigured } from '@/lib/supabase/admin'
 import { modeDuPro } from '@/lib/mode'
@@ -9,6 +9,7 @@ import { creneauxProposables } from '@/lib/creneaux'
 import { rattacherPhotos } from '@/lib/photos'
 import { champ } from '@/lib/forms'
 import { journaliser } from '@/lib/notifications'
+import { mesurerPro } from '@/lib/telemetrie'
 import { aFaireAccepter, verifierEtEnregistrer } from '@/lib/legal'
 
 /**
@@ -268,6 +269,72 @@ export async function reserver(
       : `${d.prenom} a réservé ${service.name.toLowerCase()}`,
     detail: enAttente ? `${service.name} · ${quand}` : quand,
     lien: '/app/agenda',
+  })
+
+  /*
+    E3 ① et ④ — la mesure qui calibrera A12, et le ratio en ligne / manuel.
+
+    On enregistre le RANG et l'ÉTAGE, jamais l'heure ni le lieu : le rang suffit
+    à savoir si le premier étage tape juste, et il ne dit rien de la cliente.
+  */
+  await mesurerPro('rdv_cree', d.proId, {
+    source: 'online',
+    hors_zone: horsZone,
+    statut: statut,
+  })
+
+  /*
+    E3 ① — l'étage et le rang du créneau choisi, la mesure qui CALIBRERA A12.
+
+    Elle est recalculée depuis la revalidation qui vient d'avoir lieu, plutôt
+    que transportée dans l'URL depuis l'écran des créneaux : une valeur qui
+    voyage par l'URL est une valeur qu'on peut réécrire, et celle-ci sert à
+    régler des pondérations. On mesure ce que le moteur dit, pas ce que le
+    navigateur prétend.
+
+    Rang et étage, jamais l'heure ni le lieu : le rang suffit à savoir si le
+    premier étage tape juste, et il ne dit rien de la cliente.
+  */
+  /*
+    E3 ⑤ — le délai entre l'inscription et la PREMIÈRE réservation, l'objectif
+    des 48 heures de G3.
+
+    Enregistré une seule fois, à la première : on compte les rendez-vous en
+    ligne du compte, et on ne mesure que si celui-ci est le premier. Mesurer à
+    chaque réservation donnerait un nuage de délais dont le premier serait
+    noyé, alors que c'est lui, et lui seul, la métrique de conversion.
+  */
+  const { count: dejaEnLigne } = await admin
+    .from('appointments')
+    .select('id', { count: 'exact', head: true })
+    .eq('pro_id', d.proId)
+    .eq('source', 'online')
+  if ((dejaEnLigne ?? 0) === 1) {
+    const { data: compte } = await admin
+      .from('pros')
+      .select('created_at')
+      .eq('id', d.proId)
+      .maybeSingle()
+    if (compte?.created_at) {
+      await mesurerPro('premiere_reservation', d.proId, {
+        heures_depuis_inscription: Math.round(
+          (Date.now() - new Date(compte.created_at).getTime()) / 3_600_000,
+        ),
+      })
+    }
+  }
+
+  const tousLesCreneaux = proposition.jours.flatMap((j) => j.creneaux)
+  const { recommandes, autres } = repartirEnEtages(tousLesCreneaux)
+  const dansLePremier = recommandes.findIndex((c) => c.debut.getTime() === debut.getTime())
+  const dansLeSecond = autres.findIndex((c) => c.debut.getTime() === debut.getTime())
+  const choisi = tousLesCreneaux.find((c) => c.debut.getTime() === debut.getTime())
+  await mesurerPro('creneau_choisi', d.proId, {
+    etage: dansLePremier >= 0 ? 1 : 2,
+    rang: dansLePremier >= 0 ? dansLePremier + 1 : dansLeSecond + 1,
+    total_proposes: tousLesCreneaux.length,
+    cout_marginal_min: choisi?.coutMarginalMin ?? 0,
+    score: choisi?.score ?? 0,
   })
 
   // A4 : les photos ont déjà été déposées par le navigateur, sous un jeton.

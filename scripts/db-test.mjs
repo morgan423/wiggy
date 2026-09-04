@@ -421,7 +421,29 @@ describe('G7 — l’acceptation contractuelle tracée', () => {
     })
   })
 
-  test('une preuve ne se modifie ni ne s’efface, MÊME par le serveur', async () => {
+  test('UNE ACCEPTATION PART AVEC LE COMPTE : le droit à l’effacement prime', async () => {
+    /*
+      Constaté par le test de bout en bout : le déclencheur d'immuabilité
+      refusait aussi les suppressions en CASCADE, donc un compte pro ne pouvait
+      plus être supprimé du tout. On ne garde pas la preuve d'un accord donné
+      par quelqu'un qu'on a l'obligation d'effacer (G5, RGPD).
+    */
+    await asService(db, async () => {
+      const jetable = 'c0000000-0000-4000-8000-000000000003'
+      await db.query(`insert into auth.users (id, email) values ($1, 'jetable@test.fr')`, [jetable])
+      await db.query(
+        `insert into acceptances (point, user_id, doc_slug, doc_version)
+         values ('inscription_pro', $1, 'cgv', '0.1-beta')`,
+        [jetable],
+      )
+      const r = await tenter(db, `delete from auth.users where id = $1`, [jetable])
+      assert.equal(r.ok, true, 'la suppression du compte doit passer')
+      const { rows } = await db.query(`select * from acceptances where user_id = $1`, [jetable])
+      assert.equal(rows.length, 0, 'et emporter la preuve avec elle')
+    })
+  })
+
+  test('une preuve ne se modifie ni ne s’efface SEULE, MÊME par le serveur', async () => {
     // Éprouvé au rôle serveur, celui qui contourne la RLS et par lequel nous
     // écrivons réellement. Si c'était la RLS qui tenait la règle, ce test
     // passerait ici en ne protégeant rien là où ça compte.
@@ -499,6 +521,78 @@ describe('G7 — l’acceptation contractuelle tracée', () => {
          values ('inscription_pro', 'cgv', '0.1-beta')`,
       )
       assert.equal(aucun.ok, false)
+    })
+  })
+})
+
+describe('E3 — la télémétrie, verrouillée par conception', () => {
+  test('une visiteuse ne peut RIEN faire sur la table', async () => {
+    // Même principe que `city_waitlist` : RLS active, aucune politique. Une
+    // mesure qu'on peut fabriquer depuis un navigateur ne mesure plus rien, et
+    // celle-ci sert à régler les pondérations de A12.
+    await asAnon(db, async () => {
+      const lecture = await tenter(db, 'select * from evenements')
+      assert.equal(lecture.rows?.length ?? 0, 0)
+      const ecriture = await tenter(
+        db,
+        `insert into evenements (kind, session, details)
+         values ('creneau_choisi', 'faux', '{"rang": 1}'::jsonb)`,
+      )
+      assert.equal(ecriture.ok, false, 'une visiteuse ne doit rien écrire')
+    })
+  })
+
+  test('un pro ne lit pas la télémétrie, pas même la sienne', async () => {
+    // Elle sert au réglage du produit, pas au produit. Rien dans l'app pro ne
+    // la lit, donc rien n'a besoin d'y accéder avec les droits d'un pro.
+    await asPro(db, ALICE, async () => {
+      const r = await tenter(db, 'select * from evenements')
+      assert.equal(r.rows?.length ?? 0, 0)
+    })
+  })
+
+  test('UN ÉVÉNEMENT VISE UN PRO OU UNE SESSION, jamais les deux', async () => {
+    // Les mélanger rendrait une visite anonyme rattachable à un compte, ce qui
+    // est exactement ce que le cadrage RGPD interdit.
+    await asService(db, async () => {
+      const deux = await tenter(
+        db,
+        `insert into evenements (kind, pro_id, session) values ('usage_app', $1, 'sess')`,
+        [ALICE],
+      )
+      assert.equal(deux.ok, false)
+      const aucun = await tenter(db, `insert into evenements (kind) values ('usage_app')`)
+      assert.equal(aucun.ok, false)
+    })
+  })
+
+  test('la purge à douze mois efface le vieux et garde le récent', async () => {
+    await asService(db, async () => {
+      await db.query(
+        `insert into evenements (kind, pro_id, created_at)
+         values ('usage_app', $1, now() - interval '13 months'),
+                ('usage_app', $1, now() - interval '1 month')`,
+        [ALICE],
+      )
+      const { rows } = await db.query('select purger_evenements() as n')
+      assert.equal(rows[0].n, 1, 'seul l’événement de treize mois part')
+      const { rows: reste } = await db.query('select count(*)::int as n from evenements')
+      assert.ok(reste[0].n >= 1, 'le récent est toujours là')
+    })
+  })
+
+  test('la synthèse hebdomadaire agrège, et ne donne pas l’événement isolé', async () => {
+    // À cinq testeuses, ces données éclairent des comportements individuels,
+    // elles ne prouvent aucune tendance. La vue ne donne d'ailleurs pas les
+    // moyens de descendre à l'événement.
+    await asService(db, async () => {
+      const { rows } = await db.query('select * from synthese_hebdo')
+      assert.ok(rows.every((r) => 'semaine' in r && 'volume' in r))
+      assert.equal(
+        rows.some((r) => 'details' in r || 'id' in r),
+        false,
+        'la vue ne doit exposer ni le détail ni l’identifiant d’un événement',
+      )
     })
   })
 })

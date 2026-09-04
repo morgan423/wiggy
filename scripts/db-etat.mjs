@@ -67,13 +67,34 @@ function lecteur(valeurs) {
   return {
     url,
     async existe(sonde) {
-      const [table, colonne] = sonde.split('.')
-      const chemin = `${url}/rest/v1/${table}?select=${colonne ?? '*'}&limit=0`
+      /*
+        Deux formes de sonde, parce que deux formes de migration.
+
+        · `table` ou `table.colonne` : un OBJET de schéma. C'est le cas courant.
+        · `table?filtre` : une LIGNE. Une migration qui n'ajoute aucun objet —
+          une nouvelle version de texte contractuel, par exemple — n'a rien
+          d'autre à quoi se reconnaître. Sans cette seconde forme, elle
+          emprunterait la sonde d'une migration précédente et se déclarerait
+          appliquée alors qu'elle ne l'est pas : `db:etat` mentirait, ce qui est
+          pire qu'un `db:etat` absent.
+
+        La lecture reste un `GET` : toujours en lecture seule par construction.
+      */
+      const [avantFiltre, filtre] = sonde.split('?')
+      const [table, colonne] = avantFiltre.split('.')
+      const chemin = filtre
+        ? `${url}/rest/v1/${table}?${filtre}&select=*&limit=1`
+        : `${url}/rest/v1/${table}?select=${colonne ?? '*'}&limit=0`
       const r = await fetch(chemin, { headers: { apikey: cle, Authorization: `Bearer ${cle}` } })
       // 200 : la table et la colonne existent. 404 : pas de table.
       // 400 : la table existe mais pas la colonne. Toute autre réponse est une
       // panne, et une panne ne se lit pas comme une absence.
-      if (r.ok) return true
+      if (r.ok) {
+        // Une sonde de LIGNE répond 200 même quand la ligne manque : c'est le
+        // tableau vide qui dit l'absence, pas le code HTTP.
+        if (filtre) return ((await r.json()) ?? []).length > 0
+        return true
+      }
       if (r.status === 404 || r.status === 400) return false
       throw new Error(`${sonde} : HTTP ${String(r.status)}`)
     },

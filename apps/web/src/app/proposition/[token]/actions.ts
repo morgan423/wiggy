@@ -5,6 +5,7 @@ import { copy, remplir } from '@wiggy/copy'
 import { finRendezVous } from '@wiggy/core'
 import { supabaseAdmin, supabaseConfigured } from '@/lib/supabase/admin'
 import { journaliser } from '@/lib/notifications'
+import { mesurerPro } from '@/lib/telemetrie'
 import { erreur, ok, champ, type EtatForm } from '@/lib/forms'
 
 /**
@@ -33,7 +34,7 @@ export async function repondreProposition(
   const { data: proposition } = await admin
     .from('propositions')
     .select(
-      'id, status, appointment_id, pro_id, service_id, service_name, price_cents, duration_min',
+      'id, status, appointment_id, pro_id, service_id, service_name, price_cents, duration_min, created_at',
     )
     .eq('public_token', token)
     .maybeSingle()
@@ -90,6 +91,20 @@ export async function repondreProposition(
       { cliente },
     ),
     lien: `/app/agenda/${proposition.appointment_id}`,
+  })
+
+  /*
+    E3 ⑥ — l'issue d'une contre-proposition, et le délai de réponse.
+
+    C'est l'issue qui compte : une pro qui contre-propose souvent mais qu'on
+    refuse toujours ne gagne rien à contre-proposer. Aucune identité, aucun
+    créneau : une issue et des heures.
+  */
+  await mesurerPro('contre_proposition', proposition.pro_id, {
+    issue: accepte ? 'acceptee' : 'refusee',
+    delai_reponse_h: Math.round(
+      (Date.now() - new Date(proposition.created_at).getTime()) / 3_600_000,
+    ),
   })
 
   revalidatePath(`/proposition/${token}`)

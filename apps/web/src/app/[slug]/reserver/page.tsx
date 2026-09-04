@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
-import { formatEuros, formatDistance, ZONE } from '@wiggy/core'
+import { formatEuros, formatDistance, ZONE, repartirEnEtages } from '@wiggy/core'
 import { copy, remplir } from '@wiggy/copy'
 import { supabaseServer } from '@/lib/supabase/server'
 import { modeDuPro } from '@/lib/mode'
@@ -10,6 +10,7 @@ import { ChampGet } from '@/components/champ-get'
 import { supabaseConfigured } from '@/lib/supabase/admin'
 import { creneauxProposables } from '@/lib/creneaux'
 import { canalDeRappel } from '@/lib/rappel'
+import { mesurerVisite } from '@/lib/telemetrie'
 import { chercherHebergements } from '@/lib/lieux'
 import { FormCoordonnees } from './coordonnees-form'
 import { BlocAcceptation } from '@/components/acceptation'
@@ -62,6 +63,12 @@ const heureFr = new Intl.DateTimeFormat('fr-FR', {
   timeZone: ZONE,
   hour: '2-digit',
   minute: '2-digit',
+})
+/** « Mar 12 », le format des pastilles du premier étage (planche 15b). */
+const jourCourtFr = new Intl.DateTimeFormat('fr-FR', {
+  timeZone: ZONE,
+  weekday: 'short',
+  day: 'numeric',
 })
 
 export default async function Reserver({
@@ -270,6 +277,17 @@ async function EtapeCreneaux({
   recherche: Recherche
   lien: (ajouts: Recherche) => string
 }) {
+  /*
+    E3 ③ — l'entonnoir de réservation, étape par étape.
+
+    Sous identifiant de session ÉPHÉMÈRE, jamais rattaché à un compte ni à une
+    identité : il ne relie que les étapes d'une même visite, ce qui est
+    exactement ce que l'entonnoir demande, et rien de plus. On mesure l'ARRIVÉE
+    sur l'étape ; l'abandon se déduit de l'absence de l'étape suivante, ce qui
+    évite d'avoir à guetter un départ qu'on ne peut de toute façon pas observer.
+  */
+  await mesurerVisite('tunnel_etape', { etape: 'creneaux' })
+
   const resultat = await creneauxProposables({
     proId,
     serviceId: prestation.id,
@@ -281,6 +299,10 @@ async function EtapeCreneaux({
   // Adresse non reconnue : on propose une correction plutôt qu'un mur. Une
   // cliente qui a mal tapé sa rue ne doit pas abandonner ici.
   if (resultat.statut === 'adresse-a-preciser') {
+    // L'abandon à l'étape ADRESSE est la question ③ nommée par la roadmap :
+    // c'est là que le tunnel perd le plus, et on veut savoir si c'est le
+    // géocodage qui décroche.
+    await mesurerVisite('tunnel_etape', { etape: 'adresse', issue: 'non_reconnue' })
     return (
       <>
         <h1 className="display mt-6 tracking-tight">{C.$aEcrire.adresseIntrouvable}</h1>
@@ -377,27 +399,110 @@ async function EtapeCreneaux({
       ) : null}
       {resultat.horsZone ? <BandeauSousReserve /> : null}
 
-      <div className="mt-8 space-y-8">
-        {resultat.jours.map((jour) => (
-          <section key={jour.jour.toISOString()}>
-            <h2 className="text-sm font-bold tracking-widest text-texte-secondaire uppercase">
-              {jourFr.format(jour.jour)}
-            </h2>
-            <ul className="mt-3 flex flex-wrap gap-2">
-              {jour.creneaux.map((creneau) => (
-                <li key={creneau.debut.toISOString()}>
-                  <Link
-                    href={lien({ c: creneau.debut.toISOString() })}
-                    className="tactile rounded-pilule border-2 border-trait-discret px-5 font-semibold hover:border-prune"
-                  >
-                    {heureFr.format(creneau.debut)}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </section>
-        ))}
-      </div>
+      <DeuxEtages jours={resultat.jours} prenom={prenom} lien={lien} />
+    </>
+  )
+}
+
+/**
+ * A12 — l'affichage à deux étages. Planche 15b, écran « 3 · CRÉNEAUX ».
+ *
+ * ⚠️ **LA RÈGLE D'OR : aucun créneau ne disparaît.** Le second étage contient
+ * TOUT le faisable, en ordre chronologique, et il est à un clic. Ce composant
+ * change la mise en avant, jamais le périmètre de ce qui est réservable : une
+ * cliente qui n'est libre que mardi à midi réserve mardi à midi, sans friction
+ * et sans avertissement culpabilisant.
+ *
+ * **Le premier étage est une liste PLATE, toutes journées confondues** — la
+ * planche montre bien « Mar 12 · 14:30 » et « Jeu 14 · 10:00 » côte à côte.
+ * C'est ce qui en fait une recommandation et non un agenda : on répond à
+ * « quand passe-t-elle par chez moi ? », pas à « que reste-t-il mardi ? ».
+ *
+ * `<details>` plutôt qu'un état React : le second étage s'ouvre **sans
+ * JavaScript**, reste accessible au clavier et aux lecteurs d'écran, et l'écran
+ * demeure un composant serveur. Une cliente sur un réseau qui traîne doit
+ * pouvoir dérouler la liste avant que le moindre script soit arrivé.
+ */
+function DeuxEtages({
+  jours,
+  prenom,
+  lien,
+}: {
+  jours: { jour: Date; creneaux: { debut: Date; score: number }[] }[]
+  prenom: string
+  lien: (ajouts: Recherche) => string
+}) {
+  const tous = jours.flatMap((j) => j.creneaux)
+  const { recommandes } = repartirEnEtages(tous)
+  const misEnAvant = new Set(recommandes.map((c) => c.debut.getTime()))
+
+  return (
+    <>
+      {recommandes.length > 0 ? (
+        <section className="mt-8">
+          <ul className="flex flex-wrap gap-2">
+            {recommandes.map((creneau) => (
+              <li key={creneau.debut.toISOString()}>
+                <Link
+                  href={lien({ c: creneau.debut.toISOString() })}
+                  className="tactile rounded-pilule bg-surface px-4 text-[13px] font-semibold shadow-carte hover:text-action"
+                >
+                  {jourCourtFr.format(creneau.debut)} · {heureFr.format(creneau.debut)}
+                </Link>
+              </li>
+            ))}
+          </ul>
+          <p className="mt-3 text-[12.5px] text-texte-attenue">
+            {remplir(C.$aEcrire.creneauxProchesLegende, { pro: prenom })}
+          </p>
+        </section>
+      ) : null}
+
+      {/*
+        Ouvert d'office quand rien ne se distingue : afficher « Aucun ne
+        convient ? » au-dessus d'une liste fermée qui est la SEULE liste serait
+        une porte close devant une pièce vide.
+      */}
+      <details className="group mt-8" open={recommandes.length === 0}>
+        {/*
+          ⚠️ Pas de `tactile` sur le `summary` : cette classe le rendrait
+          `inline-flex`, et la question passerait À CÔTÉ du bouton au lieu de
+          se poser au-dessus. La planche les empile. La zone de 44 px vit sur le
+          bouton, qui est ce que le doigt vise.
+        */}
+        <summary className="cursor-pointer list-none border-t border-trait-discret pt-4 [&::-webkit-details-marker]:hidden">
+          <span className="block text-[12px] font-bold">{C.$aEcrire.creneauxAucunNeConvient}</span>
+          <span className="tactile mt-2 w-full rounded-pilule border-[1.5px] border-trait-discret bg-surface px-4 text-center text-[12.5px] font-bold group-open:hidden">
+            {C.$aEcrire.creneauxToutVoir}
+          </span>
+        </summary>
+
+        <div className="mt-4 space-y-8">
+          {jours.map((jour) => (
+            <section key={jour.jour.toISOString()}>
+              <h2 className="text-sm font-bold tracking-widest text-texte-secondaire uppercase">
+                {jourFr.format(jour.jour)}
+              </h2>
+              <ul className="mt-3 flex flex-wrap gap-2">
+                {jour.creneaux.map((creneau) => (
+                  <li key={creneau.debut.toISOString()}>
+                    <Link
+                      href={lien({ c: creneau.debut.toISOString() })}
+                      className={`tactile rounded-pilule border-2 px-5 font-semibold ${
+                        misEnAvant.has(creneau.debut.getTime())
+                          ? 'border-action/40'
+                          : 'border-trait-discret hover:border-prune'
+                      }`}
+                    >
+                      {heureFr.format(creneau.debut)}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          ))}
+        </div>
+      </details>
     </>
   )
 }

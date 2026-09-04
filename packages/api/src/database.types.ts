@@ -11,6 +11,7 @@ export type AcceptancePoint = 'inscription_pro' | 'reservation_cliente' | 'activ
 export type AppointmentSource = 'online' | 'manual'
 export type AppointmentStatus = 'pending' | 'conditional' | 'confirmed' | 'in_progress' | 'done' | 'cancelled'
 export type BookingConfirmationMode = 'auto' | 'manual'
+export type EvenementKind = 'creneau_choisi' | 'blocage_manuel' | 'tunnel_etape' | 'rdv_cree' | 'premiere_reservation' | 'contre_proposition' | 'sms_envoye' | 'usage_app'
 export type NotificationKind = 'reponse_proposition' | 'annulation' | 'acompte_recu' | 'avis_recu' | 'demande_traitee' | 'nouveau_rdv' | 'demande_a_valider'
 export type PaymentMode = 'off' | 'client_choice' | 'required'
 export type PropositionKind = 'contre_proposition' | 'forfait' | 'report'
@@ -421,6 +422,33 @@ export type Database = {
         pro_id?: string
         from_km?: number
         fee_cents?: number
+        }
+        Relationships: []
+      }
+      evenements: {
+        Row: {
+        id: number
+        kind: EvenementKind
+        pro_id: string | null
+        session: string | null
+        details: unknown
+        created_at: string
+        }
+        Insert: {
+        id?: number
+        kind: EvenementKind
+        pro_id?: string | null
+        session?: string | null
+        details?: unknown
+        created_at?: string
+        }
+        Update: {
+        id?: number
+        kind?: EvenementKind
+        pro_id?: string | null
+        session?: string | null
+        details?: unknown
+        created_at?: string
         }
         Relationships: []
       }
@@ -997,6 +1025,27 @@ export type Database = {
         }
         Relationships: []
       }
+      synthese_hebdo: {
+        Row: {
+        semaine: string | null
+        pro_id: string | null
+        kind: EvenementKind | null
+        volume: number | null
+        }
+        Insert: {
+        semaine?: string | null
+        pro_id?: string | null
+        kind?: EvenementKind | null
+        volume?: number | null
+        }
+        Update: {
+        semaine?: string | null
+        pro_id?: string | null
+        kind?: EvenementKind | null
+        volume?: number | null
+        }
+        Relationships: []
+      }
       time_off: {
         Row: {
         id: string
@@ -1066,6 +1115,7 @@ export type Database = {
       appointment_source: AppointmentSource
       appointment_status: AppointmentStatus
       booking_confirmation_mode: BookingConfirmationMode
+      evenement_kind: EvenementKind
       notification_kind: NotificationKind
       payment_mode: PaymentMode
       proposition_kind: PropositionKind
