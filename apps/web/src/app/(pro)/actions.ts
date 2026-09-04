@@ -5,6 +5,7 @@ import { z } from 'zod'
 import { copy } from '@wiggy/copy'
 import { supabaseServer } from '@/lib/supabase/server'
 import { champ } from '@/lib/forms'
+import { aFaireAccepter, verifierEtEnregistrer } from '@/lib/legal'
 
 /**
  * Authentification du pro. Registre : tutoiement (S6).
@@ -57,6 +58,34 @@ export async function sInscrire(_precedent: EtatAuth, donnees: FormData): Promis
   })
   if (!saisie.success) return { statut: 'erreur', message: saisie.error.issues[0].message }
 
+  /*
+    G7 ① — les CGV et la confidentialité.
+
+    L'ORDRE COMPTE, et il n'est pas celui qu'on croit. On vérifie les cases
+    AVANT de créer le compte, et on enregistre la preuve APRÈS : il n'existe
+    pas d'identifiant à qui rattacher une acceptation tant que le compte
+    n'existe pas. Vérifier d'abord évite de créer un compte qu'il faudrait
+    ensuite refuser.
+
+    Le contrôle est refait ici et pas seulement à l'affichage : un formulaire
+    envoyé sans passer par nos écrans ne coche rien du tout, et c'est
+    exactement le cas qu'il faut arrêter.
+  */
+  const aAccepter = await aFaireAccepter('inscription_pro')
+  const manquant = aAccepter.find(
+    ({ document }) =>
+      document === null || donnees.get(`accepte:${document.slug}:${document.version}`) === null,
+  )
+  if (manquant) {
+    return {
+      statut: 'erreur',
+      message:
+        aAccepter.length > 1
+          ? 'Il faut accepter les conditions et la politique de confidentialité pour continuer.'
+          : 'Il faut accepter les conditions pour continuer.',
+    }
+  }
+
   const supabase = await supabaseServer()
   const { data, error } = await supabase.auth.signUp({
     email: saisie.data.email,
@@ -67,6 +96,26 @@ export async function sInscrire(_precedent: EtatAuth, donnees: FormData): Promis
   if (error) {
     console.error('inscription_failed', error.code)
     return { statut: 'erreur', message: 'Impossible de créer le compte pour le moment.' }
+  }
+
+  /*
+    La preuve, maintenant que le compte existe.
+
+    Elle vise `auth.users` et non `pros`, dont la fiche n'est créée qu'au
+    premier accès authentifié : une acceptation qui attendrait la fiche serait
+    une acceptation qu'on n'a pas au moment où elle est donnée.
+
+    ⚠️ On n'envoie PAS d'horodatage : le déclencheur de 0021 impose celui du
+    serveur. C'est la base qui tient la règle, pas ce fichier.
+  */
+  if (data.user) {
+    const trace = await verifierEtEnregistrer('inscription_pro', donnees, { userId: data.user.id })
+    if (!trace.ok) {
+      // Le compte existe déjà à ce stade. On le dit plutôt que de laisser
+      // croire à un échec total : la pro se connectera, et l'acceptation lui
+      // sera redemandée puisqu'elle n'est pas enregistrée.
+      console.error('inscription_sans_preuve', data.user.id)
+    }
   }
 
   // Sans session, la confirmation d'e-mail est activée sur le projet : la

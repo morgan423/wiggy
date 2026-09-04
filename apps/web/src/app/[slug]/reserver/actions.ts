@@ -8,6 +8,7 @@ import { quotaDisponible } from '@/lib/quota'
 import { creneauxProposables } from '@/lib/creneaux'
 import { rattacherPhotos } from '@/lib/photos'
 import { champ } from '@/lib/forms'
+import { aFaireAccepter, verifierEtEnregistrer } from '@/lib/legal'
 
 /**
  * A3 : création du rendez-vous demandé par la cliente.
@@ -166,6 +167,22 @@ export async function reserver(
   const statut = horsZone ? 'conditional' : manuel ? 'pending' : 'confirmed'
   const enAttente = statut !== 'confirmed'
 
+  /*
+    G7 ② — les CGU et le consentement SMS.
+
+    Contrôlés AVANT d'écrire quoi que ce soit : une fiche cliente créée puis
+    abandonnée parce que la case manquait laisserait une donnée personnelle
+    collectée sans base légale, ce qui est précisément l'inverse du but.
+  */
+  const aAccepter = await aFaireAccepter('reservation_cliente')
+  const casesManquantes = aAccepter.some(
+    ({ document }) =>
+      document === null || donnees.get(`accepte:${document.slug}:${document.version}`) === null,
+  )
+  if (casesManquantes) {
+    return refus(donnees, 'Merci d’accepter les conditions pour confirmer votre rendez-vous.')
+  }
+
   const { data: cliente, error: erreurCliente } = await admin
     .from('clients')
     .insert({ pro_id: d.proId, first_name: d.prenom, phone: d.telephone, email: d.email })
@@ -175,6 +192,17 @@ export async function reserver(
     console.error('reservation_cliente_failed', erreurCliente.code)
     return refus(donnees, 'Nous n’avons pas pu enregistrer votre demande.')
   }
+
+  /*
+    La preuve, rattachée à la fiche cliente : une visiteuse n'a pas de compte,
+    c'est sa fiche qui l'identifie. Chaque réservation redemande l'accord, et
+    c'est la bonne lecture : c'est un contrat par rendez-vous, pas un
+    abonnement.
+  */
+  const trace = await verifierEtEnregistrer('reservation_cliente', donnees, {
+    clientId: cliente.id,
+  })
+  if (!trace.ok) return refus(donnees, trace.message)
 
   const { data: rdv, error } = await admin
     .from('appointments')

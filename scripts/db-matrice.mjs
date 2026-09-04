@@ -36,6 +36,14 @@ const { rows: grants } = await db.query(`
  * politique n'a rien à faire là.
  */
 const POURQUOI = {
+  legal_documents_lecture:
+    'G7 : les textes contractuels. Une cliente doit pouvoir LIRE les CGU et le consentement SMS ' +
+    "AVANT de cocher, et elle n'a pas de compte : un consentement qu'on ne peut pas lire sans " +
+    "s'engager n'est pas un consentement. Ce sont par ailleurs les seules données du produit " +
+    'destinées à être publiques par nature : un contrat d’adhésion opposable qu’on garderait ' +
+    'secret serait inopposable. Aucune donnée personnelle n’y figure : la table ne contient que ' +
+    'des textes, leur version et leur date d’entrée en vigueur. Les PREUVES d’acceptation, elles, ' +
+    'sont dans `acceptances`, fermée à `anon` et lisible par chaque pro pour ses seules lignes.',
   pro_photos_publiques:
     'Les réalisations sont des photos de TRAVAUX que la pro choisit de montrer (A1, planche 15a) : ' +
     "une coiffeuse se choisit d'abord sur ce qu'elle sait faire, et une page sans réalisation ne " +

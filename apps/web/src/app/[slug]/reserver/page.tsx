@@ -12,6 +12,7 @@ import { creneauxProposables } from '@/lib/creneaux'
 import { canalDeRappel } from '@/lib/rappel'
 import { chercherHebergements } from '@/lib/lieux'
 import { FormCoordonnees } from './coordonnees-form'
+import { BlocAcceptation } from '@/components/acceptation'
 import { FormPhotos } from './photos-form'
 
 /**
@@ -235,6 +236,7 @@ export default async function Reserver({
               sejourDu={q.du ?? ''}
               sejourAu={q.au ?? ''}
               prenomPro={prenom}
+              acceptation={<BlocAcceptation point="reservation_cliente" />}
             />
           </div>
         </>

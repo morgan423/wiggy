@@ -4,7 +4,7 @@ import { useActionState } from 'react'
 import { sInscrire, type EtatAuth } from '../actions'
 import { Champ, Erreur, BoutonPrincipal } from '@/components/champs'
 
-export function FormInscription() {
+export function FormInscription({ acceptation }: { acceptation: React.ReactNode }) {
   const [etat, action, enCours] = useActionState<EtatAuth, FormData>(sInscrire, { statut: 'vide' })
 
   if (etat.statut === 'verifie_tes_mails') {
@@ -31,6 +31,10 @@ export function FormInscription() {
         autoComplete="new-password"
         aide="Au moins 10 caractères."
       />
+      {/* G7 ① — les CGV et la confidentialité, cases jamais pré-cochées. Le
+          bloc est rendu par le serveur et passé ici : il connaît la version en
+          vigueur, que ce formulaire n'a pas à savoir lire. */}
+      {acceptation}
       <Erreur message={etat.statut === 'erreur' ? etat.message : undefined} />
       <BoutonPrincipal enCours={enCours}>Créer mon compte</BoutonPrincipal>
     </form>

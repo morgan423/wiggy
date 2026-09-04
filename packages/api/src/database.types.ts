@@ -7,6 +7,7 @@
  * compilation plutôt qu'en `undefined` silencieux à l'exécution.
  */
 
+export type AcceptancePoint = 'inscription_pro' | 'reservation_cliente' | 'activation_paiement' | 'activation_parrainage'
 export type AppointmentSource = 'online' | 'manual'
 export type AppointmentStatus = 'pending' | 'conditional' | 'confirmed' | 'in_progress' | 'done' | 'cancelled'
 export type BookingConfirmationMode = 'auto' | 'manual'
@@ -21,6 +22,39 @@ export type Tier = 'tier_1' | 'tier_2' | 'tier_3'
 export type Database = {
   public: {
     Tables: {
+      acceptances: {
+        Row: {
+        id: string
+        point: AcceptancePoint
+        user_id: string | null
+        client_id: string | null
+        doc_slug: string
+        doc_version: string
+        accepted_at: string
+        created_at: string
+        }
+        Insert: {
+        id?: string
+        point: AcceptancePoint
+        user_id?: string | null
+        client_id?: string | null
+        doc_slug: string
+        doc_version: string
+        accepted_at?: string
+        created_at?: string
+        }
+        Update: {
+        id?: string
+        point?: AcceptancePoint
+        user_id?: string | null
+        client_id?: string | null
+        doc_slug?: string
+        doc_version?: string
+        accepted_at?: string
+        created_at?: string
+        }
+        Relationships: []
+      }
       appointment_photos: {
         Row: {
         id: string
@@ -435,6 +469,33 @@ export type Database = {
         pro_id?: string
         jour?: string
         lancee_at?: string
+        }
+        Relationships: []
+      }
+      legal_documents: {
+        Row: {
+        slug: string
+        version: string
+        effective_on: string
+        titre: string
+        corps: string
+        created_at: string
+        }
+        Insert: {
+        slug: string
+        version: string
+        effective_on: string
+        titre: string
+        corps: string
+        created_at?: string
+        }
+        Update: {
+        slug?: string
+        version?: string
+        effective_on?: string
+        titre?: string
+        corps?: string
+        created_at?: string
         }
         Relationships: []
       }
@@ -938,6 +999,7 @@ export type Database = {
       }
     }
     Enums: {
+      acceptance_point: AcceptancePoint
       appointment_source: AppointmentSource
       appointment_status: AppointmentStatus
       booking_confirmation_mode: BookingConfirmationMode

@@ -402,3 +402,103 @@ describe('D9 / A8 — authentification et forfait de déplacement', () => {
     })
   })
 })
+
+describe('G7 — l’acceptation contractuelle tracée', () => {
+  test('L’HORODATAGE EST CELUI DU SERVEUR, même quand le client en envoie un', async () => {
+    // La règle la plus importante de G7, et la seule qui ne peut PAS reposer
+    // sur la discipline du code applicatif : un `default now()` se contourne
+    // en envoyant la colonne. Le déclencheur, lui, écrase.
+    await asService(db, async () => {
+      const { rows } = await db.query(
+        `insert into acceptances (point, user_id, doc_slug, doc_version, accepted_at)
+         values ('inscription_pro', $1, 'cgv', '0.1-beta', timestamptz '1999-01-01 00:00:00+00')
+         returning accepted_at`,
+        [ALICE],
+      )
+      const ecrit = new Date(rows[0].accepted_at).getFullYear()
+      assert.notEqual(ecrit, 1999, 'l’horloge du client ne doit JAMAIS dater une preuve')
+      assert.ok(Math.abs(Date.now() - new Date(rows[0].accepted_at)) < 60_000)
+    })
+  })
+
+  test('une preuve ne se modifie ni ne s’efface, MÊME par le serveur', async () => {
+    // Éprouvé au rôle serveur, celui qui contourne la RLS et par lequel nous
+    // écrivons réellement. Si c'était la RLS qui tenait la règle, ce test
+    // passerait ici en ne protégeant rien là où ça compte.
+    await asService(db, async () => {
+      const modif = await tenter(
+        db,
+        `update acceptances set doc_version = '9.9' where user_id = $1`,
+        [ALICE],
+      )
+      assert.equal(modif.ok, false, 'une acceptation ne se corrige pas')
+      assert.match(modif.message, /preuve/i)
+      const suppr = await tenter(db, `delete from acceptances where user_id = $1`, [ALICE])
+      assert.equal(suppr.ok, false, 'une acceptation ne s’efface pas')
+    })
+  })
+
+  test('une version acceptée ne peut plus être supprimée du registre', async () => {
+    // Sans cette clé étrangère, effacer une version rendrait illisible ce qui
+    // a été accepté : la preuve ne prouverait plus rien.
+    await asService(db, async () => {
+      const r = await tenter(
+        db,
+        `delete from legal_documents where slug = 'cgv' and version = '0.1-beta'`,
+      )
+      assert.equal(r.ok, false)
+    })
+  })
+
+  test('une pro relit ses acceptations, jamais celles d’une autre', async () => {
+    await asPro(db, ALICE, async () => {
+      const { rows } = await db.query('select * from acceptances')
+      assert.ok(rows.length >= 1, 'Alice voit les siennes')
+    })
+    await asPro(db, BRUNO, async () => {
+      const { rows } = await db.query('select * from acceptances')
+      assert.equal(rows.length, 0, 'Bruno ne voit rien d’Alice')
+    })
+  })
+
+  test('les textes sont lisibles SANS COMPTE : on lit avant d’accepter', async () => {
+    await asAnon(db, async () => {
+      const { rows } = await db.query(`select slug from legal_documents where slug = 'cgu'`)
+      assert.equal(rows.length, 1)
+    })
+  })
+
+  test('une visiteuse ne peut ni écrire une preuve ni réécrire un texte', async () => {
+    await asAnon(db, async () => {
+      const preuve = await tenter(
+        db,
+        `insert into acceptances (point, client_id, doc_slug, doc_version)
+         values ('reservation_cliente', gen_random_uuid(), 'cgu', '0.1-beta')`,
+      )
+      assert.equal(preuve.ok, false)
+      const texte = await tenter(
+        db,
+        `update legal_documents set corps = 'ce que je veux' where slug = 'cgv'`,
+      )
+      assert.equal(texte.ok, false)
+    })
+  })
+
+  test('une acceptation vise un pro OU une cliente, jamais les deux ni aucun', async () => {
+    await asService(db, async () => {
+      const deux = await tenter(
+        db,
+        `insert into acceptances (point, user_id, client_id, doc_slug, doc_version)
+         values ('inscription_pro', $1, gen_random_uuid(), 'cgv', '0.1-beta')`,
+        [ALICE],
+      )
+      assert.equal(deux.ok, false)
+      const aucun = await tenter(
+        db,
+        `insert into acceptances (point, doc_slug, doc_version)
+         values ('inscription_pro', 'cgv', '0.1-beta')`,
+      )
+      assert.equal(aucun.ok, false)
+    })
+  })
+})

@@ -3,6 +3,7 @@ import type { Metadata } from 'next'
 import { copy } from '@wiggy/copy'
 import { PanneauAuth, PiedAuth } from '@/components/composition'
 import { FormInscription } from './form'
+import { BlocAcceptation } from '@/components/acceptation'
 
 export const metadata: Metadata = { title: 'Créer mon compte', robots: { index: false } }
 
@@ -26,7 +27,7 @@ export default function Inscription() {
         </PiedAuth>
       }
     >
-      <FormInscription />
+      <FormInscription acceptation={<BlocAcceptation point="inscription_pro" />} />
     </PanneauAuth>
   )
 }

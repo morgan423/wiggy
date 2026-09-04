@@ -36,6 +36,7 @@ export function FormCoordonnees({
   sejourDu,
   sejourAu,
   prenomPro,
+  acceptation,
 }: {
   proId: string
   serviceId: string
@@ -50,6 +51,8 @@ export function FormCoordonnees({
   sejourDu: string
   sejourAu: string
   prenomPro: string
+  /** G7 ② — CGU et consentement SMS, rendus par le serveur. */
+  acceptation: React.ReactNode
 }) {
   const [etat, action, enCours] = useActionState<EtatReservation, FormData>(reserver, {
     statut: 'vide',
@@ -145,6 +148,10 @@ export function FormCoordonnees({
         defaultValue={repris('acces')}
         fautif={fautif === 'acces'}
       />
+
+      {/* G7 ② — CGU et consentement SMS, juste avant le bouton : on accepte
+          au moment de s'engager, pas trois écrans plus tôt. */}
+      {acceptation}
 
       <Erreur message={etat.statut === 'erreur' ? etat.message : undefined} />
       <BoutonPrincipal enCours={enCours}>

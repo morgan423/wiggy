@@ -281,6 +281,36 @@ async function jouer(base, page) {
 
   await page.locator('#prenom').fill('Cliente E2E')
   await page.locator('#telephone').fill('0612345678')
+
+  /*
+    G7 ② — les CGU et le consentement SMS.
+
+    On coche par le LIBELLÉ et non par un identifiant : c'est le geste de la
+    cliente, et si le libellé disparaissait de l'écran, ce test doit tomber. Un
+    sélecteur technique continuerait de cocher une case que plus personne ne
+    voit.
+
+    Et on vérifie d'abord qu'AUCUNE n'est cochée à l'ouverture. C'est la règle
+    non négociable de G7, et c'est le seul endroit du produit où un vrai
+    navigateur peut la constater sur l'écran réel.
+  */
+  const cases = page.locator('input[type="checkbox"][name^="accepte:"]')
+  const combien = await cases.count()
+  if (combien === 0) throw new Error('G7 : aucune case d’acceptation sur l’écran de coordonnées.')
+  for (let i = 0; i < combien; i += 1) {
+    if (await cases.nth(i).isChecked()) {
+      throw new Error('G7 : une case d’acceptation est PRÉ-COCHÉE. Jamais, sous aucun prétexte.')
+    }
+  }
+
+  // Le refus d'abord : sans les cases, la réservation ne doit pas passer.
+  await page.getByRole('button', { name: /Réserver ce créneau|Envoyer la demande/i }).click()
+  await page.waitForTimeout(1500)
+  if (page.url().includes('/confirmation') || (await page.locator('text=/confirmé/i').count()) > 0) {
+    throw new Error('G7 : la réservation est passée SANS acceptation. C’est le défaut à empêcher.')
+  }
+
+  for (let i = 0; i < combien; i += 1) await cases.nth(i).check()
   await page.getByRole('button', { name: /Réserver ce créneau|Envoyer la demande/i }).click()
   await voir('confirmation')
 

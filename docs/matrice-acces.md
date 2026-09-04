@@ -16,6 +16,7 @@ Trois rôles interviennent :
 
 | Table | Politique | Lignes concernées |
 |---|---|---|
+| `acceptances` | `acceptances_les_miennes` : pro authentifié peut **lire** | `(user_id = auth.uid())` |
 | `appointment_photos` | `photo_via_appt` : pro authentifié peut **lire/écrire/modifier/supprimer** | `(EXISTS ( SELECT 1 FROM appointments a WHERE ((a.id = appointment_photos.appointment_id) AND (a.pro_id = auth.uid()))))` |
 | `appointments` | `pro_owns` : pro authentifié peut **lire/écrire/modifier/supprimer** | `(pro_id = auth.uid())` |
 | `blocked_slots` | `pro_owns` : pro authentifié peut **lire/écrire/modifier/supprimer** | `(pro_id = auth.uid())` |
@@ -28,6 +29,7 @@ Trois rôles interviennent :
 | `distance_fees` | `pro_owns` : pro authentifié peut **lire/écrire/modifier/supprimer** | `(pro_id = auth.uid())` |
 | `geocodage_refus` | 🔒 RLS active, **aucune politique** | Verrouillée par conception : écriture via route serveur uniquement (service_role). |
 | `journees` | `journees_self` : pro authentifié peut **lire/écrire/modifier/supprimer** | `(pro_id = auth.uid())` |
+| `legal_documents` | `legal_documents_lecture` : visiteuse anonyme, pro authentifié peut **lire** | `true` |
 | `notifications` | `notifications_self` : pro authentifié peut **lire/écrire/modifier/supprimer** | `(pro_id = auth.uid())` |
 | `phone_verifications` | 🔒 RLS active, **aucune politique** | Verrouillée par conception : écriture via route serveur uniquement (service_role). |
 | `pro_photos` | `pro_photos_self` : pro authentifié peut **lire/écrire/modifier/supprimer** | `(pro_id = auth.uid())` |
@@ -58,6 +60,7 @@ base, quelle qu'en soit la provenance.
 | Table | Colonnes exposées |
 |---|---|
 | `communes` | `insee_code`, `lat`, `lng`, `name`, `population`, `postal_codes`, `search_key`, `updated_at` |
+| `legal_documents` | `corps`, `created_at`, `effective_on`, `slug`, `titre`, `version` |
 | `pro_photos` | `chemin`, `id`, `position`, `pro_id` |
 | `pro_settings` | `booking_confirmation_mode`, `default_deposit_percent`, `free_cancellation_hours`, `payment_mode`, `pro_id` |
 | `pros` | `bio`, `city`, `display_name`, `headline`, `id`, `instagram_url`, `mode`, `photo_url`, `pronoun`, `published`, `slug`, `years_experience` |
@@ -74,6 +77,10 @@ besoin avant de réserver ?**
 ### `communes_publiques` · `communes`
 
 Référentiel public de l'État (code INSEE, nom, codes postaux, centroïde), importé en base par la décision D6 pour ne plus dépendre d'un service tiers à l'exécution. Aucune donnée personnelle : ce sont des communes, déjà librement consultables sur geo.api.gouv.fr. La cliente en a besoin AVANT de réserver, pour savoir si elle est desservie, et la pro pour composer sa zone. L'écriture reste au service_role : aucune politique ne l'ouvre.
+
+### `legal_documents_lecture` · `legal_documents`
+
+G7 : les textes contractuels. Une cliente doit pouvoir LIRE les CGU et le consentement SMS AVANT de cocher, et elle n'a pas de compte : un consentement qu'on ne peut pas lire sans s'engager n'est pas un consentement. Ce sont par ailleurs les seules données du produit destinées à être publiques par nature : un contrat d’adhésion opposable qu’on garderait secret serait inopposable. Aucune donnée personnelle n’y figure : la table ne contient que des textes, leur version et leur date d’entrée en vigueur. Les PREUVES d’acceptation, elles, sont dans `acceptances`, fermée à `anon` et lisible par chaque pro pour ses seules lignes.
 
 ### `pro_photos_publiques` · `pro_photos`
 
