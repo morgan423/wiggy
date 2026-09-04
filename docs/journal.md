@@ -81,6 +81,31 @@ jamais pour ce qui est plus bas. La recette se serait faite sur une page vide. `
 neutralise donc l'effet le temps de la photo, comme il le fait déjà pour la barre de navigation, et
 `@media print` fait de même : **tout ce qui ne défile pas voit la page entière**.
 
+### Quatre bandes qui n'avaient rien reçu, et pourquoi
+
+**Quatre bandes sur quatorze avaient gardé l'ancienne grammaire** : fonctions, avis, FAQ et démo.
+Mes remplacements les avaient manquées **en silence** — je les avais écrits sans assertion, et une
+substitution qui ne trouve pas son motif ne dit rien. C'est exactement la faute que j'avais commise
+sur le journal deux étapes plus tôt. Toutes les substitutions de ce passage vérifient désormais
+leur motif avant d'écrire.
+
+### Les derniers écarts, relevés par Morgan sur le rendu
+
+- **Les deux phrases du héros** se ressemblaient sans avoir le même statut. L'une est une MENTION
+  attachée au bouton, centrée sous lui ; l'autre est une DÉCLARATION alignée sur la colonne. La
+  planche les sépare par la **graisse**, 600 contre normal.
+- **Le bloc « 5 à 10 h » n'avait pas la bonne hiérarchie, et elle n'est pas celle qu'on
+  devinerait** : le nombre en 120, puis sa légende en Fraunces **plus grosse que le titre** qui la
+  suit. C'est le chiffre qui porte la bande, le titre vient après.
+- **Les colonnes de gauche sont bornées** : 40 caractères dans le héros, 44 dans la tournée, 50
+  chez les Ambassadrices. Sans borne elles s'étiraient jusqu'à la carte de droite, et la ligne
+  devenait trop longue à lire. Ces largeurs sont dans la planche, je ne les avais pas relevées.
+- **La FAQ ne se replie plus.** J'en avais fait des `<details>` ; la planche montre les réponses en
+  clair, et une FAQ qui se replie oblige à chercher — la question qu'on se pose n'est jamais celle
+  qu'on ouvrirait en premier.
+- **Les trois avis ont la même hauteur**, signatures alignées en bas. Trois citations de longueurs
+  différentes donnaient trois cartes en escalier, et le regard lisait le désordre avant les mots.
+
 **Schéma :** aucune migration. 0027 reste EN ATTENTE.
 
 **Décisions :** l'apparition au défilement des pages publiques.

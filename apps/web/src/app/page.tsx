@@ -120,7 +120,7 @@ function Hero() {
           {/* H1 UNIQUE de la page, sur le claim. Toutes les autres sections
               ouvrent en h2 : c'est la seule hiérarchie que le SEO comprend. */}
           <h1 className="statement tracking-tight">{S.hero.claim}</h1>
-          <p className="mt-6 max-w-xl text-lg leading-[1.55] text-texte-secondaire">
+          <p className="max-w-[40ch] text-xl leading-[1.5] text-texte-secondaire">
             {S.hero.sousTitre}
           </p>
           {/*
@@ -147,7 +147,13 @@ function Hero() {
               {S.hero.demo}
             </a>
           </div>
-          <p className="text-[13px] font-semibold text-texte-attenue">{S.hero.inclusivite}</p>
+          {/*
+            Les deux phrases se ressemblaient sans avoir le même statut : la
+            première est une MENTION attachée au bouton, centrée sous lui ; la
+            seconde est une DÉCLARATION, alignée sur la colonne. La planche les
+            sépare par la graisse, 600 contre normal, et c'est ce qui manquait.
+          */}
+          <p className="text-[13px] font-semibold text-texte-secondaire">{S.hero.inclusivite}</p>
         </div>
         <div className="w-full shrink-0 md:w-[320px]">
           <VignetteTournee />
@@ -263,14 +269,21 @@ function Tournee() {
         une carte de 300 px, pas une demi-grille.
       */}
       <div className={`${DEDANS} flex flex-col items-center gap-14 md:flex-row`}>
-        <div className="flex flex-1 flex-col gap-4 md:flex-[1.4]">
-          <p className="flex flex-wrap items-baseline gap-3">
-            <span className="chiffre-heros text-celebration">{S.probleme.chiffre}</span>
-            <span className="text-[15px] font-semibold">{S.probleme.chiffreLegende}</span>
+        {/*
+          La hiérarchie de la planche, qui n'est pas celle qu'on devinerait : le
+          nombre en très grand, puis sa légende en Fraunces PLUS GROSSE que le
+          titre qui la suit. C'est le chiffre qui porte la bande, le titre vient
+          après. Et le texte est borné à 44 caractères : sans borne, la colonne
+          s'étirait jusqu'à la carte et la ligne devenait trop longue à lire.
+        */}
+        <div className="flex flex-1 flex-col gap-2 md:flex-[1.4]">
+          <p className="chiffre-heros text-celebration">{S.probleme.chiffre}</p>
+          <p className="titre">{S.probleme.chiffreLegende}</p>
+          <h2 className="titre mt-4">{S.tournee.titre}</h2>
+          <p className="max-w-[44ch] text-base leading-[1.6] text-texte-sur-plein-doux">
+            {S.tournee.texte}
           </p>
-          <h2 className="display tracking-tight">{S.tournee.titre}</h2>
-          <p className="text-[15px] leading-[1.6] text-texte-sur-plein-doux">{S.tournee.texte}</p>
-          <p className="text-[13px] font-bold">{S.tournee.mention}</p>
+          <p className="text-[13px] font-bold text-texte-sur-plein-doux">{S.tournee.mention}</p>
         </div>
         <div className="w-full shrink-0 md:w-[300px]">
           <Timeline />
@@ -332,10 +345,10 @@ function Timeline() {
 
 function Fonctions() {
   return (
-    <section data-bande="fonctions" data-apparait className="bg-fond py-20">
-      <div className="mx-auto max-w-[1180px] px-6">
+    <section data-bande="fonctions" data-apparait className={`bg-fond ${BANDE}`}>
+      <div className={`${DEDANS} flex flex-col gap-6`}>
         <h2 className="display tracking-tight">{S.fonctions.titre}</h2>
-        <div className="mt-10 grid gap-5 md:grid-cols-3">
+        <div className="grid gap-5 md:grid-cols-3">
           {S.fonctions.cartes.map((c) => (
             <article key={c.titre} className="rounded-carte bg-surface p-6">
               <h3 className="text-[15px] font-bold">{c.titre}</h3>
@@ -387,16 +400,21 @@ function Avis() {
   const temoignages = temoignagesDePlanche()
 
   return (
-    <section data-bande="avis" data-apparait className="bg-fond py-20">
-      <div className="mx-auto max-w-[1180px] px-6">
+    <section data-bande="avis" data-apparait className={`bg-fond ${BANDE}`}>
+      <div className={`${DEDANS} flex flex-col gap-5`}>
         <h2 className="display tracking-tight">{S.avis.titre}</h2>
-        <div className="mt-10 grid gap-5 md:grid-cols-3">
+        {/*
+          Hauteurs ALIGNÉES : trois citations de longueurs différentes donnaient
+          trois cartes en escalier, et le regard lisait le désordre avant les
+          mots. La grille étire les cartes, la signature se pose en bas.
+        */}
+        <div className="grid items-stretch gap-5 md:grid-cols-3">
           {temoignages.map((t) => (
-            <figure key={t.prenom} className="rounded-carte bg-surface p-6">
+            <figure key={t.prenom} className="flex flex-col rounded-carte bg-surface p-6">
               <blockquote className="text-[14px] leading-[1.6] font-semibold">
                 « {t.texte} »
               </blockquote>
-              <figcaption className="mt-5 flex items-center gap-3">
+              <figcaption className="mt-auto flex items-center gap-3 pt-5">
                 <span className="flex size-9 items-center justify-center rounded-pilule bg-celebration text-[14px] font-extrabold text-texte-sur-miel">
                   {t.prenom.slice(0, 1)}
                 </span>
@@ -473,16 +491,19 @@ function Ambassadrices({ restantes }: { restantes: number }) {
 function Faq() {
   return (
     <section data-bande="faq" data-apparait id="faq" className="bg-surface py-20">
-      <div className="mx-auto max-w-[1180px] px-6">
+      <div className={`${DEDANS} flex flex-col gap-2.5`}>
         <h2 className="display tracking-tight">{S.faq.titre}</h2>
-        <div className="mt-10 grid gap-3 md:grid-cols-2">
+        {/*
+          Les réponses sont TOUJOURS visibles. La planche les montre en clair, et
+          une FAQ qui se replie oblige à chercher : la question qu'on se pose
+          n'est jamais celle qu'on ouvrirait en premier.
+        */}
+        <div className="mt-3 grid items-start gap-2.5 md:grid-cols-2">
           {S.faq.questions.map((q) => (
-            <details key={q.q} className="group rounded-carte bg-surface px-5 py-4">
-              <summary className="tactile cursor-pointer list-none text-[14px] font-bold [&::-webkit-details-marker]:hidden">
-                {q.q}
-              </summary>
-              <p className="mt-2.5 text-[13.5px] leading-[1.6] text-texte-secondaire">{q.r}</p>
-            </details>
+            <div key={q.q} className="rounded-[16px] bg-fond px-4 py-3.5">
+              <p className="text-[13.5px] font-bold">{q.q}</p>
+              <p className="mt-1.5 text-[13px] leading-[1.5] text-texte-secondaire">{q.r}</p>
+            </div>
           ))}
         </div>
       </div>
@@ -499,12 +520,12 @@ function Final() {
         data-bande="demo"
         data-apparait
         id="demo"
-        className="bg-prune py-14 text-texte-sur-plein"
+        className={`bg-prune text-texte-sur-plein ${BANDE}`}
       >
-        <div className="mx-auto grid max-w-[1180px] items-center gap-10 px-6 md:grid-cols-2">
-          <div>
+        <div className={`${DEDANS} flex flex-col items-center gap-12 md:flex-row`}>
+          <div className="flex flex-1 flex-col gap-2.5">
             <h2 className="display tracking-tight">{S.final.demoTitre}</h2>
-            <p className="mt-3 text-[15px]">{S.final.demoTexte}</p>
+            <p className="text-[15px]">{S.final.demoTexte}</p>
           </div>
           {/*
             ⚠️ Formulaire de composition, sans action serveur : « Réserver une
