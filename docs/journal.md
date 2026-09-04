@@ -20,6 +20,67 @@ _Rien en attente : les trois questions ouvertes ont été tranchées le 03/09._
 
 ---
 
+## 2026-09-04 (11) Correctif : la carte mise en avant, et une planche qui a bougé
+
+**Fait :**
+
+### La carte de prix débordait par le BAS
+
+**Ce sont ses deux voisines qui descendent de 24 px, pas elle qui s'allonge.** Je les avais alignées
+par le haut, ce qui faisait _pendre_ la vedette sous les autres. Le geste est le même, le sens est
+inverse : **une offre qu'on met en avant monte.**
+
+En reprenant la carte, trois autres écarts sont apparus, tous dans le fichier :
+
+- elle est **plus large** (`flex: 1.25` contre `1`) : j'avais trois colonnes égales, ce qui gommait
+  la différence ;
+- son bouton est **prune**, pas miel ;
+- **le nom de l'offre est une pastille prune en capitales**, pas un titre en gras. C'est une
+  étiquette de gamme, et la planche la traite comme telle. Les cartes latérales sont en **crème**,
+  pas en surface.
+
+### Le héros, simplifié comme Morgan le demandait
+
+Il avait raison, et la planche révisée lui donne raison deux fois : **les deux boutons côte à côte,
+la mention en frère en dessous**, sur la largeur de la colonne. Ma grille alignait la mention sous
+le bouton primaire, ce qui était la planche d'avant et compliquait le repli pour rien. En frère,
+la mention n'appartient plus à la colonne d'un bouton : elle ne peut plus se glisser entre les deux
+quand la largeur manque, et la démo passe simplement dessous.
+
+### ⚠️ LA PLANCHE A CHANGÉ PENDANT QUE JE TRAVAILLAIS, et c'est le contrôle qui l'a dit
+
+`npm run planche:check` a refusé : **quinze bandes sur la planche, quatorze sur la page**. Le
+fichier était passé de 37 927 à 46 707 octets, modifié à 19:16.
+
+**« Fait pour tous les cheveux » a quitté le héros**, où elle était une mention de bas de bloc, pour
+devenir **une bande à elle seule** : un statement en Fraunces 54 avec WONK, borné à 21 caractères,
+« tous les cheveux » en framboise. C'est une promotion, pas un déplacement.
+
+**Sans ce contrôle, la révision serait passée inaperçue** jusqu'à ce que quelqu'un compare à l'œil,
+c'est-à-dire jusqu'au prochain reproche. C'est exactement ce pour quoi il a été écrit, et c'est la
+première fois qu'il attrape un mouvement venu de Design plutôt qu'une faute de ma part.
+
+**Schéma :** aucune migration. 0027 reste EN ATTENTE.
+
+**Décisions :** aucune.
+
+**Écarts au brief :** aucun. La coupure du texte d'inclusivité pour colorer trois mots est de la
+mise en forme : la chaîne du copy deck est intacte, et son test le vérifie.
+
+**Questions ouvertes :** aucune nouvelle.
+
+**À recetter par Morgan :**
+
+1. **Le bloc tarifs** : la carte Tournée **dépasse par le haut**, elle est plus large, son bouton
+   est prune, et les trois noms sont des pastilles en capitales.
+2. **La nouvelle bande** « Fait pour tous les cheveux » entre « Tout le métier » et « Trois
+   gestes », avec les trois mots en framboise.
+3. **Rétrécis la fenêtre** : la démo passe sous le bouton principal, la mention reste dessous.
+
+**Statut à reporter dans la roadmap :** rien à bouger.
+
+---
+
 ## 2026-09-04 (10) Correctif : le mot-symbole, et le SVG de marque tranché
 
 **Fait :**

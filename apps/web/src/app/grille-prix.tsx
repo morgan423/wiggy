@@ -45,8 +45,14 @@ export function GrillePrix() {
       <div className="mx-auto w-full max-w-[1200px]">
         <h2 className="display tracking-tight">{P.titre}</h2>
 
-        {/* ── 19a : la grille, à partir de md ── */}
-        <div className="mt-10 hidden gap-5 md:grid md:grid-cols-3 md:items-start">
+        {/*
+          ── 19a : la grille, à partir de md ──
+
+          Une RANGÉE et non trois colonnes égales : la planche donne `flex: 1.25`
+          à la carte mise en avant, qui est donc plus large que ses voisines.
+          Une grille à trois parts égales gommait cette différence.
+        */}
+        <div className="mt-10 hidden gap-5 md:flex md:items-start">
           {P.offres.map((offre) => (
             <CarteLarge key={offre.nom} offre={offre} vedette={offre.nom === tournee.nom} />
           ))}
@@ -77,54 +83,61 @@ export function GrillePrix() {
 
 type Offre = (typeof P.offres)[number]
 
-/** 19a : la carte de la grille large. La vedette est celle du centre. */
+/**
+ * 19a : la carte de la grille large.
+ *
+ * ⚠️ **La carte mise en avant DÉBORDE PAR LE HAUT.** Ce sont ses deux voisines
+ * qui descendent de 24 px, pas elle qui s'allonge vers le bas : je les avais
+ * alignées par le haut, ce qui faisait pendre la vedette sous les autres au
+ * lieu de la faire dépasser au-dessus. Le geste est le même, le sens est
+ * inverse — une offre qu'on met en avant monte.
+ *
+ * Elle est aussi **plus large** (`flex: 1.25`) et **plus ombrée**, et son bouton
+ * est **prune**, pas miel.
+ *
+ * Le nom de l'offre est une **pastille prune en capitales**, pas un titre en
+ * gras : c'est une étiquette de gamme, et la planche la traite comme telle.
+ */
 function CarteLarge({ offre, vedette }: { offre: Offre; vedette: boolean }) {
   return (
     <article
-      className={`rounded-bloc p-7 ${
+      className={`flex flex-col gap-2.5 ${
         vedette
-          ? 'bg-action text-texte-sur-plein shadow-flottante'
-          : 'bg-surface text-texte-principal'
+          ? 'flex-[1.25] rounded-[28px] bg-action px-6 py-7 text-texte-sur-plein shadow-flottante'
+          : 'mt-6 flex-1 rounded-[24px] bg-fond px-5 py-6 text-texte-principal'
       }`}
     >
       <header className="flex items-center justify-between gap-3">
-        <h3 className="text-[15px] font-extrabold">{offre.nom}</h3>
+        <span className="self-start rounded-pilule bg-prune px-3 py-[5px] text-[11px] font-extrabold tracking-[0.08em] text-fond uppercase">
+          {offre.nom}
+        </span>
         {vedette ? (
-          <span className="rounded-pilule bg-celebration px-2.5 py-1 text-[10.5px] font-extrabold text-texte-sur-miel">
+          <span className="rounded-pilule bg-celebration px-2.5 py-[5px] text-[11px] font-extrabold text-texte-sur-miel">
             {P.badge}
           </span>
         ) : null}
       </header>
-      <p className={`mt-1 text-[13px] ${vedette ? '' : 'text-texte-secondaire'}`}>
-        {offre.accroche}
-      </p>
-      <p className="mt-6 flex items-baseline gap-2">
+      <p className="text-[13px] font-extrabold">{offre.accroche}</p>
+      <p className="flex items-baseline gap-1.5">
         <span className="display tracking-tight">{offre.prix}</span>
-        <span className={`text-[12px] font-semibold ${vedette ? '' : 'text-texte-attenue'}`}>
+        <span className={`text-[12px] font-bold ${vedette ? '' : 'text-texte-attenue'}`}>
           {P.parMois}
         </span>
       </p>
-      {offre.entete ? (
-        <p className={`mt-6 text-[12.5px] font-bold ${vedette ? '' : 'text-texte-secondaire'}`}>
-          {offre.entete}
-        </p>
-      ) : null}
-      <ul className="mt-3 flex flex-col gap-2.5">
+      {offre.entete ? <p className="text-[13px] font-bold">{offre.entete}</p> : null}
+      <ul className="flex flex-col gap-1.5">
         {offre.lignes.map((l) => (
-          <li
-            key={l}
-            className={`text-[13px] leading-[1.5] ${vedette ? '' : 'text-texte-secondaire'}`}
-          >
+          <li key={l} className="text-[13px] leading-[1.4]">
             {l}
           </li>
         ))}
       </ul>
       <Link
         href="/inscription"
-        className={`tactile mt-7 w-full rounded-pilule text-center text-[14px] font-bold ${
+        className={`tactile mt-auto w-full rounded-pilule text-center text-[13px] font-bold ${
           vedette
-            ? 'bg-celebration text-texte-sur-miel'
-            : 'border-2 border-trait-discret text-texte-principal'
+            ? 'bg-prune text-[14px] text-texte-sur-plein'
+            : 'border-[1.5px] border-trait-discret bg-surface text-texte-principal'
         }`}
       >
         {offre.action}

@@ -43,6 +43,7 @@ const BANDES = [
   'probleme',
   'tournee',
   'fonctions',
+  'inclusivite',
   'etapes',
   'avis',
   'prix',

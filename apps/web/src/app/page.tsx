@@ -58,6 +58,7 @@ export default function Accueil() {
         <Probleme />
         <Tournee />
         <Fonctions />
+        <Inclusivite />
         <Etapes />
         <Avis />
         <GrillePrix />
@@ -129,42 +130,27 @@ function Hero() {
             un BOUTON bordé de la même taille, pas un lien souligné posé à côté.
           */}
           {/*
-            UNE grille plutôt qu'une rangée qui se replie.
-
-            En rangée, la mention voyageait avec le bouton auquel elle
-            appartient : dès que la largeur manquait, la colonne primaire passait
-            à la ligne et la mention se retrouvait AU-DESSUS du bouton de démo,
-            comme si elle le concernait.
-
-            La grille sépare les deux questions. En large, la planche : les deux
-            boutons côte à côte, la mention en dessous et centrée sur le premier.
-            En étroit, une seule colonne et l'ordre du document : action, démo,
-            puis la mention. Elle ne peut plus se glisser entre les deux.
+            Les deux boutons côte à côte, et la mention EN FRÈRE en dessous, sur
+            la largeur de la colonne. C'est ce que la planche révisée pose, et ça
+            règle le défaut de repli : la mention n'appartient plus à la colonne
+            d'un bouton, elle ne peut donc plus se glisser entre les deux quand
+            la largeur manque. La démo passe simplement dessous.
           */}
-          <div className="grid gap-x-3 gap-y-2 sm:grid-cols-[auto_auto] sm:justify-start">
+          <div className="flex flex-wrap items-center gap-3">
             <Link
               href="/inscription"
-              className="tactile rounded-pilule bg-action px-[34px] py-[18px] text-center text-[17px] font-bold text-texte-sur-plein hover:bg-action-survol sm:col-start-1 sm:row-start-1"
+              className="tactile rounded-pilule bg-action px-[34px] py-[18px] text-center text-[17px] font-bold text-texte-sur-plein hover:bg-action-survol"
             >
               {S.hero.action}
             </Link>
             <a
               href="#demo"
-              className="tactile rounded-pilule border border-trait-discret bg-surface px-[34px] py-[18px] text-center text-[17px] font-bold hover:border-prune sm:col-start-2 sm:row-start-1 sm:self-start"
+              className="tactile rounded-pilule border border-trait-discret bg-surface px-[34px] py-[18px] text-center text-[17px] font-bold hover:border-prune"
             >
               {S.hero.demo}
             </a>
-            <span className="text-[12.5px] text-texte-attenue sm:col-start-1 sm:row-start-2 sm:text-center">
-              {S.hero.rassurance}
-            </span>
           </div>
-          {/*
-            Les deux phrases se ressemblaient sans avoir le même statut : la
-            première est une MENTION attachée au bouton, centrée sous lui ; la
-            seconde est une DÉCLARATION, alignée sur la colonne. La planche les
-            sépare par la graisse, 600 contre normal, et c'est ce qui manquait.
-          */}
-          <p className="text-[13px] font-semibold text-texte-secondaire">{S.hero.inclusivite}</p>
+          <p className="text-[12.5px] text-texte-attenue">{S.hero.rassurance}</p>
         </div>
         <div className="w-full shrink-0 md:w-[320px]">
           <VignetteTournee />
@@ -367,6 +353,36 @@ function Fonctions() {
             </article>
           ))}
         </div>
+      </div>
+    </section>
+  )
+}
+
+/* ── 7. L'inclusivité, devenue une bande ──────────────────────────────── */
+
+/**
+ * Planche 19a **révisée le 04/09** : « Fait pour tous les cheveux » a quitté le
+ * héros, où elle était une mention de bas de bloc, pour devenir **un statement à
+ * elle seule** — Fraunces 54, WONK, bornée à 21 caractères, avec « tous les
+ * cheveux » en framboise.
+ *
+ * C'est `npm run planche:check` qui l'a signalée : il comptait quinze bandes sur
+ * la planche et quatorze sur la page. Sans lui, la révision serait passée
+ * inaperçue jusqu'à ce que quelqu'un compare à l'œil.
+ *
+ * La coupure du texte est de la MISE EN FORME, pas une réécriture : la chaîne du
+ * copy deck est intacte, on la scinde à l'affichage pour colorer trois mots.
+ */
+function Inclusivite() {
+  const [avant, apres] = S.hero.inclusivite.split('tous les cheveux')
+  return (
+    <section data-bande="inclusivite" data-apparait className="bg-fond px-14 pb-[72px]">
+      <div className={DEDANS}>
+        <p className="display max-w-[21ch] tracking-tight [font-variation-settings:var(--wonk)]">
+          {avant}
+          <span className="text-action">tous les cheveux</span>
+          {apres}
+        </p>
       </div>
     </section>
   )
