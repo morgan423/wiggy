@@ -453,7 +453,15 @@ async function executer() {
       // à sa place naturelle, en bas. La recette se fait sur ces images : une
       // barre en travers du contenu la rendrait illisible.
       await page.addStyleTag({
-        content: '[data-nav-fixe]{position:static !important;}',
+        content:
+          '[data-nav-fixe]{position:static !important;}' +
+          // L'apparition au défilement ne se déclenche que pour ce qui entre
+          // dans l'écran. Une capture de page entière ne défile pas : sans
+          // cette neutralisation, TOUT ce qui est sous la ligne de flottaison
+          // se photographie invisible, et la recette se ferait sur une page
+          // blanche. Constaté sur la première capture, pas anticipé.
+          '.avant-apparition,.apparait{opacity:1 !important;transform:none !important;' +
+          'transition:none !important;}',
       })
 
       const fichier = join(DOSSIER, `${vue.nom}.png`)

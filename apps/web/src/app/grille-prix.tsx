@@ -36,8 +36,13 @@ export function GrillePrix() {
     section se fondait dans le reste de la page et les cartes flottaient.
   */
   return (
-    <section data-bande="prix" id="tarif" className="bg-prune py-20 text-texte-sur-plein">
-      <div className="mx-auto max-w-[1180px] px-6">
+    <section
+      data-bande="prix"
+      data-apparait
+      id="tarif"
+      className="bg-prune px-14 py-16 text-texte-sur-plein"
+    >
+      <div className="mx-auto w-full max-w-[1200px]">
         <h2 className="display tracking-tight">{P.titre}</h2>
 
         {/* ── 19a : la grille, à partir de md ── */}

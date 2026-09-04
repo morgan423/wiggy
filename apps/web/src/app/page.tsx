@@ -4,9 +4,21 @@ import { copy, remplir } from '@wiggy/copy'
 import { placesAmbassadricesRestantes } from '@wiggy/core'
 import { sectionAvisAffichable, temoignagesDePlanche } from '@/lib/avis-placeholder'
 import { BalisageHome } from './balisage-home'
+import { Apparitions } from '@/components/apparitions'
 import { GrillePrix } from './grille-prix'
 
 const S = copy.siteAccueil
+
+/**
+ * Le gabarit d'une bande, relevé sur la planche 19a et non choisi.
+ *
+ * La planche fait 1280 avec 40 de marge extérieure, donc une page de **1200**,
+ * et chaque bande porte **64 px en haut et en bas, 56 px sur les côtés**. C'est
+ * une grammaire uniforme : je l'avais remplacée par un conteneur centré à 1180
+ * avec des marges au jugé, et chaque bande respirait un peu différemment.
+ */
+const BANDE = 'px-14 py-16'
+const DEDANS = 'mx-auto w-full max-w-[1200px]'
 
 /**
  * wiggy.fr — la home. Planche 19a (composition de référence, 1180), plus les
@@ -37,6 +49,7 @@ export default function Accueil() {
   return (
     <>
       <BalisageHome />
+      <Apparitions />
       <Entete />
 
       <main>
@@ -65,25 +78,33 @@ const LIEN_NAV = 'text-[13px] font-bold text-texte-secondaire hover:text-texte-p
 function Entete() {
   return (
     <header data-bande="entete" className="sticky top-0 z-40 bg-fond">
-      <div className="mx-auto flex max-w-[1180px] items-center justify-between px-6 py-4">
-        <span className="text-[17px] font-extrabold">Wiggy</span>
-        <nav className="hidden items-center gap-7 md:flex" aria-label="Sections">
-          <a href="#produit" className={LIEN_NAV}>
-            {S.nav.produit}
-          </a>
-          <a href="#tarif" className={LIEN_NAV}>
-            {S.nav.tarif}
-          </a>
-          <a href="#ambassadrices" className={LIEN_NAV}>
-            {S.nav.ambassadrices}
-          </a>
-        </nav>
-        <Link
-          href="/inscription"
-          className="tactile rounded-pilule bg-action px-5 text-[13px] font-bold text-texte-sur-plein hover:bg-action-survol"
-        >
-          {S.nav.essayer}
-        </Link>
+      {/*
+        La planche ne met que DEUX enfants dans cette barre : le mot-symbole, et
+        un groupe qui contient les liens ET le bouton. Avec `justify-between`,
+        ce groupe se ferre donc À DROITE. En avoir fait trois enfants poussait
+        les liens au centre, ce qui n'est ni la planche ni un usage.
+      */}
+      <div className={`${DEDANS} flex items-center justify-between px-14 py-[22px]`}>
+        <span className="titre">Wiggy</span>
+        <div className="flex items-center gap-7">
+          <nav className="hidden items-center gap-7 md:flex" aria-label="Sections">
+            <a href="#produit" className={LIEN_NAV}>
+              {S.nav.produit}
+            </a>
+            <a href="#tarif" className={LIEN_NAV}>
+              {S.nav.tarif}
+            </a>
+            <a href="#ambassadrices" className={LIEN_NAV}>
+              {S.nav.ambassadrices}
+            </a>
+          </nav>
+          <Link
+            href="/inscription"
+            className="tactile rounded-pilule bg-action px-[22px] text-[14px] font-bold text-texte-sur-plein hover:bg-action-survol"
+          >
+            {S.nav.essayer}
+          </Link>
+        </div>
       </div>
     </header>
   )
@@ -91,32 +112,46 @@ function Entete() {
 
 function Hero() {
   return (
-    <section data-bande="heros" className="bg-fond pb-16">
-      <div className="mx-auto grid max-w-[1180px] items-center gap-12 px-6 pt-10 md:grid-cols-[1.15fr_1fr] md:pt-16">
-        <div>
+    <section data-bande="heros" data-apparait className="bg-fond pb-16">
+      <div className={`${DEDANS} flex flex-col items-center gap-12 px-14 pt-14 pb-16 md:flex-row`}>
+        {/* `flex: 1.5` contre une carte FIXE de 320 px : la planche ne fait pas
+            une grille de fractions, elle pose une carte de largeur donnée. */}
+        <div className="flex flex-1 flex-col gap-[22px] md:flex-[1.5]">
           {/* H1 UNIQUE de la page, sur le claim. Toutes les autres sections
               ouvrent en h2 : c'est la seule hiérarchie que le SEO comprend. */}
           <h1 className="statement tracking-tight">{S.hero.claim}</h1>
           <p className="mt-6 max-w-xl text-lg leading-[1.55] text-texte-secondaire">
             {S.hero.sousTitre}
           </p>
-          <div className="mt-9 flex flex-wrap items-center gap-4">
-            <Link
-              href="/inscription"
-              className="tactile rounded-pilule bg-action px-8 text-lg font-bold text-texte-sur-plein hover:bg-action-survol"
+          {/*
+            La planche groupe l'action et sa phrase de rassurance dans UNE
+            colonne, la phrase centrée sous le bouton. Et « Voir une démo » est
+            un BOUTON bordé de la même taille, pas un lien souligné posé à côté.
+          */}
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="flex flex-col gap-1.5">
+              <Link
+                href="/inscription"
+                className="tactile rounded-pilule bg-action px-[34px] py-[18px] text-center text-[17px] font-bold text-texte-sur-plein hover:bg-action-survol"
+              >
+                {S.hero.action}
+              </Link>
+              <span className="text-center text-[12.5px] text-texte-attenue">
+                {S.hero.rassurance}
+              </span>
+            </span>
+            <a
+              href="#demo"
+              className="tactile self-start rounded-pilule border border-trait-discret bg-surface px-[34px] py-[18px] text-[17px] font-bold hover:border-prune"
             >
-              {S.hero.action}
-            </Link>
-            <a href="#demo" className="tactile text-[15px] font-bold underline">
               {S.hero.demo}
             </a>
           </div>
-          <p className="mt-4 text-[12.5px] text-texte-attenue">{S.hero.rassurance}</p>
-          <p className="mt-8 border-t border-trait-discret pt-6 text-[13px] font-semibold text-texte-secondaire">
-            {S.hero.inclusivite}
-          </p>
+          <p className="text-[13px] font-semibold text-texte-attenue">{S.hero.inclusivite}</p>
         </div>
-        <VignetteTournee />
+        <div className="w-full shrink-0 md:w-[320px]">
+          <VignetteTournee />
+        </div>
       </div>
     </section>
   )
@@ -157,11 +192,12 @@ function VignetteTournee() {
 /* ── 2. Le bandeau défilant ───────────────────────────────────────────── */
 
 function Bandeau() {
-  // Répété quatre fois comme la planche : un ruban qui ne se répète pas laisse
-  // un trou à droite sur les grands écrans.
-  const suite = [...S.bandeau, ...S.bandeau, ...S.bandeau, ...S.bandeau]
+  // Répété deux fois, puis dupliqué pour la boucle : de quoi couvrir un grand
+  // écran sans laisser de trou à droite, et pas plus. Quatre répétitions
+  // allongeaient le ruban sans rien ajouter, et l'obligeaient à courir.
+  const suite = [...S.bandeau, ...S.bandeau]
   return (
-    <div data-bande="bandeau" className="overflow-hidden bg-prune py-3.5 text-texte-sur-plein">
+    <div data-bande="bandeau" className="overflow-hidden bg-prune py-[18px] text-texte-sur-plein">
       {/*
         Le ruban défile (planche 19a) : `translateX` de 0 à -50 %, 26 s, linéaire,
         infini. Le contenu est DUPLIQUÉ, et c'est ce qui rend la boucle
@@ -169,11 +205,15 @@ function Bandeau() {
         `aria-hidden` sur la copie : un lecteur d'écran n'a pas à entendre deux
         fois la même phrase pour un effet visuel.
       */}
-      <p className="ruban-defilant text-[12.5px] font-bold whitespace-nowrap">
+      <p className="ruban-defilant text-[13.5px] font-bold whitespace-nowrap">
         {[false, true].map((copie) => (
-          <span key={String(copie)} className="flex shrink-0" aria-hidden={copie || undefined}>
+          <span
+            key={String(copie)}
+            className="flex shrink-0 gap-14"
+            aria-hidden={copie || undefined}
+          >
             {suite.map((mot, i) => (
-              <span key={i} className="flex shrink-0 items-center gap-4 pr-4">
+              <span key={i} className="flex shrink-0 items-center gap-14">
                 {mot}
                 <span aria-hidden className="text-celebration">
                   ·
@@ -191,8 +231,8 @@ function Bandeau() {
 
 function Probleme() {
   return (
-    <section data-bande="probleme" className="bg-surface py-20">
-      <div className="mx-auto max-w-[1180px] px-6">
+    <section data-bande="probleme" data-apparait className={`bg-surface ${BANDE}`}>
+      <div className={`${DEDANS} flex flex-col gap-7`}>
         <h2 className="display max-w-2xl tracking-tight">{S.probleme.titre}</h2>
         <div className="mt-10 grid gap-5 md:grid-cols-3">
           {S.probleme.cartes.map((c) => (
@@ -211,28 +251,30 @@ function Probleme() {
 
 function Tournee() {
   return (
-    <section data-bande="tournee" id="produit" className="bg-prune py-20 text-texte-sur-plein">
-      <div className="mx-auto max-w-[1180px] px-6">
-        {/*
-          Planche 19a : « 5 à 10 h » et « La tournée te rend tes soirées » sont
-          UN SEUL bloc prune, le chiffre en miel. En faire deux sections, dont
-          une sur crème, cassait le rythme de la page et privait le chiffre de
-          son fond.
-        */}
-        <p className="flex flex-wrap items-baseline gap-3 pb-12">
-          <span className="chiffre-heros text-celebration">{S.probleme.chiffre}</span>
-          <span className="text-[15px] font-semibold">{S.probleme.chiffreLegende}</span>
-        </p>
-      </div>
-      <div className="mx-auto grid max-w-[1180px] items-center gap-12 px-6 md:grid-cols-2">
-        <div>
-          <h2 className="display tracking-tight">{S.tournee.titre}</h2>
-          <p className="mt-5 text-[15px] leading-[1.6] text-texte-sur-plein-doux">
-            {S.tournee.texte}
+    <section
+      data-bande="tournee"
+      data-apparait
+      id="produit"
+      className={`bg-prune text-texte-sur-plein ${BANDE}`}
+    >
+      {/*
+        Planche 19a : UNE bande, DEUX colonnes. « 5 à 10 h » ouvre la colonne de
+        gauche, il n'est pas une ligne pleine largeur au-dessus. La timeline est
+        une carte de 300 px, pas une demi-grille.
+      */}
+      <div className={`${DEDANS} flex flex-col items-center gap-14 md:flex-row`}>
+        <div className="flex flex-1 flex-col gap-4 md:flex-[1.4]">
+          <p className="flex flex-wrap items-baseline gap-3">
+            <span className="chiffre-heros text-celebration">{S.probleme.chiffre}</span>
+            <span className="text-[15px] font-semibold">{S.probleme.chiffreLegende}</span>
           </p>
-          <p className="mt-6 text-[13px] font-bold">{S.tournee.mention}</p>
+          <h2 className="display tracking-tight">{S.tournee.titre}</h2>
+          <p className="text-[15px] leading-[1.6] text-texte-sur-plein-doux">{S.tournee.texte}</p>
+          <p className="text-[13px] font-bold">{S.tournee.mention}</p>
         </div>
-        <Timeline />
+        <div className="w-full shrink-0 md:w-[300px]">
+          <Timeline />
+        </div>
       </div>
     </section>
   )
@@ -246,45 +288,42 @@ function Tournee() {
  * n'est coupé, rien ne descend sous 11 px.
  */
 function Timeline() {
+  /*
+    Planche 19a, relue. Il n'y a **AUCUN RAIL** dans la timeline de bureau : je
+    l'avais importé de la planche mobile 19c, où le trajet se pose « à cheval
+    sur le rail » parce que la liste est verticale et serrée. En 1200, la
+    planche empile simplement des cartes et glisse entre elles une ligne de
+    texte « · · · 8 min de trajet ». Mon rail inventé passait sous ces lignes et
+    les chevauchait.
+
+    Le rendez-vous EN COURS porte une bordure framboise : c'est la seule marque
+    d'état de la vignette.
+  */
   return (
-    <div className="rounded-bloc bg-fond p-5 text-texte-principal">
-      <p className="text-[12px] font-extrabold tracking-widest text-texte-attenue uppercase">
-        {S.tournee.jour}
-      </p>
-      <ol className="relative mt-4 flex flex-col">
-        {/* Le rail : un pointillé abricot vertical, motif signature. */}
-        <span
-          aria-hidden
-          className="absolute top-3 bottom-3 left-[7px] w-0.5 border-l-2 border-dotted border-attente"
-        />
-        {S.tournee.rdvs.map((r, i) => (
-          <li key={r.heure} className="relative">
-            <div className="flex items-center gap-3 pl-7">
-              <span
-                aria-hidden
-                className="absolute left-0 size-4 rounded-pilule border-2 border-attente bg-fond"
-              />
-              <span className="w-12 shrink-0 font-mono text-[12.5px] font-bold">{r.heure}</span>
-              <span className="min-w-0 flex-1 truncate rounded-carte bg-surface px-3.5 py-3 text-[12.5px] font-semibold">
-                {r.libelle}
-              </span>
-            </div>
-            {/* La pastille de trajet, À CHEVAL sur le rail (19c). */}
-            {i < S.tournee.trajets.length ? (
-              <p
-                // Les deux trajets pulsent à 2,8 s, le second DÉCALÉ de 1,4 s
-                // (19a) : battre ensemble ferait clignoter la timeline, se
-                // décaler donne une tournée qui avance.
-                className={`relative z-10 my-1.5 ml-[-4px] w-fit rounded-pilule bg-attente/30 px-2.5 py-1 text-[11px] font-bold text-texte-principal ${
-                  i === 0 ? 'pulsation' : 'pulsation-decalee'
-                }`}
-              >
-                {S.tournee.trajets[i]}
-              </p>
-            ) : null}
-          </li>
-        ))}
-      </ol>
+    <div className="flex flex-col gap-2.5 rounded-bloc bg-fond p-5 text-texte-principal">
+      <p className="titre">{S.tournee.jour}</p>
+      {S.tournee.rdvs.map((r, i) => (
+        <div key={r.heure} className="flex flex-col gap-2.5">
+          <p
+            className={`flex items-center gap-2.5 rounded-[14px] bg-surface px-3 py-2.5 ${
+              i === 1 ? 'border-2 border-action' : ''
+            }`}
+          >
+            <span className="text-[13px] font-extrabold">{r.heure}</span>
+            <span className="text-[12px] font-semibold">{r.libelle}</span>
+          </p>
+          {i < S.tournee.trajets.length ? (
+            <p
+              className={`pl-3.5 text-[11px] font-semibold text-texte-secondaire ${
+                i === 0 ? 'pulsation' : 'pulsation-decalee'
+              }`}
+            >
+              <span aria-hidden>· · · </span>
+              {S.tournee.trajets[i]}
+            </p>
+          ) : null}
+        </div>
+      ))}
     </div>
   )
 }
@@ -293,7 +332,7 @@ function Timeline() {
 
 function Fonctions() {
   return (
-    <section data-bande="fonctions" className="bg-fond py-20">
+    <section data-bande="fonctions" data-apparait className="bg-fond py-20">
       <div className="mx-auto max-w-[1180px] px-6">
         <h2 className="display tracking-tight">{S.fonctions.titre}</h2>
         <div className="mt-10 grid gap-5 md:grid-cols-3">
@@ -313,10 +352,14 @@ function Fonctions() {
 
 function Etapes() {
   return (
-    <section data-bande="etapes" className="bg-action py-20 text-texte-sur-plein">
-      <div className="mx-auto max-w-[1180px] px-6">
+    <section
+      data-bande="etapes"
+      data-apparait
+      className={`bg-action text-texte-sur-plein ${BANDE}`}
+    >
+      <div className={`${DEDANS} flex flex-col gap-6`}>
         <h2 className="display tracking-tight">{S.etapes.titre}</h2>
-        <ol className="mt-10 grid gap-5 md:grid-cols-3">
+        <ol className="grid gap-5 md:grid-cols-3">
           {S.etapes.liste.map((e, i) => (
             <li key={e.titre} className="rounded-carte bg-surface p-6 text-texte-principal">
               <span className="flex size-9 items-center justify-center rounded-pilule bg-celebration text-[15px] font-extrabold text-texte-sur-miel">
@@ -344,7 +387,7 @@ function Avis() {
   const temoignages = temoignagesDePlanche()
 
   return (
-    <section data-bande="avis" className="bg-fond py-20">
+    <section data-bande="avis" data-apparait className="bg-fond py-20">
       <div className="mx-auto max-w-[1180px] px-6">
         <h2 className="display tracking-tight">{S.avis.titre}</h2>
         <div className="mt-10 grid gap-5 md:grid-cols-3">
@@ -378,45 +421,45 @@ function Avis() {
 
 function Ambassadrices({ restantes }: { restantes: number }) {
   /*
-    Le SEUL moment jaune de la page, et c'est ce qui fait exister le programme.
-    En prune, il ressemblait à toutes les autres sections sombres.
+    Planche 19a, relue. Ce bloc était faux dans sa STRUCTURE, pas seulement dans
+    sa couleur :
+
+    · « 50 places » est un CHIFFRE HÉROS en Fraunces, pas une petite pastille
+      posée à côté d'une étiquette. C'est lui qui porte le bloc ;
+    · les deux offres sont UN SEUL paragraphe de 15 px, leurs titres en gras
+      dans le fil du texte. J'en avais fait deux colonnes de gros titres, ce qui
+      donnait deux promesses concurrentes au lieu d'une mécanique qui se lit ;
+    · le bouton est à DROITE, centré verticalement, pas sous le texte.
+
+    Le seul moment jaune de la page : en prune, il ressemblait à toutes les
+    autres sections sombres.
   */
   return (
     <section
       data-bande="ambassadrices"
+      data-apparait
       id="ambassadrices"
-      className="bg-celebration py-20 text-texte-sur-miel"
+      className={`bg-celebration text-texte-sur-miel ${BANDE}`}
     >
-      <div className="mx-auto max-w-[1180px] px-6">
-        <p className="flex flex-wrap items-center gap-3 text-[12px] font-extrabold tracking-widest uppercase">
-          <span>{S.ambassadrices.etiquette}</span>
-          <span className="rounded-pilule bg-prune px-2.5 py-1 text-texte-sur-plein">
-            {S.ambassadrices.places}
-          </span>
-        </p>
-        <div className="mt-8 grid gap-6 md:grid-cols-2">
-          <article>
-            <h2 className="display tracking-tight">{S.ambassadrices.titre1}</h2>
-            <p className="mt-3 text-[14px] leading-[1.6]">{S.ambassadrices.texte1}</p>
-          </article>
-          <article>
-            <h3 className="display tracking-tight">{S.ambassadrices.titre2}</h3>
-            <p className="mt-3 text-[14px] leading-[1.6]">{S.ambassadrices.texte2}</p>
-          </article>
+      <div className={`${DEDANS} flex flex-col items-center gap-14 md:flex-row`}>
+        <div className="flex flex-1 flex-col gap-3 md:flex-[1.4]">
+          <p className="text-[13px] font-bold tracking-[0.12em] uppercase">
+            {S.ambassadrices.etiquette}
+          </p>
+          <p className="chiffre-heros">{S.ambassadrices.places}</p>
+          <p className="max-w-[50ch] text-[15px] leading-[1.6]">
+            <strong className="font-extrabold">{S.ambassadrices.titre1}</strong>{' '}
+            {S.ambassadrices.texte1}{' '}
+            <strong className="font-extrabold">{S.ambassadrices.titre2}</strong>{' '}
+            {S.ambassadrices.texte2}
+          </p>
+          <p className="text-[13px] font-bold opacity-75">
+            {remplir(S.gabarits.ambassadricesMention, { restantes: String(restantes) })}
+          </p>
         </div>
-        {/*
-          ⚠️ PRINCIPE N°4 : le compteur est BRANCHÉ SUR LE RÉEL, il n'est pas
-          écrit en dur. Tant que G2 n'existe pas, il compte zéro conversion et
-          affiche donc cinquante ; le jour où G2 arrive, il bouge tout seul. Un
-          chiffre inventé sur une page de vente reste un chiffre inventé, même
-          quand la promesse qui l'entoure est légitimement en avance (D19).
-        */}
-        <p className="mt-8 text-[12px] leading-[1.6]">
-          {remplir(S.gabarits.ambassadricesMention, { restantes: String(restantes) })}
-        </p>
         <Link
           href="/inscription"
-          className="tactile mt-6 inline-flex rounded-pilule bg-prune px-7 text-[14px] font-bold text-texte-sur-plein"
+          className="tactile shrink-0 rounded-pilule bg-prune px-[34px] py-[18px] text-[17px] font-bold text-texte-sur-plein"
         >
           {S.ambassadrices.action}
         </Link>
@@ -429,7 +472,7 @@ function Ambassadrices({ restantes }: { restantes: number }) {
 
 function Faq() {
   return (
-    <section data-bande="faq" id="faq" className="bg-surface py-20">
+    <section data-bande="faq" data-apparait id="faq" className="bg-surface py-20">
       <div className="mx-auto max-w-[1180px] px-6">
         <h2 className="display tracking-tight">{S.faq.titre}</h2>
         <div className="mt-10 grid gap-3 md:grid-cols-2">
@@ -452,7 +495,12 @@ function Faq() {
 function Final() {
   return (
     <>
-      <section data-bande="demo" id="demo" className="bg-prune py-14 text-texte-sur-plein">
+      <section
+        data-bande="demo"
+        data-apparait
+        id="demo"
+        className="bg-prune py-14 text-texte-sur-plein"
+      >
         <div className="mx-auto grid max-w-[1180px] items-center gap-10 px-6 md:grid-cols-2">
           <div>
             <h2 className="display tracking-tight">{S.final.demoTitre}</h2>
@@ -463,22 +511,26 @@ function Final() {
             démo » est la SEULE promesse de cette page sans ligne de roadmap.
             Signalée sans être corrigée (D19), elle attend l'arbitrage de Morgan.
           */}
-          <form className="flex flex-col gap-3" aria-label={S.final.demoAction}>
+          {/* La planche pose les trois champs EN LIGNE, pas empilés. */}
+          <form
+            className="flex w-full flex-col items-center gap-2.5 md:w-auto md:flex-row"
+            aria-label={S.final.demoAction}
+          >
             <input
               type="text"
               name="prenom"
               placeholder={S.final.demoPrenom}
-              className="rounded-champ border-2 border-trait-discret bg-surface px-4 py-3 text-[14px]"
+              className="w-full rounded-pilule bg-fond px-4 py-3 text-[14px] text-texte-principal md:w-40"
             />
             <input
               type="tel"
               name="telephone"
               placeholder={S.final.demoTelephone}
-              className="rounded-champ border-2 border-trait-discret bg-surface px-4 py-3 text-[14px]"
+              className="w-full rounded-pilule bg-fond px-4 py-3 text-[14px] text-texte-principal md:w-40"
             />
             <button
               type="button"
-              className="tactile rounded-pilule bg-action py-3 text-[14px] font-bold text-texte-sur-plein hover:bg-action-survol"
+              className="tactile w-full shrink-0 rounded-pilule bg-action px-6 text-[14px] font-bold text-texte-sur-plein hover:bg-action-survol md:w-auto"
             >
               {S.final.demoAction}
             </button>
@@ -486,12 +538,16 @@ function Final() {
         </div>
       </section>
 
-      <section data-bande="final" className="bg-fond py-20 text-center">
-        <div className="mx-auto max-w-[1180px] px-6">
+      {/*
+        `align-items: flex-start` sur la planche, et « tout-centré banni » dans
+        CLAUDE.md : deux fois la même chose, et je l'avais centré.
+      */}
+      <section data-bande="final" data-apparait className={`bg-fond px-14 py-[72px]`}>
+        <div className={`${DEDANS} flex flex-col items-start gap-4.5`}>
           <h2 className="display tracking-tight">{S.final.titre}</h2>
           <Link
             href="/inscription"
-            className="tactile mt-8 inline-flex rounded-pilule bg-action px-8 text-lg font-bold text-texte-sur-plein hover:bg-action-survol"
+            className="tactile rounded-pilule bg-action px-[34px] py-[18px] text-[17px] font-bold text-texte-sur-plein hover:bg-action-survol"
           >
             {S.final.action}
           </Link>
@@ -505,8 +561,8 @@ const LIEN_PIED = 'text-[12.5px] text-texte-sur-plein-doux hover:text-texte-sur-
 
 function Pied() {
   return (
-    <footer data-bande="pied" className="bg-prune py-12 text-texte-sur-plein">
-      <div className="mx-auto flex max-w-[1180px] flex-wrap items-center justify-between gap-6 px-6">
+    <footer data-bande="pied" data-apparait className="bg-prune px-14 py-11 text-texte-sur-plein">
+      <div className={`${DEDANS} flex flex-wrap items-center justify-between gap-5`}>
         <span className="text-[15px] font-extrabold">Wiggy</span>
         <nav className="flex flex-wrap gap-5" aria-label="Pied de page">
           <a href="#produit" className={LIEN_PIED}>

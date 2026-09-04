@@ -279,7 +279,14 @@ a[href]:active,
 .ruban-defilant {
   display: flex;
   width: max-content;
-  animation: wiggy-marquee 26s linear infinite;
+  /* ⚠️ 60 s et non les 26 s de la planche, et c'est délibéré.
+     La vitesse PERÇUE est une distance divisée par un temps, pas un temps. Le
+     ruban de la planche est celui d'une maquette de 1200 ; le nôtre reprend les
+     quatre phrases plusieurs fois pour couvrir n'importe quelle largeur
+     d'écran, donc il est bien plus long. À 26 s, il traversait deux fois plus
+     vite et devenait illisible. On garde l'allure de la planche, pas son
+     chiffre. */
+  animation: wiggy-marquee 60s linear infinite;
 }
 .pulsation {
   animation: wiggy-pulse 2.8s ease-in-out infinite;
@@ -289,6 +296,41 @@ a[href]:active,
 }
 .pulsation-decalee {
   animation: wiggy-pulse 2.8s ease-in-out 1.4s infinite;
+}
+
+/* ── L'APPARITION AU DÉFILEMENT, pages publiques uniquement ─────────────
+   Règle du 04/09 : sur les pages de vente, un bloc apparaît en fondu quand on
+   arrive à son niveau. On vend un produit, et une page qui se pose bloc après
+   bloc se regarde autrement qu'une page déjà toute là.
+
+   ⚠️ LA CLASSE QUI CACHE EST POSÉE PAR LE SCRIPT, JAMAIS PAR LE HTML. C'est
+   la seule façon sûre : si le JavaScript ne tourne pas (erreur, réseau coupé,
+   robot d'indexation), rien n'a jamais été caché et la page est entière. Poser
+   `opacity: 0` en CSS et compter sur le script pour le retirer, c'est risquer
+   une page de vente entièrement invisible le jour où il échoue. */
+.avant-apparition {
+  opacity: 0;
+  transform: translateY(14px);
+}
+.apparait {
+  transition:
+    opacity 600ms var(--courbe-standard),
+    transform 600ms var(--courbe-standard);
+}
+.apparu {
+  opacity: 1;
+  transform: none;
+}
+
+/* À l'impression, tout est là. Une page qui s'imprime ne défile pas, et
+   l'observateur ne se déclencherait jamais pour ce qui est sous la ligne de
+   flottaison : la moitié de la page sortirait blanche. */
+@media print {
+  .avant-apparition,
+  .apparait {
+    opacity: 1 !important;
+    transform: none !important;
+  }
 }
 
 /* Zéro animation ambiante : l'app s'ouvre trente fois par jour. Ce qui bouge
@@ -317,6 +359,14 @@ a[href]:active,
   .pulsation-courte,
   .pulsation-decalee {
     animation: none !important;
+  }
+  /* L'apparition disparaît, et le contenu reste. Le script ne pose de toute
+     façon rien sous ce réglage : ceci est la seconde ceinture. */
+  .avant-apparition,
+  .apparait {
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
   }
   /* Le tap lui-même disparaît : pas de scale sous mouvement réduit. */
   button:active,

@@ -20,6 +20,96 @@ _Rien en attente : les trois questions ouvertes ont été tranchées le 03/09._
 
 ---
 
+## 2026-09-04 (9) Correctif : la composition exacte de 19a, et l'apparition au défilement
+
+**Fait :**
+
+### Ce que j'avais approximé, et qui était lisible dans le fichier
+
+J'avais corrigé les **couleurs** au passage précédent sans relire la **structure**. Reprise bande
+par bande sur la planche :
+
+- **La barre de navigation n'a que DEUX enfants** : le mot-symbole, et un groupe qui contient les
+  liens ET le bouton. Avec `justify-between`, ce groupe se ferre donc **à droite**. J'en avais fait
+  trois enfants, ce qui poussait les liens au centre — ni la planche, ni un usage.
+- **« Voir une démo » est un BOUTON bordé**, blanc, de la même taille que l'action principale. J'en
+  avais fait un lien souligné. Et la phrase de rassurance est **groupée sous le bouton principal**,
+  centrée sur lui, pas posée pleine largeur sous les deux.
+- **Le bloc Ambassadrices était faux dans sa STRUCTURE**, pas seulement dans sa couleur :
+  **« 50 places » est un chiffre héros en Fraunces**, pas une pastille à côté d'une étiquette ; les
+  deux offres sont **un seul paragraphe de 15 px**, leurs titres en gras dans le fil du texte, là où
+  j'avais posé deux gros titres en colonnes — deux promesses concurrentes au lieu d'une mécanique
+  qui se lit ; et le bouton est **à droite**, centré verticalement.
+- **L'appel final est à GAUCHE.** La planche dit `align-items: flex-start`, et CLAUDE.md dit
+  « tout-centré banni ». Deux fois la même chose, et je l'avais centré.
+- **La grammaire des bandes est uniforme** : page de 1200, `64 px` en haut et en bas, `56 px` sur
+  les côtés. Je l'avais remplacée par un conteneur centré à 1180 avec des marges au jugé, et chaque
+  bande respirait un peu différemment.
+- **Le héros et la timeline sont des cartes de largeur FIXE** (320 et 300), pas des demi-grilles.
+
+### La timeline : je l'avais inventée
+
+**Il n'y a AUCUN RAIL dans la timeline de bureau.** J'avais importé le rail pointillé de la planche
+**mobile 19c**, où le trajet se pose « à cheval sur le rail » parce que la liste y est verticale et
+serrée. En 1200, la planche empile simplement des cartes et glisse entre elles une ligne de texte
+« · · · 8 min de trajet ». Mon rail passait sous ces lignes et les chevauchait — c'est ce que
+Morgan voyait. Le rendez-vous en cours porte une **bordure framboise**, seule marque d'état.
+
+### Le ruban
+
+**13,5 px et 56 px entre les phrases**, valeurs de la planche : j'avais mis 12,5 px et 16 px, d'où
+un ruban dense et illisible. Et il est passé de 26 s à **60 s**, ce qui est un écart assumé : la
+vitesse perçue est une distance divisée par un temps, pas un temps. Le ruban de la planche est celui
+d'une maquette de 1200 ; le nôtre répète les phrases pour couvrir n'importe quelle largeur, donc il
+est plus long, et à 26 s il traversait deux fois plus vite. **On garde l'allure de la planche, pas
+son chiffre.**
+
+### L'apparition au défilement, et le piège qu'elle contenait
+
+Chaque bande se lève en fondu à son entrée dans l'écran. Inscrit dans CLAUDE.md comme règle des
+**pages publiques**, et explicitement **pas** de l'espace pro : « zéro animation ambiante » protège
+ce qu'on ouvre trente fois par jour.
+
+⚠️ **C'est le SCRIPT qui masque, jamais le HTML.** La page sort du serveur entièrement visible, le
+composant ajoute la classe qui cache, puis la retire. L'ordre inverse — `opacity: 0` en CSS et le
+script qui l'enlève — rendrait **une page de vente entièrement invisible** au premier échec de
+JavaScript.
+
+**Et le piège s'est refermé tout de suite** : la première capture est sortie **blanche sous la ligne
+de flottaison**. Une capture de page entière ne défile pas, donc l'observateur ne se déclenche
+jamais pour ce qui est plus bas. La recette se serait faite sur une page vide. `npm run vues`
+neutralise donc l'effet le temps de la photo, comme il le fait déjà pour la barre de navigation, et
+`@media print` fait de même : **tout ce qui ne défile pas voit la page entière**.
+
+**Schéma :** aucune migration. 0027 reste EN ATTENTE.
+
+**Décisions :** l'apparition au défilement des pages publiques.
+
+**Écarts au brief :**
+
+- **Le ruban tourne en 60 s et non 26 s**, pour la raison ci-dessus.
+- ⚠️ **La planche utilise une encre abricot foncée, `#A4552F`, qui n'existe pas dans la palette
+  ratifiée.** Je ne l'ai pas inventée en jeton : le libellé de trajet est en `texte-secondaire`,
+  lisible et dans la palette. **À trancher avec Design** : soit la planche s'aligne sur la palette,
+  soit la palette gagne cette encre. Même remarque pour `#8C6A5C` et `#6B4A3C` du héros, remplacés
+  par `texte-attenue` et `texte-secondaire`.
+- **Aucun texte touché.**
+
+**Questions ouvertes :** l'encre abricot ci-dessus. Restent la région Supabase et « Réserver une
+démo ».
+
+**À recetter par Morgan :**
+
+1. **Compare la home à 19a** : nav ferrée à droite, « Voir une démo » en bouton bordé, bloc
+   Ambassadrices avec « 50 places » en chiffre héros et son bouton à droite, appel final à gauche.
+2. **Fais défiler** : chaque bande se lève en fondu. Le premier écran, lui, est déjà là.
+3. **Active « réduire les animations »** : plus rien ne bouge, et **rien ne manque**.
+4. **Coupe JavaScript** dans ton navigateur et recharge : la page est entière.
+
+**Statut à reporter dans la roadmap :** la home : « conforme à 19a, composition et mouvement ».
+
+---
+
 ## 2026-09-04 (8) Correctif : la home rejoint sa planche, et la planche devient opposable
 
 **Fait :**

@@ -177,6 +177,15 @@ Côté cliente finale, tout reste web : zéro installation pour réserver.
   n'existe pas : construire un état de survol sans état d'appui, c'est soigner ce que la cible ne
   verra jamais. Tout élément cliquable répond au doigt, franchement et immédiatement
   (`--tap-scale`, `--duree-tap`), et cette réponse est **distincte** du survol.
+- **Les pages PUBLIQUES apparaissent au défilement** (règle du 04/09). Chaque bloc se lève en
+  fondu quand on arrive à son niveau : `data-apparait` sur la bande, et le composant
+  `Apparitions`. C'est une page de vente, elle se regarde autrement quand elle se pose bloc après
+  bloc. **Cette règle ne vaut PAS pour l'espace pro** : « zéro animation ambiante » protège ce
+  qu'on ouvre trente fois par jour.
+  ⚠️ **C'est le SCRIPT qui masque, jamais le HTML.** La page sort du serveur entièrement visible ;
+  le composant ajoute la classe qui cache, puis la retire à l'entrée dans l'écran. L'ordre inverse
+  rendrait **une page de vente entièrement invisible** au premier échec de JavaScript. Et tout ce
+  qui ne défile pas (capture, impression, `prefers-reduced-motion`) voit la page entière.
 - Zone tactile 44 px minimum. Zéro animation ambiante. `prefers-reduced-motion` respecté sans
   exception. Deux célébrations seulement (confirmation cliente, journée bouclée), aux timings des
   tokens.
