@@ -106,6 +106,29 @@ leur motif avant d'écrire.
 - **Les trois avis ont la même hauteur**, signatures alignées en bas. Trois citations de longueurs
   différentes donnaient trois cartes en escalier, et le regard lisait le désordre avant les mots.
 
+### Le défaut le plus grave du lot : mon service worker figeait la feuille de style
+
+Morgan a vu la home **entièrement cassée** : mise en page à plat, en-tête sans marges et rogné à
+droite, ruban sur deux lignes. Le code, lui, était juste — vérifié dans un navigateur neuf, sans
+service worker : marges de 56 px, largeur bornée à 1200, ruban sur une ligne.
+
+**La cause était mon service worker.** Je servais `/_next/static/` **cache d'abord**, en me disant
+que ces fichiers portent une empreinte dans leur nom et qu'un cache ne peut donc pas être périmé.
+**C'est faux en développement** : Next y réutilise les mêmes adresses avec un contenu différent. Le
+worker de Morgan servait donc une feuille de style de la veille, et **aucun rechargement normal ne
+la réparait** — le cache passe avant le réseau, par construction.
+
+Le gain d'un cache-d'abord sur ces fichiers est une poignée de millisecondes. Le coût est une page
+fausse qu'on ne peut pas déboguer, puisqu'elle est juste chez tout le monde sauf chez celui qui la
+regarde. **Ces fichiers passent au réseau d'abord**, avec le cache en secours : le hors-ligne garde
+tout ce qu'il lui faut, et plus rien ne peut se figer. La version du cache est passée à `v3`, ce
+qui purge les anciens à l'activation.
+
+**Ce que ça m'apprend, au-delà du correctif** : un cache est un état invisible qui survit au code.
+Quand une page paraît cassée alors que le code est bon, c'est la première chose à suspecter, et
+c'est exactement pour cette raison que le hors-ligne du produit sert **ce qui se consulte** et
+jamais ce qui doit être frais.
+
 **Schéma :** aucune migration. 0027 reste EN ATTENTE.
 
 **Décisions :** l'apparition au défilement des pages publiques.

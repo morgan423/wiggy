@@ -18,7 +18,7 @@
   jamais ce qui s'écrit.
 */
 
-const VERSION = 'wiggy-v2'
+const VERSION = 'wiggy-v3'
 const STATIQUE = `${VERSION}-statique`
 
 /*
@@ -74,10 +74,25 @@ self.addEventListener('fetch', (evenement) => {
     return
   }
 
-  // Les fichiers versionnés de Next : leur nom change à chaque déploiement,
-  // donc les servir depuis le cache ne peut pas servir une version périmée.
-  if (url.pathname.startsWith('/_next/static/') || url.pathname.startsWith('/polices/')) {
-    evenement.respondWith(cachePuisReseau(requete))
+  /*
+    Les fichiers de Next et les polices.
+
+    ⚠️ RÉSEAU D'ABORD, ET C'EST UN CORRECTIF. Je servais ces fichiers CACHE
+    D'ABORD, en me disant que leur nom change à chaque déploiement et qu'un
+    cache ne pouvait donc pas être périmé. C'est faux en développement : Next y
+    réutilise les mêmes adresses avec un contenu différent. Résultat, une
+    feuille de style figée au premier chargement et une page entière qui semble
+    cassée — mise en page à plat, ruban sur deux lignes, en-tête sans marges —
+    alors que le code est juste. Constaté sur la machine de Morgan, dont le
+    worker servait une CSS de la veille.
+
+    Le gain d'un cache-d'abord sur ces fichiers est une poignée de
+    millisecondes ; le coût est une page fausse qu'aucun rechargement normal ne
+    répare. Le hors-ligne, lui, garde tout ce qu'il lui faut : le repli sur le
+    cache reste là quand le réseau tombe.
+  */
+  if (url.pathname.startsWith('/_next/') || url.pathname.startsWith('/polices/')) {
+    evenement.respondWith(reseauPuisCacheStatique(requete))
   }
 })
 
@@ -123,14 +138,18 @@ async function reseauPuisCache(requete) {
   }
 }
 
-async function cachePuisReseau(requete) {
+/** Réseau d'abord pour les fichiers de l'application, cache en secours. */
+async function reseauPuisCacheStatique(requete) {
   const cache = await caches.open(STATIQUE)
-  const garde = await cache.match(requete)
-  if (garde) return garde
-  const reponse = await fetch(requete)
-  // Même raison qu'au-dessus : le cache ne met jamais la réponse en péril.
-  if (reponse.ok && !reponse.redirected) cache.put(requete, reponse.clone()).catch(() => {})
-  return reponse
+  try {
+    const reponse = await fetch(requete)
+    if (reponse.ok && !reponse.redirected) cache.put(requete, reponse.clone()).catch(() => {})
+    return reponse
+  } catch {
+    const garde = await cache.match(requete)
+    if (garde) return garde
+    throw new Error('hors ligne et absent du cache')
+  }
 }
 
 /** Tout cache d'un autre jour s'en va. Appelée à chaque lecture : gratuite. */
