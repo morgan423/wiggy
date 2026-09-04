@@ -30,8 +30,18 @@ pousser('font-display', `var(--police-display), ${t.police.display.repli}`)
 pousser('font-sans', `var(--police-ui), ${t.police.ui.repli}`)
 pousser('wonk', t.police.wonk.valeur)
 
-lignes.push('', '  /* Échelle typographique — tailles design, rendues responsives */')
-for (const [nom, e] of Object.entries(t.typo)) {
+/*
+  L'échelle a DEUX jeux, et ils ne se mélangent pas.
+
+  `typo` sert l'app ; `typoSite` sert le site public, dont la planche 19a écrit
+  des tailles que l'app n'a aucune raison d'hériter — 104 pour le claim, 120
+  pour un chiffre héros, 38 pour la FAQ. Élargir le jeu partagé aurait imposé
+  ces tailles à l'espace pro ; les laisser dans une table au pied de la page
+  aurait donné deux sources de vérité à la typographie. Les jetons du site
+  portent donc le préfixe `site-`, et `design:check` refuse leur emploi dans
+  l'app.
+*/
+const echelle = (nom, e, prefixe = '') => {
   // La taille design est le PLAFOND : 92 px sur un écran de 375 px déborderait.
   // Le plancher est fixé à 60 % pour statement et display, 100 % en dessous
   // (un corps de 16 px n'a pas à rétrécir).
@@ -41,9 +51,18 @@ for (const [nom, e] of Object.entries(t.typo)) {
     plancher === plafond
       ? `${plafond / 16}rem`
       : `clamp(${plancher / 16}rem, ${(plafond / 8).toFixed(1)}vw, ${plafond / 16}rem)`
-  pousser(`text-${kebab(nom)}`, taille)
-  pousser(`leading-${kebab(nom)}`, String(e.interligne))
-  pousser(`font-weight-${kebab(nom)}`, String(e.graisse))
+  pousser(`text-${prefixe}${kebab(nom)}`, taille)
+  pousser(`leading-${prefixe}${kebab(nom)}`, String(e.interligne))
+  pousser(`font-weight-${prefixe}${kebab(nom)}`, String(e.graisse))
+}
+
+lignes.push('', '  /* Échelle typographique — tailles design, rendues responsives */')
+for (const [nom, e] of Object.entries(t.typo)) echelle(nom, e)
+
+lignes.push('', '  /* Échelle du SITE PUBLIC — jamais employée dans l’espace pro */')
+for (const [nom, e] of Object.entries(t.typoSite)) {
+  if (nom.startsWith('$')) continue
+  echelle(nom, e, 'site-')
 }
 
 lignes.push('', '  /* Points de rupture */')

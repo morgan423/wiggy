@@ -41,7 +41,7 @@ export function GrillePrix() {
           bandes : posées sur la section, elles tombaient hors mesure et la
           grille touchait les deux bords. */}
       <div className="mx-auto w-full max-w-[1200px] px-14 py-16">
-        <h2 className="display text-[clamp(1.875rem,4vw,3rem)] tracking-tight">{P.titre}</h2>
+        <h2 className="site-offre tracking-tight">{P.titre}</h2>
 
         {/*
           ── 19a : la grille, à partir de md ──
@@ -152,29 +152,52 @@ function CarteLarge({ offre, vedette }: { offre: Offre; vedette: boolean }) {
   )
 }
 
-/** 19b ② ③ ④ : la masse framboise, le prix en display, le seul bouton plein. */
+/**
+ * 19b : la carte mise en avant, empilée.
+ *
+ * ⚠️ **Trois valeurs venaient de mon jugement et non de la planche**, et la
+ * grille mobile n'avait jamais été comparée à 19b — `planche:check` est né sur
+ * 19a, en 1280, et n'a jamais regardé le 390.
+ *
+ * · le **nom est une pastille prune en capitales** (10,5 px, 800), pas un titre
+ *   de 15 px. C'est une étiquette de gamme, comme en large ;
+ * · le **bouton est PRUNE**. Je l'avais en miel : sur une carte framboise, le
+ *   miel est la couleur du badge « La préférée » juste au-dessus, et les deux
+ *   se disputaient le même rôle ;
+ * · le **prix est à 50 px**, une valeur fixe. Je servais la classe `display`,
+ *   dont le plancher responsive tombe à 34 px en 390 — le prix y perdait le
+ *   quart de sa taille, alors que 19b en fait le troisième moteur de la
+ *   hiérarchie empilée.
+ */
 function CarteVedetteMobile({ offre }: { offre: Offre }) {
   return (
-    <article className="rounded-bloc bg-action p-6 text-texte-sur-plein shadow-flottante">
+    <article className="flex flex-col gap-2 rounded-[24px] bg-action px-[18px] py-5 text-texte-sur-plein">
       <header className="flex items-center justify-between gap-3">
-        <h3 className="text-[15px] font-extrabold">{offre.nom}</h3>
+        <span className="rounded-pilule bg-prune px-2.5 py-[5px] text-[10.5px] font-extrabold tracking-[0.06em] text-fond uppercase">
+          {offre.nom}
+        </span>
         {/* Le badge confirme, il ne porte plus (19b). */}
-        <span className="rounded-pilule bg-celebration px-2.5 py-1 text-[10.5px] font-extrabold text-texte-sur-miel">
+        <span className="rounded-pilule bg-celebration px-2.5 py-[5px] text-[10.5px] font-extrabold text-texte-sur-miel">
           {P.badge}
         </span>
       </header>
-      <p className="mt-1 text-[13px]">{offre.accroche}</p>
-      <p className="mt-5 flex items-baseline gap-2">
-        <span className="display tracking-tight">{offre.prix}</span>
-        <span className="text-[12px] font-semibold">{P.parMois}</span>
+      <p className="text-[13px] font-extrabold">{offre.accroche}</p>
+      <p className="flex items-baseline gap-2">
+        <span className="font-display text-[50px] leading-none font-bold tracking-tight whitespace-nowrap">
+          {offre.prix}
+        </span>
+        {/* Les deux refusent de se couper : à 390, « TTC / mois » passait à la
+            ligne, ce qui poussait le prix à se couper à son tour et le coupait
+            en plein milieu. La planche les tient sur une seule ligne. */}
+        <span className="whitespace-nowrap text-[11.5px] font-bold">{P.parMois}</span>
       </p>
-      <p className="mt-5 text-[13px] leading-[1.55]">{offre.resumeMobile}</p>
+      <p className="text-[13px] leading-[1.5]">{offre.resumeMobile}</p>
       {offre.resumeMobile2 ? (
-        <p className="mt-2 text-[13px] leading-[1.55]">{offre.resumeMobile2}</p>
+        <p className="text-[13px] leading-[1.5] font-bold">{offre.resumeMobile2}</p>
       ) : null}
       <Link
         href="/inscription"
-        className="tactile mt-6 w-full rounded-pilule bg-celebration text-center text-[14px] font-bold text-texte-sur-miel"
+        className="tactile mt-1 w-full rounded-pilule bg-prune text-center text-[14px] font-bold text-texte-sur-plein"
       >
         {offre.action}
       </Link>
@@ -182,23 +205,36 @@ function CarteVedetteMobile({ offre }: { offre: Offre }) {
   )
 }
 
-/** 19b : les deux rangées crème compactes, prix en 22, dépliables au tap. */
+/**
+ * 19b : les deux rangées crème compactes, dépliables au tap.
+ *
+ * Le nom y est aussi une pastille, d'un cran plus petite (9,5 px) que sur la
+ * vedette : la hiérarchie passe par la taille, pas par un changement de forme.
+ */
 function RangeeRepliee({ offre }: { offre: Offre }) {
   return (
-    <details className="group rounded-carte bg-surface px-4 py-3.5 text-texte-principal">
+    <details className="group rounded-[18px] bg-fond px-4 py-3.5 text-texte-principal">
       <summary className="cursor-pointer list-none [&::-webkit-details-marker]:hidden">
-        <span className="flex items-baseline justify-between gap-3">
-          <span className="min-w-0">
-            <span className="block text-[14px] font-extrabold">{offre.nom}</span>
-            <span className="block text-[12px] text-texte-secondaire">{offre.accroche}</span>
+        <span className="flex items-start justify-between gap-3">
+          <span className="flex min-w-0 flex-col items-start gap-1">
+            <span className="rounded-pilule bg-prune px-2 py-[4px] text-[9.5px] font-extrabold tracking-[0.06em] text-fond uppercase">
+              {offre.nom}
+            </span>
+            <span className="text-[13px] font-extrabold">{offre.accroche}</span>
+            <span className="text-[11.5px] text-texte-attenue group-open:hidden">
+              {offre.resumeMobile}
+            </span>
           </span>
           <span className="shrink-0 text-right">
             <span className="text-[22px] leading-none font-bold">{offre.prix}</span>
-            <span className="block text-[11px] text-texte-attenue">{P.parMoisCourt}</span>
+            {/* « / mois › » d'un seul tenant sur la planche : le chevron
+                appartient à la ligne de prix, il n'est pas un bouton à part. */}
+            {/* Le chevron est DANS la chaîne du copy (« / mois › ») : en
+                ajouter un ici en faisait deux. */}
+            <span className="mt-1 block text-[10.5px] font-bold whitespace-nowrap text-texte-attenue">
+              {P.parMoisCourt}
+            </span>
           </span>
-        </span>
-        <span className="mt-1.5 block text-[11.5px] text-texte-attenue group-open:hidden">
-          {offre.resumeMobile}
         </span>
       </summary>
       <ul className="mt-3 flex flex-col gap-2 border-t border-trait-discret pt-3">

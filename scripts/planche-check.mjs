@@ -118,6 +118,7 @@ async function executer() {
   let compares = 0
   const planche = readFileSync(PLANCHE, 'utf8')
   let rendus = []
+  let encresComparees = 0
   let liens = []
   let navigateur
 
@@ -554,6 +555,83 @@ async function executer() {
         )
       }
     }
+    /*
+      ── ⑨ LES ENCRES DE TEXTE, ET LA SUBSTITUTION DU 55 % ──────────────────
+
+      La planche du 04/09 pose deux atténuations de prune : 72 %, qui est
+      `texte-secondaire`, et **55 %, QUATORZE FOIS, qui n'est un jeton d'aucune
+      sorte**. C'est précisément la valeur que le projet a quittée le 03/09,
+      quand 61 occurrences sous AA ont été corrigées en montant l'atténué de 55
+      à 65 %.
+
+        prune 55 % → 3,45:1 sur crème → ÉCHOUE en texte courant
+        prune 65 % → 4,60:1           → passe (`texte-attenue`)
+        prune 72 % → 5,68:1           → passe (`texte-secondaire`)
+
+      Elle sert sur du texte de 11 à 12,5 px : à cette taille, l'exemption
+      « grand texte » ne s'applique pas. La planche fait foi pour la
+      COMPOSITION, elle ne fait pas foi contre l'accessibilité.
+
+      LA SUBSTITUTION EST DONC UNE RÈGLE, PAS UNE RETOUCHE : le 55 % de la
+      planche se lit `texte-attenue`, à 65 %. Écrite ici plutôt qu'appliquée une
+      fois, elle survit à la prochaine réextraction — et Design peut reposer du
+      55 % sans que ça repasse en silence dans le produit.
+
+      ⚠️ ET ON REFUSE LE 55 % LUI-MÊME. C'est la moitié qui compte : sans elle,
+      la règle dirait seulement quelle encre mettre, pas laquelle est interdite.
+    */
+    const encresPlanche = new Map()
+    for (const m of planche.matchAll(
+      /color:\s*(rgba\(69,\s*23,\s*60,\s*0\.\d+\))[^"]*"[^>]*>([^<]{4,80})</g,
+    )) {
+      const texte = m[2].replaceAll('&amp;', '&').trim()
+      encresPlanche.set(texte, encresPlanche.has(texte) ? null : m[1].replaceAll(' ', ''))
+    }
+
+    const ATTENUE = 'rgba(69, 23, 60, 0.65)'
+    const SECONDAIRE = 'rgba(69, 23, 60, 0.72)'
+    /** Ce que chaque encre de la planche doit devenir sur la page. */
+    const CORRESPONDANCE = {
+      'rgba(69,23,60,0.55)': ATTENUE,
+      'rgba(69,23,60,0.72)': SECONDAIRE,
+    }
+
+    const aVerifier = [...encresPlanche].filter(
+      ([, encre]) => encre !== null && encre in CORRESPONDANCE,
+    )
+    const encresPage = await page.evaluate((textes) => {
+      const trouve = {}
+      for (const [texte] of textes) {
+        const noeuds = [...document.querySelectorAll('h1,h2,h3,p,span,div,li')].filter(
+          (e) => e.textContent?.trim() === texte && e.children.length === 0,
+        )
+        if (noeuds.length === 1) trouve[texte] = getComputedStyle(noeuds[0]).color
+      }
+      return trouve
+    }, aVerifier)
+
+    for (const [texte, encre] of aVerifier) {
+      const rendue = encresPage[texte]
+      if (rendue === undefined) continue
+      encresComparees += 1
+      const attendue = CORRESPONDANCE[encre]
+      if (rendue !== attendue) {
+        echecs.push(
+          `« ${texte.slice(0, 40)} » est en ${rendue} ; la planche la pose en ${encre}, ` +
+            `qui se lit ${attendue}.`,
+        )
+      }
+    }
+
+    // Le 55 % ne doit exister nulle part sur la page, quel que soit le texte.
+    const cinquanteCinq = await page.evaluate(() =>
+      [...document.querySelectorAll('*')]
+        .filter((e) => getComputedStyle(e).color === 'rgba(69, 23, 60, 0.55)')
+        .map((e) => (e.textContent ?? '').trim().slice(0, 40)),
+    )
+    for (const t of new Set(cinquanteCinq)) {
+      echecs.push(`Texte en prune 55 % (3,45:1, sous AA) : « ${t} ». L'atténué est à 65 %.`)
+    }
   } finally {
     await navigateur?.close().catch(() => undefined)
     serveur.arreter()
@@ -568,7 +646,8 @@ async function executer() {
   console.log(
     `Planche 19a : ${String(attendus.length)} bandes conformes, ${String(compares)} tailles de ` +
       `texte exactes, ${String(rendus.length)} images chargées au bon diamètre, ` +
-      `${String(liens.length)} ancres bien posées, mesures et fonds vérifiés, ` +
+      `${String(liens.length)} ancres bien posées, ${String(encresComparees)} encres de texte ` +
+      'conformes, mesures et fonds vérifiés, ' +
       'ruban et pulsations actifs.',
   )
 }

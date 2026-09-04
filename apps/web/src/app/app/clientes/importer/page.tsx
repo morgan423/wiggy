@@ -35,7 +35,10 @@ export default async function Importer() {
           plutôt que caché dans une aide. Une pro qui croit devoir tout recopier
           avant de commencer ne commence pas.
         */}
-        <p className="mt-8 rounded-carte bg-fond px-3.5 py-3 text-[12px] leading-[1.55] text-texte-secondaire">
+        {/* Sur `bg-surface` : la carte était en `bg-fond`, exactement la couleur
+            du corps d'écran, donc invisible — il ne restait qu'un paragraphe nu
+            là où la planche pose une note détachée. Relevé par `npm run vues`. */}
+        <p className="mt-8 rounded-carte bg-surface px-3.5 py-3 text-[12px] leading-[1.55] text-texte-secondaire">
           <strong className="font-bold text-texte-principal">
             Rien de tout ça n’est obligatoire.
           </strong>{' '}

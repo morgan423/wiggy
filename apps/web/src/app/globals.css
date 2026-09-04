@@ -122,6 +122,84 @@ body {
   mettant dans `components`, la couche des utilitaires passe devant, et une
   taille écrite à la main gagne toujours contre le niveau par défaut.
 */
+/*
+  ── L'échelle du SITE PUBLIC ──────────────────────────────────────────────
+
+  Ratifiée le 04/09 dans `wiggy-tokens.json`, sous ses propres noms. Elle ne
+  déborde pas sur l'app : `design:check` refuse ces classes dans l'espace pro,
+  comme il refusait déjà `statement`.
+
+  Elle a d'abord vécu dans une table au pied de `page.tsx`, le temps que Morgan
+  tranche entre elle et les plafonds partagés. Il a tranché — le rendu de la
+  home fait foi — et une table locale n'est pas une source de vérité pour la
+  typographie : elle ne se voit pas depuis les jetons, et rien n'empêchait une
+  seconde de naître ailleurs.
+*/
+@layer components {
+  .site-claim,
+  .site-chiffre-majeur,
+  .site-chiffre-mineur,
+  .site-manifeste {
+    font-variation-settings: var(--wonk);
+  }
+  .site-claim,
+  .site-chiffre-majeur,
+  .site-chiffre-mineur,
+  .site-relance,
+  .site-manifeste,
+  .site-offre,
+  .site-bande,
+  .site-question,
+  .site-demo {
+    font-family: var(--font-display);
+  }
+  .site-claim {
+    font-size: var(--text-site-claim);
+    line-height: var(--leading-site-claim);
+    font-weight: var(--font-weight-site-claim);
+  }
+  .site-chiffre-majeur {
+    font-size: var(--text-site-chiffre-majeur);
+    line-height: var(--leading-site-chiffre-majeur);
+    font-weight: var(--font-weight-site-chiffre-majeur);
+  }
+  .site-chiffre-mineur {
+    font-size: var(--text-site-chiffre-mineur);
+    line-height: var(--leading-site-chiffre-mineur);
+    font-weight: var(--font-weight-site-chiffre-mineur);
+  }
+  .site-relance {
+    font-size: var(--text-site-relance);
+    line-height: var(--leading-site-relance);
+    font-weight: var(--font-weight-site-relance);
+  }
+  .site-manifeste {
+    font-size: var(--text-site-manifeste);
+    line-height: var(--leading-site-manifeste);
+    font-weight: var(--font-weight-site-manifeste);
+  }
+  .site-offre {
+    font-size: var(--text-site-offre);
+    line-height: var(--leading-site-offre);
+    font-weight: var(--font-weight-site-offre);
+  }
+  .site-bande {
+    font-size: var(--text-site-bande);
+    line-height: var(--leading-site-bande);
+    font-weight: var(--font-weight-site-bande);
+  }
+  .site-question {
+    font-size: var(--text-site-question);
+    line-height: var(--leading-site-question);
+    font-weight: var(--font-weight-site-question);
+  }
+  .site-demo {
+    font-size: var(--text-site-demo);
+    line-height: var(--leading-site-demo);
+    font-weight: var(--font-weight-site-demo);
+  }
+}
+
 @layer components {
   .statement {
     font-family: var(--font-display);
@@ -213,19 +291,23 @@ body {
    11d le montre à l'œuvre dans l'app, en miel sur un bloc prune. Jamais en
    interface courante, jamais sous 20 px. */
 @layer components {
+  /*
+    Le chiffre héros de l'APP (planche 11d, miel sur prune).
+
+    ⚠️ IL EST REVENU À `--text-display`, ET C'EST UN CORRECTIF. Je l'avais monté
+    à 120 px pour le « 5 à 10 h » de la home, quand le site n'avait pas encore
+    son échelle. Le site a désormais la sienne (`site-chiffre-majeur`), et
+    laisser cette classe à 120 aurait donné une taille de page de vente au
+    premier écran de travail qui s'en serait servi — sans que personne ne
+    l'écrive nulle part.
+
+    Elle n'est employée par aucun écran aujourd'hui : c'est la voie sanctionnée
+    par `design:check` pour ouvrir l'axe WONK dans l'app, réservée à B-quelque
+    chose. Réservée, donc, pas morte.
+  */
   .chiffre-heros {
     font-family: var(--font-display);
-    /*
-      ⚠️ PLUS GROS QUE LE TITRE DE PAGE, et c'est voulu par la planche : elle
-      écrit 120 ici contre 104 pour le claim du héros. C'est le chiffre qui porte
-      la bande. Je servais `--text-display`, qui plafonne à 56 : le chiffre
-      passait sous sa propre légende et la bande n'avait plus d'accroche.
-  
-      L'échelle ratifiée n'est pas touchée — ce palier n'existe qu'ici, et
-      l'inscrire dans les jetons en ferait une taille réutilisable qui n'a pas
-      lieu d'être.
-    */
-    font-size: clamp(4rem, 10vw, 7.5rem);
+    font-size: var(--text-display);
     line-height: 1;
     font-weight: var(--font-weight-display);
     font-variation-settings: var(--wonk);
@@ -235,6 +317,16 @@ body {
 /* Le motif trajet : la ligne pointillée entre deux rendez-vous. C'est la
    signature graphique du produit (brief phase 2, §1.3 ⑤), pas une décoration :
    elle dit qu'entre deux clientes il y a une route. */
+/*
+  Le rail vertical de la timeline mobile (19c). Même motif signature que le
+  trait horizontal, tourné : pointillé abricot, 3 px de large, 7 px pleins pour
+  8 px de vide.
+*/
+.trait-trajet-vertical {
+  width: 3px;
+  background: repeating-linear-gradient(180deg, var(--color-attente) 0 7px, transparent 7px 15px);
+}
+
 .trait-trajet {
   display: inline-block;
   width: 2px;

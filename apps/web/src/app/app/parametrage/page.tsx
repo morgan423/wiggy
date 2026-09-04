@@ -1,4 +1,10 @@
-import { resumePrestations, resumeZone, resumeJournees, peutRecevoir } from '@wiggy/core'
+import {
+  resumePrestations,
+  resumeZone,
+  resumeJournees,
+  peutRecevoir,
+  pastilleDansListe,
+} from '@wiggy/core'
 import { copy, remplir } from '@wiggy/copy'
 import { requirePro } from '@/lib/auth'
 import { supabaseServer } from '@/lib/supabase/server'
@@ -100,7 +106,21 @@ export default async function Parametrage() {
       <EnteteEcran
         variante="hub"
         cloche={<IconesEntete />}
-        vignette={<Avatar nom={pro.display_name} taille="sm" />}
+        vignette={
+          /*
+            ⚠️ JAMAIS PRUNE ICI. `EnteteEcran` est toujours sur fond prune, et
+            `pastillePour` peut rendre prune : l'avatar disparaissait alors
+            entièrement, ne laissant flotter que son initiale. Ça dépendait du
+            PRÉNOM de la pro — donc invisible en développement, et visible
+            seulement chez celles dont le nom tombe sur cette couleur. Relevé
+            par `npm run vues`, pas trouvé à l'œil.
+          */
+          <Avatar
+            nom={pro.display_name}
+            taille="sm"
+            pastille={pastilleDansListe(pro.display_name, 0, 'prune')}
+          />
+        }
         statement={pro.display_name.split(' ')[0]}
         sousTitre={
           pret

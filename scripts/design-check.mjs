@@ -137,6 +137,38 @@ for (const chemin of fichiers) {
       signaler(chemin, n, 'wonk-en-dur', 'l’axe WONK ne se pose que par la classe `statement`')
     }
 
+    /*
+      ③bis L'ÉCHELLE DU SITE NE DÉBORDE PAS SUR L'APP.
+
+      Elle est entrée dans les jetons ratifiés le 04/09, sous ses propres noms
+      (`typoSite` → classes `site-*`, variables `--text-site-*`), précisément
+      pour que l'app N'EN HÉRITE PAS : la planche 19a écrit 104 pour son claim
+      et 120 pour un chiffre héros, tailles qui n'ont aucun sens dans un écran
+      de travail consulté à bout de bras.
+
+      C'est l'extension d'une règle qui existait déjà pour `statement`, et c'est
+      volontairement la même forme : une ligne dans un contrôle qui tourne, pas
+      une consigne de plus à retenir. Sans elle, la séparation ne tiendrait que
+      par la discipline — et une échelle voisine, disponible et plus grande, se
+      fait toujours emprunter un jour.
+    */
+    if (estEspacePro && /(^|[\s"'`])site-[a-z-]+([\s"'`]|$)/.test(classes)) {
+      signaler(
+        chemin,
+        n,
+        'echelle-du-site-dans-l-app',
+        'l’échelle `site-*` appartient au site public ; l’app a `display`, `titre` et `chiffre-heros`',
+      )
+    }
+    if (estEspacePro && /--text-site-|--leading-site-|--font-weight-site-/.test(ligne)) {
+      signaler(
+        chemin,
+        n,
+        'echelle-du-site-dans-l-app',
+        'les jetons `--*-site-*` ne s’emploient pas dans l’espace pro',
+      )
+    }
+
     // ④ Zone tactile de 44 px sur tout élément interactif.
     if (/<(button|Link)\b/.test(ligne) || /type="submit"/.test(ligne)) {
       const maigre = /\bpy-(0|0\.5|1|1\.5|2)\b/.test(classes)

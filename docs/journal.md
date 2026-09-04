@@ -20,6 +20,115 @@ _Rien en attente : les trois questions ouvertes ont été tranchées le 03/09._
 
 ---
 
+## 2026-09-05 (16) Étape : dernière passe design, puis vérification avant recette
+
+**Fait :**
+
+### La livraison design du 04/09 à 23 h 51, appliquée par la procédure
+
+Premier usage réel de « rendre et regarder » sur trois planches d'un coup. Elle a
+d'abord dû être outillée davantage : **la planche et l'écran ne se rendent pas à la
+même largeur**. Une planche est un document, avec ses annotations en marge et son
+cadre de maquette ; la rendre à 390 pour comparer un écran mobile ne la montre pas,
+elle la comprime — et on compare alors deux déformations. `planche:rendre` accepte
+maintenant `--largeur`, qui s'applique à l'ÉCRAN, la planche gardant la sienne.
+
+### L'encre à 55 % est devenue une règle, pas une retouche
+
+Design a posé du prune à **55 %, quatorze fois** — précisément la valeur que le
+projet a quittée le 03/09, quand 61 occurrences sous AA sont passées de 55 à 65 %.
+Elle sert sur du texte de 11 à 12,5 px, donc sans l'exemption grand texte.
+
+La substitution est écrite dans `planche:check` : le 55 % de la planche se lit
+`texte-attenue`, et **le 55 % lui-même est refusé sur la page**. Écrite là plutôt
+qu'appliquée une fois, elle survit à la prochaine réextraction.
+
+Elle a immédiatement trouvé quatre libellés des vignettes en `texte-secondaire`
+(72 %) : ils passaient AA, mais **aplatissaient deux niveaux d'atténuation en un**.
+Le libellé secondaire pesait autant que le principal.
+
+### L'échelle du site entre dans les jetons ratifiés
+
+La question ouverte de l'entrée (13) est tranchée : le rendu de la home fait foi.
+Le mécanisme retenu n'est ni d'élargir les jetons partagés — l'app en aurait hérité
+— ni de garder la table locale, qui n'est pas une source de vérité. L'échelle du
+site est donc dans `wiggy-tokens.json` sous `typoSite`, en classes `site-*`, et
+`design:check` refuse ces classes ET ces jetons dans l'espace pro. C'est l'extension
+d'une règle qui existait déjà pour `statement`.
+
+**Un défaut latent au passage :** `.chiffre-heros`, que j'avais montée à 120 px pour
+la home, n'est plus employée par personne. Réservée à l'app par `design:check`, elle
+aurait donné une taille de page de vente au premier écran de travail qui s'en serait
+servi. Ramenée à `--text-display`.
+
+### Deux planches mobiles n'avaient jamais été comparées
+
+`planche:check` est né sur 19a, en 1280. **19b et 19c n'avaient jamais été lues.**
+
+- **19b, la grille de prix en 390** : les noms sont des pastilles prune en capitales
+  et non des titres, le bouton est **prune** et non miel — en miel, il se disputait
+  le rôle du badge « La préférée » juste au-dessus — et le prix est à **50 px fixes**,
+  là où je servais `display`, dont le plancher responsive tombe à 34 px en 390.
+- **19c, la timeline en 390 : elle n'existait pas.** Le mobile servait le traitement
+  large. La planche la recompose en verticale, avec un rail à pastilles et le libellé
+  de trajet **posé à cheval sur le trait**. La différence n'est pas décorative : sous
+  une carte, le libellé se lit comme une note de cette carte ; dans le trait, il se
+  lit comme ce qu'il est, le temps ENTRE deux rendez-vous.
+
+### Le contrôle du bloc invisible passe désormais sur les 33 écrans
+
+C'est le seul critère de `planche:check` qui **ne dépend d'aucune planche**. Il n'y
+avait aucune raison de le laisser sur la home. Il a trouvé deux défauts réels :
+
+1. la note « Rien de tout ça n'est obligatoire » de l'import de clientes était crème
+   sur crème — il ne restait qu'un paragraphe nu là où la planche pose une note ;
+2. **l'avatar de l'en-tête d'écran pouvait être prune sur prune.** `EnteteEcran` est
+   toujours sur fond prune et `pastillePour` peut rendre prune : l'avatar disparaissait
+   entièrement, ne laissant flotter que son initiale. **Ça dépendait du PRÉNOM de la
+   pro** — donc invisible en développement, et visible seulement chez certaines.
+
+### L'état des lieux
+
+`docs/etat-des-lieux-recette.md`, le livrable attendu. Il dit ce qui est recettable,
+ce que je sais fragile, les 25 lignes jamais cliquées classées par risque, et ce que
+j'ai choisi de ne pas corriger avec le motif.
+
+Son point le plus important : **53 planches existent, une seule est lue par un
+contrôle.** Ce n'est pas une négligence ponctuelle mais une asymétrie structurelle —
+les textes sont exacts parce qu'un script les extrait, la composition n'a eu son
+premier contrôle que le 04/09. Les raisons pour lesquelles il ne s'étend pas seul aux
+écrans de l'app y sont écrites, plutôt que contournées.
+
+**Décisions :** aucune de mon fait. Trois arbitrages de Morgan sont appliqués :
+l'échelle du site (③), l'encre à 55 % (②), et les encres d'illustration de l'avatar,
+laissées hors des jetons.
+
+**Écarts au brief :** aucun. Rien n'a été ajouté : les corrections portent sur des
+planches livrées, et le seul élargissement — le bloc invisible sur tous les écrans —
+est l'extension d'un contrôle existant, pas une fonctionnalité.
+
+**Questions ouvertes :** cinq, listées au §6 de l'état des lieux. Trois se sont
+fermées avec ce lot.
+
+**À recetter par Morgan :**
+
+1. **Lis `docs/etat-des-lieux-recette.md` en premier.** Il est fait pour être lu
+   avant de cliquer, pas après.
+2. **La grille de prix sur un téléphone** : pastilles, bouton prune, prix sur une
+   seule ligne.
+3. **La bande « 5 à 10 h » sur un téléphone** : le rail vertical, les pastilles de
+   trajet à cheval sur le trait.
+4. **Mets `bg-fond` à une carte d'un écran de l'app**, puis `npm run vues` : il
+   signale le bloc invisible en nommant l'écran et la couleur.
+5. **Emploie une classe `site-*` dans l'espace pro**, puis `npm run design:check` :
+   il refuse.
+6. **Repose du prune à 55 % sur la home**, puis `npm run planche:check` : il refuse.
+
+**Statut à reporter dans la roadmap :** le site public : « conforme à 19a, 19b et
+19c du 04/09 23 h 51 ». Le reste attend la recette.
+
+---
+
 ## 2026-09-04 (15) Étape : les avatars, le bloc Ambassadrices, la FAQ et les ancres
 
 **Fait :** première application complète de la procédure de l'entrée (14), sur la planche 19a

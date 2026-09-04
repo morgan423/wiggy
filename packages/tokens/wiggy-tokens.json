@@ -141,6 +141,76 @@
     },
     "$regle": "chaque taille est le plafond grand écran — implémentation clamp(60 % du token, fluide, token), fixe sous 40 px"
   },
+  "typoSite": {
+    "$description": "L'ÉCHELLE DU SITE PUBLIC, distincte de celle de l'app. Ratifiée le 04/09 : le rendu de la home fait foi, la planche 19a avait raison contre les plafonds partagés. Ces jetons ne sont JAMAIS employés dans l'espace pro — `design:check` le refuse. Sans cette séparation, élargir l'échelle pour la home l'aurait imposée à l'app, et une table locale dans la page aurait donné deux sources de vérité pour la typographie.",
+    "claim": {
+      "police": "display",
+      "graisse": 700,
+      "taille": 104,
+      "interligne": 0.95,
+      "wonk": true,
+      "portee": "le titre unique de la home"
+    },
+    "chiffreMajeur": {
+      "police": "display",
+      "graisse": 700,
+      "taille": 120,
+      "interligne": 0.95,
+      "wonk": true,
+      "portee": "« 5 à 10 h » — le chiffre qui porte sa bande"
+    },
+    "chiffreMineur": {
+      "police": "display",
+      "graisse": 700,
+      "taille": 96,
+      "interligne": 0.95,
+      "wonk": true,
+      "portee": "« 50 places » — le second chiffre héros, volontairement moindre"
+    },
+    "relance": {
+      "police": "display",
+      "graisse": 600,
+      "taille": 72,
+      "interligne": 1.02,
+      "portee": "la relance finale, le dernier mot de la page"
+    },
+    "manifeste": {
+      "police": "display",
+      "graisse": 700,
+      "taille": 54,
+      "interligne": 1.08,
+      "wonk": true,
+      "portee": "« Fait pour tous les cheveux »"
+    },
+    "offre": {
+      "police": "display",
+      "graisse": 600,
+      "taille": 48,
+      "interligne": 1.02,
+      "portee": "le titre de la grille de prix"
+    },
+    "bande": {
+      "police": "display",
+      "graisse": 600,
+      "taille": 44,
+      "interligne": 1.02,
+      "portee": "les titres des bandes de contenu"
+    },
+    "question": {
+      "police": "display",
+      "graisse": 600,
+      "taille": 38,
+      "interligne": 1.05,
+      "portee": "la FAQ, plus petite parce qu'on ne la lit pas d'un bloc"
+    },
+    "demo": {
+      "police": "display",
+      "graisse": 600,
+      "taille": 34,
+      "interligne": 1.05,
+      "portee": "la bande de démonstration"
+    }
+  },
   "regles": {
     "serifTailleMinimale": 20,
     "serifInterditeDans": ["agenda", "tournee"],

@@ -383,6 +383,8 @@ async function executer() {
   let echec
   const illisiblesGlobal = []
   const aaGlobal = []
+  /** Blocs arrondis qui ont la couleur de leur fond : signalés, non bloquants. */
+  const blocsInvisibles = []
   const mesures = { hubEnEcrans: null }
   const capturees = []
 
@@ -464,10 +466,56 @@ async function executer() {
           'transition:none !important;}',
       })
 
+      /*
+        ── LE BLOC INVISIBLE, SUR TOUS LES ÉCRANS ────────────────────────────
+
+        Ce contrôle est né dans `planche:check`, qui ne regarde que la home. Il
+        est pourtant le seul de ses critères à NE DÉPENDRE D'AUCUNE PLANCHE :
+        un bloc arrondi qui a exactement la couleur de ce qu'il y a derrière est
+        invisible, quelle que soit la maquette. Il n'y avait donc aucune raison
+        de le laisser sur un seul écran, et une bonne de le passer sur les 33
+        que ce script visite déjà, connecté, avec des comptes semés.
+
+        Le défaut qu'il attrape est silencieux par construction : la carte est
+        déclarée, arrondie, au bon endroit, et l'écran se lit comme du texte nu.
+        Rien n'échoue, et il ne se voit qu'en regardant. Il s'est produit trois
+        fois sur la seule home.
+
+        Non bloquant, et c'est délibéré : sur un écran de travail, une surface
+        volontairement affleurante est un choix défendable, là où sur une page
+        de vente c'en est rarement un. On le SIGNALE, Morgan tranche.
+      */
+      const invisibles = await page.evaluate(() => {
+        const fondPeint = (n) => {
+          for (let e = n; e; e = e.parentElement) {
+            const f = getComputedStyle(e).backgroundColor
+            if (f && f !== 'rgba(0, 0, 0, 0)' && f !== 'transparent') return f
+          }
+          return 'rgb(255, 255, 255)'
+        }
+        const trouves = []
+        for (const e of document.querySelectorAll('*')) {
+          const s = getComputedStyle(e)
+          if (!(Number.parseFloat(s.borderTopLeftRadius) >= 12)) continue
+          const fond = s.backgroundColor
+          if (fond === 'rgba(0, 0, 0, 0)' || fond === 'transparent') continue
+          if (Number.parseFloat(s.borderTopWidth) > 0 && s.borderTopStyle !== 'none') continue
+          if (e.getBoundingClientRect().height === 0) continue
+          if (e.parentElement && fond === fondPeint(e.parentElement)) {
+            trouves.push(
+              `${e.tagName.toLowerCase()} ${fond} « ${(e.textContent ?? '').trim().slice(0, 14)} » — ${String(e.className).slice(0, 46)} DANS ${String(e.parentElement?.className ?? '').slice(0, 60)}`,
+            )
+          }
+        }
+        return [...new Set(trouves)]
+      })
+      for (const q of invisibles) blocsInvisibles.push({ vue: vue.nom, quoi: q })
+
       const fichier = join(DOSSIER, `${vue.nom}.png`)
       await page.screenshot({ path: fichier, fullPage: true })
       capturees.push(vue)
-      const marque = illisibles.length > 0 ? '✖' : souslAA.length > 0 ? '⚠' : '✓'
+      const marque =
+        illisibles.length > 0 ? '✖' : souslAA.length > 0 || invisibles.length > 0 ? '⚠' : '✓'
       console.log(`  ${marque} ${vue.nom}`)
       if (vue.largeur) await page.setViewportSize({ width: 390, height: 844 })
     }
@@ -496,6 +544,16 @@ async function executer() {
   }
 
   console.log(`${capturees.length} vues dans ${DOSSIER}`)
+
+  if (blocsInvisibles.length > 0) {
+    console.warn(
+      `\n⚠ ${String(blocsInvisibles.length)} bloc(s) de la couleur exacte de leur fond, ` +
+        'non bloquant :',
+    )
+    for (const b of blocsInvisibles) console.warn(`   ${b.vue} · ${b.quoi}`)
+  } else {
+    console.log('Blocs : aucun bloc arrondi ne se confond avec son fond.')
+  }
 
   if (aaGlobal.length > 0) {
     console.warn(`\n⚠ ${aaGlobal.length} texte(s) sous le niveau AA, non bloquant :`)

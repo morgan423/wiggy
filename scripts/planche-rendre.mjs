@@ -38,13 +38,20 @@ import { preparerServeur } from './serveur-dev.mjs'
 
 const racine = join(dirname(fileURLToPath(import.meta.url)), '..')
 const SORTIE = join(racine, 'captures/comparaison')
-const LARGEUR = 1400
+/*
+  ⚠️ LA LARGEUR SE CHOISIT, parce que les planches ne parlent pas toutes de la
+  même. 19a est une composition de RÉFÉRENCE en 1180 ; 19b et 19c décrivent le
+  mobile, et les regarder en 1400 ne dirait rien d'elles. Une largeur unique
+  laissait la moitié de la spécification hors de portée de l'outil, donc hors
+  de portée de la comparaison — et ce qui n'est pas comparé dérive.
+*/
+const LARGEUR_PAR_DEFAUT = 1400
 
 /** Les planches et l'écran qu'elles décrivent. À compléter au fil des pages. */
 const ECRANS = {
-  '19a': '/',
-  '19b': '/',
-  '19c': '/',
+  '19a': { url: '/', largeur: 1400 },
+  '19b': { url: '/#tarif', largeur: 390 },
+  '19c': { url: '/', largeur: 390 },
 }
 
 /*
@@ -98,7 +105,7 @@ function planchePreparee(numero) {
   return { adresse: `file://${copie}`, substituees: connus.size }
 }
 
-async function rendre(page, adresse, nom, fenetre) {
+async function rendre(page, adresse, nom, fenetre, largeur) {
   await page.goto(adresse, { waitUntil: 'networkidle' })
   await page.addStyleTag({ content: FIGER })
   // Fraunces charge en différé : capturer trop tôt donne une page en substitut
@@ -141,17 +148,25 @@ async function rendre(page, adresse, nom, fenetre) {
     await page.screenshot({
       path: join(SORTIE, `${nom}-fenetre.png`),
       fullPage: true,
-      clip: { x: 0, y: fenetre.y, width: LARGEUR, height: fenetre.hauteur },
+      clip: { x: 0, y: fenetre.y, width: largeur, height: fenetre.hauteur },
     })
   }
 }
 
 async function executer() {
-  const [numero, yPlanche, yEcran, hauteur] = process.argv.slice(2)
+  // Le drapeau se retire des positionnels : sans ça, `--largeur=390` se faisait
+  // lire comme le décalage de la planche, et la fenêtre partait sans hauteur.
+  const arguments_ = process.argv.slice(2).filter((a) => !a.startsWith('--'))
+  const [numero, yPlanche, yEcran, hauteur] = arguments_
+  const surMesure = process.argv.find((a) => a.startsWith('--largeur='))
+  const largeur = surMesure
+    ? Number(surMesure.slice(10))
+    : (ECRANS[numero]?.largeur ?? LARGEUR_PAR_DEFAUT)
   if (!numero || !(numero in ECRANS)) {
     console.error(
       `Usage : npm run planche:rendre -- <planche> [yPlanche yEcran hauteur]\n` +
-        `Planches connues : ${Object.keys(ECRANS).join(', ')}`,
+        `Planches connues : ${Object.keys(ECRANS).join(', ')}. ` +
+        `Largeur forçable avec --largeur=390.`,
     )
     process.exit(1)
   }
@@ -161,7 +176,7 @@ async function executer() {
   let navigateur
   try {
     navigateur = await chromium.launch({ channel: 'chrome' })
-    const page = await navigateur.newPage({ viewport: { width: LARGEUR, height: 1000 } })
+    const page = await navigateur.newPage({ viewport: { width: largeur, height: 1000 } })
 
     const cadre = hauteur ? { hauteur: Number(hauteur) } : null
     const planche = planchePreparee(numero)
@@ -172,17 +187,29 @@ async function executer() {
           `la planche ne dit pas quel avatar va où.`,
       )
     }
+    /*
+      ⚠️ LA PLANCHE ET L'ÉCRAN NE SE RENDENT PAS À LA MÊME LARGEUR.
+
+      Une planche est un DOCUMENT : elle a sa mise en page, ses annotations en
+      marge, son cadre de maquette. La rendre à 390 pour comparer un écran
+      mobile ne la montre pas telle qu'elle est — elle la comprime, et on
+      compare alors deux déformations. L'écran prend la largeur demandée ; la
+      planche garde la sienne.
+    */
+    const pagePlanche = await navigateur.newPage({ viewport: { width: 1400, height: 1000 } })
     await rendre(
-      page,
+      pagePlanche,
       planche.adresse,
       `planche-${numero}`,
       cadre && yPlanche ? { ...cadre, y: Number(yPlanche) } : null,
+      1400,
     )
     await rendre(
       page,
-      `${serveur.base}${ECRANS[numero]}`,
+      `${serveur.base}${ECRANS[numero].url}`,
       `ecran-${numero}`,
       cadre && yEcran ? { ...cadre, y: Number(yEcran) } : null,
+      largeur,
     )
   } finally {
     await navigateur?.close().catch(() => undefined)

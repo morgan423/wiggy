@@ -6,6 +6,7 @@ import {
   rythmeDeRetourSemaines,
   visitesEffectives,
   depuisQuand,
+  pastilleDansListe,
 } from '@wiggy/core'
 import { copy, remplir } from '@wiggy/copy'
 import { requirePro } from '@/lib/auth'
@@ -134,7 +135,11 @@ export default async function FicheCliente({ params }: { params: Promise<{ id: s
         retour="/app/clientes"
         retourLibelle={F.liste.titre}
         variante="jour"
-        vignette={<Avatar nom={nom} taille="sm" />}
+        vignette={
+          // L'en-tête est prune : la pastille ne peut pas l'être. Voir
+          // `parametrage/page.tsx` pour le détail du défaut.
+          <Avatar nom={nom} taille="sm" pastille={pastilleDansListe(nom, 0, 'prune')} />
+        }
         statement={cliente.first_name}
         sousTitre={
           depuis

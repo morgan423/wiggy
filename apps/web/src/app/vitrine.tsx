@@ -1,3 +1,4 @@
+import { Fragment } from 'react'
 import { copy } from '@wiggy/copy'
 
 const S = copy.siteAccueil
@@ -78,6 +79,23 @@ const LIBELLE = 'text-[12px] font-semibold'
 /** Fraunces 20, la taille que la planche donne au titre d'un écran. */
 const TITRE_ECRAN = 'titre text-[20px]'
 
+/*
+  ⚠️ L'ENCRE LA PLUS PÂLE DES VIGNETTES EST `texte-attenue`, PAS
+  `texte-secondaire`.
+
+  La planche pose ces libellés en prune 55 %, qui n'est un jeton d'aucune sorte
+  et qui tombe à 3,45:1 sur crème — sous AA, à 11 px, donc sans l'exemption
+  grand texte. Le projet a quitté cette valeur le 03/09 en montant l'atténué de
+  55 à 65 %.
+
+  Je les avais tous mis en `texte-secondaire` (72 %), ce qui passait AA mais
+  APLATISSAIT LA HIÉRARCHIE : deux niveaux d'atténuation de la planche se
+  retrouvaient au même gris, et le libellé secondaire pesait autant que le
+  principal. La substitution — 55 % se lit 65 % — garde les deux niveaux
+  distincts ET lisibles. Elle est tenue par `planche:check`, pas par ce
+  commentaire.
+*/
+
 /* ── Le carrousel du héros : carte BLANCHE, rangées CRÈME ─────────────── */
 
 export function VitrineHeros() {
@@ -136,7 +154,7 @@ export function VitrineHeros() {
               </span>
             </p>
             <p className={LIBELLE}>{demande.quoi}</p>
-            <p className="text-[11px] text-texte-secondaire">{demande.ou}</p>
+            <p className="text-[11px] text-texte-attenue">{demande.ou}</p>
           </div>
           {/*
             La planche empile le bouton plein et le lien : elle ne les met pas
@@ -146,7 +164,7 @@ export function VitrineHeros() {
           <p className="rounded-pilule bg-action py-3 text-center text-[13px] font-extrabold text-texte-sur-plein">
             {demande.confirmer}
           </p>
-          <p className="text-center text-[11px] font-semibold text-texte-secondaire">
+          <p className="text-center text-[11px] font-semibold text-texte-attenue">
             {demande.proposer}
           </p>
         </>,
@@ -161,7 +179,7 @@ export function VitrineHeros() {
               <span className="text-[12px] font-bold">{l}</span>
             </p>
           ))}
-          <p className="text-[11px] text-texte-secondaire">{bouclee.conclusion}</p>
+          <p className="text-[11px] text-texte-attenue">{bouclee.conclusion}</p>
         </>,
       ]}
     />
@@ -182,8 +200,9 @@ export function VitrineTournee() {
       ecrans={[
         <>
           <p className={TITRE_ECRAN}>{jour.titre}</p>
+          <TimelineMobile jour={jour} />
           {jour.rdvs.map((r, i) => (
-            <div key={r.heure} className="flex flex-col gap-2.5">
+            <div key={r.heure} className="hidden flex-col gap-2.5 md:flex">
               {/* Le rendez-vous en cours est cerné de framboise ici aussi : la
                   planche marque la même heure dans les deux cartes. */}
               <p className={`${RANGEE} ${i === 1 ? 'border-2 border-action' : ''}`}>
@@ -223,7 +242,7 @@ export function VitrineTournee() {
                 {propose.propose.delai}
               </span>
             </p>
-            <p className="text-[11px] text-texte-secondaire">{propose.propose.libelle}</p>
+            <p className="text-[11px] text-texte-attenue">{propose.propose.libelle}</p>
           </div>
           <p className={RANGEE}>
             <span className={HEURE}>{propose.apres.heure}</span>
@@ -287,5 +306,68 @@ function SemaineEmpilee({ jours }: { jours: readonly string[] }) {
         ))}
       </div>
     </>
+  )
+}
+
+/*
+  ── 19c : LA TIMELINE DE TOURNÉE EN 390 ───────────────────────────────────
+
+  ⚠️ ELLE N'AVAIT JAMAIS ÉTÉ IMPLÉMENTÉE. Le mobile servait le traitement large
+  — « · · · 8 min de trajet » en texte, à gauche sous la carte — parce que rien
+  ne comparait le 390 à sa planche : `planche:check` est né sur 19a, en 1280.
+  Une planche qu'aucun contrôle ne lit dérive sans bruit, et celle-ci n'avait
+  simplement jamais été lue.
+
+  19c recompose la timeline EN VERTICALE : un rail reprend le motif signature
+  (pastilles + pointillé abricot), et le libellé de trajet devient une pastille
+  posée À CHEVAL sur le rail, entre deux cartes. La différence n'est pas
+  décorative : en 390, un libellé de trajet posé sous une carte se lit comme une
+  note appartenant à cette carte ; posé dans le trait, il se lit comme ce qu'il
+  est — le temps ENTRE deux rendez-vous.
+
+  Les trois pastilles disent trois états, et c'est la planche qui les distingue :
+  miel pour le rendez-vous fait, framboise pour celui en cours, et un cercle
+  CREUX bordé d'abricot pour celui à venir. Un plein et un creux, pas deux
+  pleins de teintes voisines.
+
+  ⚠️ AUCUNE PULSATION ICI. Les libellés de trajet du traitement large en
+  portent une ; en ajouter au mobile ferait six éléments pulsants là où la
+  planche en compte trois, et `planche:check` le refuserait — à raison, parce
+  qu'un écran qui clignote de partout ne signale plus rien.
+*/
+const TRAJET_MOBILE =
+  // La planche écrit #FDE3D3, qui n'est pas un jeton. C'est de l'abricot très
+  // dilué : `attente/15` tombe à moins d'un point de la valeur dessinée, et
+  // reste DANS la palette ratifiée plutôt que d'y ajouter une teinte de plus.
+  '-ml-8 self-start rounded-pilule bg-attente/15 px-[11px] py-[5px] text-[11px] font-extrabold text-texte-secondaire'
+
+function TimelineMobile({ jour }: { jour: (typeof V.tournee)['jour'] }) {
+  return (
+    <div className="flex items-stretch gap-3 md:hidden">
+      <div aria-hidden className="flex w-3.5 shrink-0 flex-col items-center">
+        <span className="size-3 rounded-pilule bg-celebration" />
+        <span className="trait-trajet-vertical flex-1" />
+        <span className="size-3 rounded-pilule bg-action" />
+        <span className="trait-trajet-vertical flex-1" />
+        <span className="size-3 rounded-pilule border-[2.5px] border-attente bg-fond" />
+      </div>
+      <div className="flex flex-1 flex-col gap-2">
+        {jour.rdvs.map((r, i) => (
+          <Fragment key={r.heure}>
+            <p
+              className={`flex items-center gap-2.5 rounded-[14px] bg-surface px-[13px] py-[11px] ${
+                i === 1 ? 'border-2 border-action' : ''
+              }`}
+            >
+              <span className={HEURE}>{r.heure}</span>
+              <span className="text-[12.5px] font-semibold">{r.libelle}</span>
+            </p>
+            {i < jour.trajets.length ? (
+              <span className={TRAJET_MOBILE}>{jour.trajets[i]}</span>
+            ) : null}
+          </Fragment>
+        ))}
+      </div>
+    </div>
   )
 }

@@ -35,47 +35,15 @@ const S = copy.siteAccueil
 const DEDANS = 'mx-auto w-full max-w-[1200px] px-14 py-16'
 
 /*
-  ⚠️ LES TITRES DE BANDE N'ONT PAS TOUS LA MÊME TAILLE, et je les servais tous
-  au même palier `display`.
+  Les titres de bande prennent l'échelle du SITE, ratifiée dans les jetons le
+  04/09 (`typoSite`). Elle a vécu ici en table locale le temps de l'arbitrage :
+  la planche écrit sept tailles là où les jetons partagés n'en offraient qu'une,
+  et il fallait savoir qui avait tort. Réponse : la planche.
 
-  La planche en donne SEPT différentes : 44 pour les quatre bandes de contenu,
-  48 pour les prix, 54 pour l'inclusivité, 38 pour la FAQ, 72 pour la relance
-  finale, 104 pour le claim. Elles ne sont pas au hasard : la FAQ se fait plus
-  petite parce qu'elle vient tard et qu'on ne la lit pas d'un bloc ; la relance
-  finale se fait grande parce qu'elle est le dernier mot. Un palier unique à 56
-  écrasait cette respiration — trop gros partout, trop petit sur le claim.
-
-  ⚠️ L'ÉCHELLE RATIFIÉE ET LA PLANCHE SE CONTREDISENT ICI, et je ne tranche pas
-  tout seul : `--text-display` plafonne à 56 et `--text-statement` à 92, quand
-  la planche écrit 44 et 104. Je n'ai donc PAS touché aux jetons, qui servent
-  aussi l'app ; la déviation est locale à cette page et signalée à Morgan.
-
-  La taille est atteinte à 1200 — la mesure de la planche — et décroît sous
-  cette largeur, jusqu'à 62 % sur les petits écrans.
+  Les tailles sont donc devenues des jetons sous leurs propres noms, et la table
+  n'a plus lieu d'être — une source de vérité pour la typographie, pas deux, et
+  l'app pro n'hérite de rien.
 */
-/*
-  ⚠️ LES CLASSES SONT ÉCRITES EN TOUTES LETTRES, ET C'EST OBLIGATOIRE.
-
-  J'avais d'abord CALCULÉ ces clamps depuis la taille en pixels, ce qui se lit
-  très bien et ne marche pas du tout : Tailwind lit le code SOURCE pour savoir
-  quelles classes produire, il ne l'exécute pas. Une classe fabriquée à
-  l'exécution n'existe dans aucune feuille de style — l'attribut est bien posé
-  sur l'élément, l'inspecteur la montre, et elle ne peint rien. Tous les titres
-  retombaient donc sur `display`, à 56, exactement l'état que je croyais avoir
-  corrigé. Constaté en mesurant le rendu, pas en relisant le code.
-
-  Le prix à payer est cette table ; le prix de l'élégance était une correction
-  invisible.
-*/
-const TITRE_DE_BANDE: Record<number, string> = {
-  104: 'display text-[clamp(4.03rem,8.67vw,6.5rem)]',
-  72: 'display text-[clamp(2.79rem,6vw,4.5rem)]',
-  54: 'display text-[clamp(2.093rem,4.5vw,3.375rem)]',
-  44: 'display text-[clamp(1.705rem,3.67vw,2.75rem)]',
-  38: 'display text-[clamp(1.473rem,3.17vw,2.375rem)]',
-  34: 'display text-[clamp(1.318rem,2.83vw,2.125rem)]',
-}
-const titreDeBande = (px: number) => TITRE_DE_BANDE[px]
 
 /**
  * wiggy.fr — la home. Planche 19a (composition de référence, 1180), plus les
@@ -179,7 +147,7 @@ function Hero() {
         <div className="flex max-w-[660px] flex-1 flex-col gap-[22px] md:flex-[1.5]">
           {/* H1 UNIQUE de la page, sur le claim. Toutes les autres sections
               ouvrent en h2 : c'est la seule hiérarchie que le SEO comprend. */}
-          <h1 className={`${titreDeBande(104)} statement tracking-tight`}>{S.hero.claim}</h1>
+          <h1 className="site-claim tracking-tight">{S.hero.claim}</h1>
           <p className="max-w-[40ch] text-xl leading-[1.5] text-texte-secondaire">
             {S.hero.sousTitre}
           </p>
@@ -283,7 +251,7 @@ function Probleme() {
   return (
     <section data-bande="probleme" data-apparait className="bg-surface">
       <div className={`${DEDANS} flex flex-col gap-7`}>
-        <h2 className={`${titreDeBande(44)} max-w-[22ch] tracking-tight`}>{S.probleme.titre}</h2>
+        <h2 className="site-bande max-w-[22ch] tracking-tight">{S.probleme.titre}</h2>
         {/*
           ⚠️ CARTES CRÈME SUR BANDE BLANCHE — je les avais mises en `bg-surface`,
           c'est-à-dire exactement la couleur de leur bande : les cartes
@@ -330,7 +298,7 @@ function Tournee() {
           s'étirait jusqu'à la carte et la ligne devenait trop longue à lire.
         */}
         <div className="flex flex-1 flex-col gap-2 md:flex-[1.4]">
-          <p className="chiffre-heros text-celebration">{S.probleme.chiffre}</p>
+          <p className="site-chiffre-majeur text-celebration">{S.probleme.chiffre}</p>
           {/*
             La planche écrit 34 pour la légende et 30 pour le titre : la légende
             est PLUS GROSSE que le titre qu'elle précède. Je l'avais commenté
@@ -367,7 +335,7 @@ function Fonctions() {
   return (
     <section data-bande="fonctions" data-apparait className="bg-fond">
       <div className={`${DEDANS} flex flex-col gap-6`}>
-        <h2 className={`${titreDeBande(44)} tracking-tight`}>{S.fonctions.titre}</h2>
+        <h2 className="site-bande tracking-tight">{S.fonctions.titre}</h2>
         {/* Ici l'inverse : bande crème, cartes blanches. Le titre est en
             Fraunces 20, d'un cran sous celui de « Le soir ». */}
         <div className="grid gap-[18px] md:grid-cols-3">
@@ -415,9 +383,7 @@ function Inclusivite() {
           diametre={112}
           className="ml-1.5 rotate-[4deg] shadow-[0_10px_28px_rgba(69,23,60,0.18)]"
         />
-        <p
-          className={`${titreDeBande(54)} max-w-[21ch] tracking-tight [font-variation-settings:var(--wonk)]`}
-        >
+        <p className="site-manifeste max-w-[21ch] tracking-tight">
           {avant}
           <span className="text-action">tous les cheveux</span>
           {apres}
@@ -433,7 +399,7 @@ function Etapes() {
   return (
     <section data-bande="etapes" data-apparait className="bg-action text-texte-sur-plein">
       <div className={`${DEDANS} flex flex-col gap-6`}>
-        <h2 className={`${titreDeBande(44)} tracking-tight`}>{S.etapes.titre}</h2>
+        <h2 className="site-bande tracking-tight">{S.etapes.titre}</h2>
         {/*
           ⚠️ IL N'Y A PAS DE CARTE ICI, et j'en avais posé trois.
 
@@ -482,7 +448,7 @@ function Avis() {
   return (
     <section data-bande="avis" data-apparait className="bg-fond">
       <div className={`${DEDANS} flex flex-col gap-5`}>
-        <h2 className={`${titreDeBande(44)} tracking-tight`}>{S.avis.titre}</h2>
+        <h2 className="site-bande tracking-tight">{S.avis.titre}</h2>
         {/*
           Hauteurs ALIGNÉES : trois citations de longueurs différentes donnaient
           trois cartes en escalier, et le regard lisait le désordre avant les
@@ -579,7 +545,7 @@ function Ambassadrices({ restantes }: { restantes: number }) {
           </p>
           {/* 96 ici, contre 120 dans la bande tournée : les deux chiffres
               héros de la page n'ont pas le même poids, et la planche le dit. */}
-          <p className="chiffre-heros text-[clamp(3.72rem,8vw,6rem)]">{S.ambassadrices.places}</p>
+          <p className="site-chiffre-mineur">{S.ambassadrices.places}</p>
           <p className="max-w-[50ch] text-[15px] leading-[1.6]">
             <strong className="font-extrabold">{S.ambassadrices.titre1}</strong>{' '}
             {S.ambassadrices.texte1}{' '}
@@ -637,7 +603,7 @@ function Faq() {
   return (
     <section data-bande="faq" data-apparait id="faq" className="bg-surface">
       <div className={`${DEDANS} flex flex-col gap-2.5`}>
-        <h2 className={`${titreDeBande(38)} tracking-tight`}>{S.faq.titre}</h2>
+        <h2 className="site-question tracking-tight">{S.faq.titre}</h2>
         {/*
           Les réponses sont TOUJOURS visibles. La planche les montre en clair, et
           une FAQ qui se replie oblige à chercher : la question qu'on se pose
@@ -684,7 +650,7 @@ function Final() {
       <section data-bande="demo" data-apparait id="demo" className="bg-prune text-texte-sur-plein">
         <div className={`${DEDANS} flex flex-col items-center gap-12 md:flex-row`}>
           <div className="flex flex-1 flex-col gap-2.5">
-            <h2 className={`${titreDeBande(34)} tracking-tight`}>{S.final.demoTitre}</h2>
+            <h2 className="site-demo tracking-tight">{S.final.demoTitre}</h2>
             <p className="text-[15px]">{S.final.demoTexte}</p>
           </div>
           {/*
@@ -725,7 +691,7 @@ function Final() {
       */}
       <section data-bande="final" data-apparait className="bg-fond">
         <div className="mx-auto flex w-full max-w-[1200px] flex-col items-start gap-4.5 px-14 py-[72px]">
-          <h2 className={`${titreDeBande(72)} max-w-[18ch] tracking-tight`}>{S.final.titre}</h2>
+          <h2 className="site-relance max-w-[18ch] tracking-tight">{S.final.titre}</h2>
           <Link
             href="/inscription"
             className="tactile rounded-pilule bg-action px-[34px] py-[18px] text-[17px] font-bold text-texte-sur-plein hover:bg-action-survol"

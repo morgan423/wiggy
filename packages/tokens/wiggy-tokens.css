@@ -68,6 +68,35 @@
   --leading-$regle: undefined;
   --font-weight-$regle: undefined;
 
+  /* Échelle du SITE PUBLIC — jamais employée dans l’espace pro */
+  --text-site-claim: clamp(3.875rem, 13.0vw, 6.5rem);
+  --leading-site-claim: 0.95;
+  --font-weight-site-claim: 700;
+  --text-site-chiffre-majeur: clamp(4.5rem, 15.0vw, 7.5rem);
+  --leading-site-chiffre-majeur: 0.95;
+  --font-weight-site-chiffre-majeur: 700;
+  --text-site-chiffre-mineur: clamp(3.625rem, 12.0vw, 6rem);
+  --leading-site-chiffre-mineur: 0.95;
+  --font-weight-site-chiffre-mineur: 700;
+  --text-site-relance: clamp(2.6875rem, 9.0vw, 4.5rem);
+  --leading-site-relance: 1.02;
+  --font-weight-site-relance: 600;
+  --text-site-manifeste: clamp(2rem, 6.8vw, 3.375rem);
+  --leading-site-manifeste: 1.08;
+  --font-weight-site-manifeste: 700;
+  --text-site-offre: clamp(1.8125rem, 6.0vw, 3rem);
+  --leading-site-offre: 1.02;
+  --font-weight-site-offre: 600;
+  --text-site-bande: clamp(1.625rem, 5.5vw, 2.75rem);
+  --leading-site-bande: 1.02;
+  --font-weight-site-bande: 600;
+  --text-site-question: 2.375rem;
+  --leading-site-question: 1.05;
+  --font-weight-site-question: 600;
+  --text-site-demo: 2.125rem;
+  --leading-site-demo: 1.05;
+  --font-weight-site-demo: 600;
+
   /* Points de rupture */
   --breakpoint-sm: 480px;
   --breakpoint-md: 768px;
