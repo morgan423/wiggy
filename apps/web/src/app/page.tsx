@@ -5,7 +5,9 @@ import { placesAmbassadricesRestantes } from '@wiggy/core'
 import { sectionAvisAffichable, temoignagesDePlanche } from '@/lib/avis-placeholder'
 import { BalisageHome } from './balisage-home'
 import { Apparitions } from '@/components/apparitions'
-import { Avatar, VitrineHeros, VitrineTournee } from './vitrine'
+import { VitrineHeros, VitrineTournee } from './vitrine'
+import { Avatar } from '@/components/avatar'
+import { AVATAR_HEROS, AVATAR_INCLUSIVITE, AVATARS_AVIS, AVATARS_AMBASSADRICES } from '@wiggy/core'
 import { GrillePrix } from './grille-prix'
 
 const S = copy.siteAccueil
@@ -217,7 +219,20 @@ function Hero() {
         */}
         <div className="relative w-full shrink-0 md:w-[320px]">
           <VitrineHeros />
-          <Avatar />
+          {/*
+            L'avatar déborde du coin bas-gauche de la carte. Il était dessiné
+            à la main en cinq blocs pleins, faute d'illustration livrée ; les
+            huit personnages sont arrivés le 04/09 et le dessin part avec.
+
+            Caché sous `md` : la carte y prend toute la largeur, et un débord
+            de 22 px sortirait de l'écran en poussant un défilement horizontal.
+          */}
+          <Avatar
+            nom={S.vitrine.heros.tournee.titre}
+            illustration={AVATAR_HEROS}
+            diametre={76}
+            className="absolute -bottom-[22px] -left-[22px] hidden shadow-[0_4px_14px_rgba(69,23,60,0.25)] md:block"
+          />
         </div>
       </div>
     </section>
@@ -390,7 +405,16 @@ function Inclusivite() {
   const [avant, apres] = S.hero.inclusivite.split('tous les cheveux')
   return (
     <section data-bande="inclusivite" data-apparait className="bg-fond">
-      <div className="mx-auto w-full max-w-[1200px] px-14 pb-[72px]">
+      <div className="mx-auto flex w-full max-w-[1200px] flex-col items-start gap-6 px-14 pb-[72px]">
+        {/* La planche incline l'avatar de 4 degrés et l'ombre : posé droit, il
+            avait l'air d'une vignette de profil ; penché, c'est une photo
+            épinglée. Le détail fait tout le ton de la bande. */}
+        <Avatar
+          nom={S.hero.inclusivite}
+          illustration={AVATAR_INCLUSIVITE}
+          diametre={112}
+          className="ml-1.5 rotate-[4deg] shadow-[0_10px_28px_rgba(69,23,60,0.18)]"
+        />
         <p
           className={`${titreDeBande(54)} max-w-[21ch] tracking-tight [font-variation-settings:var(--wonk)]`}
         >
@@ -477,11 +501,7 @@ function Avis() {
                   En miel plein, trois pastilles vives tiraient l'œil vers les
                   initiales au lieu des témoignages.
                 */}
-                <span className="flex size-10 shrink-0 items-center justify-center rounded-pilule bg-trait-discret">
-                  <span className="titre text-[17px] text-texte-attenue">
-                    {t.prenom.slice(0, 1)}
-                  </span>
-                </span>
+                <Avatar nom={t.prenom} illustration={AVATARS_AVIS[t.prenom]} diametre={40} />
                 <span className="text-[12.5px]">
                   <span className="block font-bold">{t.prenom}</span>
                   <span className="text-texte-attenue">{t.contexte}</span>
@@ -500,6 +520,35 @@ function Avis() {
 }
 
 /* ── 9. Le programme Ambassadrices ────────────────────────────────────── */
+
+/**
+ * La médaille du programme, telle que la planche 19a révisée la dessine.
+ *
+ * Cinq blocs pleins, aucune image : deux rubans framboise inclinés qui
+ * dépassent par le bas, un disque prune, un anneau miel en tirets, et un W en
+ * Fraunces. Rien à charger, rien à faire signer, et elle suit la couleur du
+ * texte sans qu'on la redessine.
+ *
+ * Décorative de bout en bout : `aria-hidden`. Le programme est déjà nommé par
+ * l'étiquette « Programme Ambassadrices » juste à côté ; faire relire « W » par
+ * un lecteur d'écran n'ajouterait rien et couperait la phrase.
+ */
+function Medaille() {
+  return (
+    <div aria-hidden className="relative h-[106px] w-[92px]">
+      {/* Les deux rubans, sous le disque et inclinés en sens contraire. */}
+      <span className="absolute bottom-0 left-[19px] h-8 w-[15px] rotate-[16deg] rounded-[3px] bg-action" />
+      <span className="absolute right-[19px] bottom-0 h-8 w-[15px] -rotate-[16deg] rounded-[3px] bg-action" />
+      <span className="absolute top-0 left-0.5 flex size-[88px] items-center justify-center rounded-pilule bg-prune shadow-[0_6px_18px_rgba(69,23,60,0.28)]">
+        <span className="flex size-[72px] items-center justify-center rounded-pilule border-2 border-dashed border-celebration">
+          <span className="titre text-[34px] text-celebration [font-variation-settings:var(--wonk)]">
+            W
+          </span>
+        </span>
+      </span>
+    </div>
+  )
+}
 
 function Ambassadrices({ restantes }: { restantes: number }) {
   /*
@@ -541,12 +590,42 @@ function Ambassadrices({ restantes }: { restantes: number }) {
             {remplir(S.gabarits.ambassadricesMention, { restantes: String(restantes) })}
           </p>
         </div>
-        <Link
-          href="/inscription"
-          className="tactile shrink-0 rounded-pilule bg-prune px-[34px] py-[18px] text-[17px] font-bold text-texte-sur-plein"
-        >
-          {S.ambassadrices.action}
-        </Link>
+        {/*
+          ⚠️ LA COLONNE DE DROITE N'EST PLUS UN BOUTON SEUL.
+
+          La planche révisée y empile trois choses centrées : une MÉDAILLE,
+          le TRIO d'ambassadrices, puis le bouton. Le bouton posé seul face à
+          un pavé de texte laissait la moitié droite de la bande vide — c'est
+          la seule bande de la page où le miel occupe toute la largeur, et ce
+          vide s'y voyait plus qu'ailleurs.
+        */}
+        <div className="flex flex-1 flex-col items-center gap-[18px]">
+          <Medaille />
+          {/*
+            Les trois se chevauchent de 12 px et portent un anneau miel de 3 px,
+            qui les détache les uns des autres autant que du fond. Sans anneau,
+            trois disques qui se recouvrent forment une tache.
+          */}
+          <div className="flex">
+            {AVATARS_AMBASSADRICES.map((id, i) => (
+              <Avatar
+                key={id}
+                nom=""
+                illustration={id}
+                diametre={48}
+                className={`border-[3px] border-celebration ${
+                  i < AVATARS_AMBASSADRICES.length - 1 ? '-mr-3' : ''
+                }`}
+              />
+            ))}
+          </div>
+          <Link
+            href="/inscription"
+            className="tactile shrink-0 rounded-pilule bg-prune px-[34px] py-[18px] text-[17px] font-bold text-texte-sur-plein"
+          >
+            {S.ambassadrices.action}
+          </Link>
+        </div>
       </div>
     </section>
   )
@@ -564,9 +643,29 @@ function Faq() {
           une FAQ qui se replie oblige à chercher : la question qu'on se pose
           n'est jamais celle qu'on ouvrirait en premier.
         */}
-        <div className="mt-3 grid items-start gap-2.5 md:grid-cols-2">
+        {/*
+          ⚠️ UN FLUX EN COLONNES, PAS UNE GRILLE.
+
+          Une grille aligne ses RANGÉES : la hauteur d'une rangée est celle de
+          sa plus haute carte, si bien qu'une question courte laisse un blanc
+          sous elle et que la suivante attend la plus longue pour démarrer.
+          `items-start` ne change rien à ça — il colle la carte en haut de sa
+          rangée et laisse le blanc dessous. Résultat : des écarts inégaux d'une
+          question à l'autre, et deux colonnes qui se regardent au lieu de se
+          lire.
+
+          `columns` fait couler les cartes les unes sous les autres avec
+          TOUJOURS le même écart, chaque colonne remplie indépendamment. C'est
+          ce que la planche montre, et c'est aussi la seule façon d'avoir un
+          écart constant sans imposer une hauteur commune aux réponses.
+
+          `break-inside-avoid` empêche une carte d'être coupée en deux par le
+          passage à la colonne suivante — sans lui, une question se retrouve en
+          haut d'une colonne et sa réponse en bas de l'autre.
+        */}
+        <div className="mt-3 -mb-2.5 md:columns-2 md:gap-2.5">
           {S.faq.questions.map((q) => (
-            <div key={q.q} className="rounded-[16px] bg-fond px-4 py-3.5">
+            <div key={q.q} className="mb-2.5 break-inside-avoid rounded-[16px] bg-fond px-4 py-3.5">
               <p className="text-[13.5px] font-bold">{q.q}</p>
               <p className="mt-1.5 text-[13px] leading-[1.5] text-texte-secondaire">{q.r}</p>
             </div>

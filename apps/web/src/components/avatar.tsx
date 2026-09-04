@@ -2,6 +2,8 @@ import Image from 'next/image'
 import {
   initiale,
   pastillePour,
+  estUneIllustration,
+  urlIllustration,
   TEXTE_SUR_PASTILLE,
   sourceAvatar,
   type Pastille,
@@ -10,18 +12,20 @@ import {
 /**
  * Avatar à trois sources : photo réelle > illustration > initiale sur pastille.
  *
- * Les 8 personnages du système ne sont pas encore dessinés. Le registre
- * ci-dessous est volontairement vide : le jour où les illustrations arrivent,
- * on le remplit et tous les avatars du produit basculent — aucun écran à
- * retoucher.
+ * Les huit personnages sont **arrivés le 04/09**. Le registre qui les attendait
+ * était vide ; il n'y a eu qu'à le remplir, et tous les avatars du produit
+ * basculent sans qu'aucun écran soit retouché — c'était l'intention.
+ *
+ * ⚠️ **La pastille fait partie de l'image.** Les fichiers livrés portent leur
+ * disque de couleur peint dedans. On ne la recolore pas, on ne la découpe pas :
+ * la variante sur fond transparent n'existe pas encore, et la simuler en
+ * rognant le fichier donnerait un bord sale sur toutes les surfaces claires.
+ * Si un écran en a besoin, ça se signale à Design — ça ne se bricole pas.
+ *
+ * ⚠️ **Ce sont des ILLUSTRATIONS, jamais des photos de personnes réelles.**
+ * Elles ne remplacent pas la photo d'une pro : elles tiennent sa place tant
+ * qu'elle n'en a pas mis une. D'où l'ordre des sources, inchangé.
  */
-
-/**
- * Registre des illustrations, à remplir quand elles seront livrées.
- * Clé = identifiant du personnage (awa, marc, jeanne, lou, karim, elsa,
- * theo, nadia).
- */
-const ILLUSTRATIONS: Record<string, React.ComponentType<{ className?: string }>> = {}
 
 const FOND: Record<Pastille, string> = {
   action: 'bg-action',
@@ -33,6 +37,16 @@ const TEXTE: Record<'surPlein' | 'surMiel', string> = {
   surPlein: 'text-texte-sur-plein',
   surMiel: 'text-texte-sur-miel',
 }
+
+/**
+ * Quel fichier servir pour un diamètre d'affichage donné.
+ *
+ * Deux tailles sont livrées, et le choix se DÉDUIT : au-delà de 80 px, le 160
+ * se verrait pixelisé sur un écran à double densité ; en dessous, le 320 ferait
+ * charger quatre fois le poids utile. Laisser l'appelant choisir son fichier,
+ * c'était ouvrir la porte à une troisième taille qui n'existe pas.
+ */
+const fichierPour = (id: string, px: number) => urlIllustration(id, px > 80 ? 320 : 160)
 
 export type TailleAvatar = 'xs' | 'sm' | 'md' | 'lg'
 
@@ -51,36 +65,62 @@ export function Avatar({
   photoUrl,
   illustration,
   taille = 'md',
+  diametre,
   pastille,
   className = '',
 }: {
   nom: string
   photoUrl?: string | null
-  /** Identifiant d'un des 8 personnages, quand ils existeront. */
+  /** Identifiant d'un des huit personnages : awa, marc, jeanne, lou… */
   illustration?: string | null
   taille?: TailleAvatar
+  /**
+   * Diamètre en pixels, pour les **compositions du site public seulement**.
+   *
+   * La planche 19a pose quatre diamètres — 40, 48, 76, 112 — qui n'appartiennent
+   * pas à l'échelle du produit : ce sont des choix de mise en page, pas des
+   * tailles d'interface. Les inscrire dans `TAILLES` aurait fait passer une
+   * composition de page pour une règle du système. Dans le produit, on prend
+   * `taille`, et rien d'autre.
+   */
+  diametre?: number
   /** Force la couleur — sert à éviter deux pastilles identiques côte à côte. */
   pastille?: Pastille
   className?: string
 }) {
-  const { px, classe } = TAILLES[taille]
-  const Illustration = illustration ? ILLUSTRATIONS[illustration] : undefined
-  // Une illustration annoncée mais absente du registre retombe sur l'initiale
+  const px = diametre ?? TAILLES[taille].px
+  const classe = diametre ? '' : TAILLES[taille].classe
+  const mesure = diametre ? { width: px, height: px } : undefined
+
+  // Une illustration annoncée mais absente du catalogue retombe sur l'initiale
   // plutôt que d'afficher un trou.
-  const source = sourceAvatar({ photoUrl, illustration: Illustration ? illustration : null })
+  const connue = illustration && estUneIllustration(illustration) ? illustration : null
+  const source = sourceAvatar({ photoUrl, illustration: connue })
   const rond = `overflow-hidden rounded-pilule shrink-0 ${classe} ${className}`
 
   if (source === 'photo' && photoUrl) {
     return (
-      <Image src={photoUrl} alt={nom} width={px} height={px} className={`${rond} object-cover`} />
+      <Image
+        src={photoUrl}
+        alt={nom}
+        width={px}
+        height={px}
+        style={mesure}
+        className={`${rond} object-cover`}
+      />
     )
   }
 
-  if (source === 'illustration' && Illustration) {
+  if (source === 'illustration' && connue) {
     return (
-      <span className={rond} role="img" aria-label={nom}>
-        <Illustration className="size-full" />
-      </span>
+      <Image
+        src={fichierPour(connue, px)}
+        alt={nom}
+        width={px}
+        height={px}
+        style={mesure}
+        className={rond}
+      />
     )
   }
 
@@ -89,6 +129,7 @@ export function Avatar({
     <span
       role="img"
       aria-label={nom}
+      style={mesure}
       className={`${rond} ${FOND[teinte]} ${TEXTE[TEXTE_SUR_PASTILLE[teinte]]} flex items-center justify-center font-semibold`}
     >
       {/* L'initiale n'est pas relue par le lecteur d'écran : aria-label porte

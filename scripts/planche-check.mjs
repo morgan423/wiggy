@@ -25,7 +25,9 @@
 //
 //   ④ un bloc arrondi de la couleur exacte de son fond est INVISIBLE ;
 //   ⑤ la largeur utile d'une bande dit si les marges sont dans la mesure ;
-//   ⑥ les tailles de texte de la planche sont exigées, mesurées sur le rendu.
+//   ⑥ les tailles de texte de la planche sont exigées, mesurées sur le rendu ;
+//   ⑦ les images de la planche, en nombre, en diamètre, et CHARGÉES ;
+//   ⑧ les ancres de l'en-tête atterrissent SOUS l'en-tête collant.
 //
 // Le point commun des trois est ce qui les rendait indétectables à la relecture :
 // dans les trois cas le code était juste à lire et faux à l'écran. Une classe
@@ -114,6 +116,9 @@ async function executer() {
   const serveur = await preparerServeur(3013)
   const echecs = []
   let compares = 0
+  const planche = readFileSync(PLANCHE, 'utf8')
+  let rendus = []
+  let liens = []
   let navigateur
 
   try {
@@ -365,7 +370,6 @@ async function executer() {
       finit par se tromper.
     */
     const deLaPlanche = new Map()
-    const planche = readFileSync(PLANCHE, 'utf8')
     for (const m of planche.matchAll(
       /font-family: Fraunces[^"]*?font-size: ([0-9.]+)px[^"]*"[^>]*>([^<]{4,80})</g,
     )) {
@@ -402,6 +406,154 @@ async function executer() {
           'tailles ne couvre plus rien, il faut le réparer avant de le croire.',
       )
     }
+    /*
+      ── ⑦ LES AVATARS DE LA PLANCHE ────────────────────────────────────────
+
+      La planche révisée du 04/09 pose HUIT images : l'avatar au coin de la
+      carte du héros (76), celui de la bande « tous les cheveux » (112), les
+      trois des cartes d'avis (40), et le trio du programme Ambassadrices (48).
+      On compare la SUITE DES DIAMÈTRES, relevée sur la planche : c'est une
+      liste de nombres, insensible au rendu, et elle attrape aussi bien un
+      avatar oublié qu'un avatar posé à la mauvaise taille.
+
+      ⚠️ ET ON EXIGE QU'ELLES SE SOIENT CHARGÉES. Une image absente ne casse
+      rien : elle laisse un trou, la page reste valide, les tests passent, et
+      on ne le voit qu'en regardant. `naturalWidth` vaut 0 dans ce cas, et
+      c'est la seule propriété qui distingue une image affichée d'une image
+      promise.
+
+      ⚠️ CE QUE CETTE BRANCHE NE COUVRE PAS, et je l'ai vérifié plutôt que de
+      le supposer : un fichier RETIRÉ du dépôt ne la déclenche pas en local.
+      Next garde les images optimisées dans `.next/cache`, et sert la copie.
+      Le manque de fichier est donc attrapé ailleurs, et mieux : `design:check`
+      compare le manifeste aux fichiers réellement présents, sans navigateur et
+      sans cache. Ici on attrape ce qui survit jusqu'au navigateur — un chemin
+      malformé, une taille inventée, une image que le serveur refuse.
+    */
+    const attendusAvatars = [...planche.matchAll(/<img[^>]*\swidth="(\d+)"/g)]
+      .map((m) => Number(m[1]))
+      .sort((a, b) => a - b)
+
+    const avatars = await page.evaluate(async () => {
+      const images = [...document.querySelectorAll('img')]
+      for (const image of images) image.loading = 'eager'
+      await Promise.all(
+        images.map((image) =>
+          image.complete
+            ? Promise.resolve()
+            : new Promise((fini) => {
+                image.addEventListener('load', fini, { once: true })
+                image.addEventListener('error', fini, { once: true })
+              }),
+        ),
+      )
+      return images.map((image) => ({
+        /*
+          ⚠️ `offsetWidth`, PAS `getBoundingClientRect()`. Le second rend le
+          rectangle englobant APRÈS transformation : l'avatar de la bande
+          « tous les cheveux » est incliné de 4 degrés, et son englobant fait
+          120 pour une image de 112. Le contrôle accusait donc une page juste,
+          ce qui est la pire sorte de faux positif — celle qui pousse à casser
+          du code correct pour faire taire un outil.
+        */
+        largeur: image.offsetWidth,
+        chargee: image.naturalWidth > 0,
+        source: image.currentSrc || image.src,
+      }))
+    })
+
+    const vides = avatars.filter((a) => !a.chargee)
+    for (const v of vides) {
+      echecs.push(
+        `Image NON CHARGÉE, elle ne laisse qu'un trou : ${v.source.slice(-70)}. ` +
+          'Identifiant inconnu, ou taille non livrée (seules 160 et 320 existent).',
+      )
+    }
+
+    rendus = avatars.map((a) => a.largeur).sort((a, b) => a - b)
+    if (rendus.join(',') !== attendusAvatars.join(',')) {
+      echecs.push(
+        `Diamètres d'images ${rendus.join(', ') || '(aucune)'} au lieu de ` +
+          `${attendusAvatars.join(', ')} sur la planche.`,
+      )
+    }
+    /*
+      ── ⑧ LES ANCRES DE L'EN-TÊTE ATTERRISSENT SOUS L'EN-TÊTE ───────────────
+
+      L'en-tête est COLLANT. Un lien d'ancre amène par défaut le haut de la
+      section au haut de la FENÊTRE, c'est-à-dire DERRIÈRE l'en-tête : on arrive
+      au bon endroit et le titre de la section est caché. Le défaut est
+      pernicieux parce que le lien « marche » — on a bien bougé, on a même bien
+      atterri, et il manque juste ce qu'on venait lire.
+
+      On clique donc réellement chaque lien de l'en-tête et on regarde OÙ la
+      section se pose. Le seuil n'est pas une valeur choisie : la section doit
+      commencer sous le bas de l'en-tête, sinon elle est dessous.
+
+      ⚠️ CE CONTRÔLE NE PEUT PAS SE FAIRE DANS UN PANNEAU D'APERÇU. Un panneau
+      qui met la page à l'échelle gère le défilement lui-même : `window.scrollTo`
+      n'y fait rien, et j'ai d'abord cru à un défaut de la page. Ici, c'est un
+      vrai Chrome avec une vraie fenêtre.
+    */
+    /*
+      ⚠️ ON MESURE SANS L'ANIMATION, ET C'EST UN CORRECTIF.
+
+      Premier écrit, ce contrôle cliquait puis attendait que le défilement se
+      pose, en comparant deux relevés à 150 ms d'intervalle. Il tombait EN PLEIN
+      TRAJET : dans une fenêtre pilotée, le défilement animé se met en pause, et
+      deux relevés identiques ne veulent alors pas dire « arrivé ». Le contrôle
+      mesurait donc une position intermédiaire — toujours loin sous l'en-tête,
+      donc toujours verte. Il ne pouvait rien attraper, et j'aurais pu le croire
+      sur parole.
+
+      Les deux questions se séparent, et chacune se répond exactement :
+      · OÙ ÇA ATTERRIT ne dépend pas de l'animation — on la coupe, le saut est
+        immédiat, la mesure est déterministe ;
+      · QUE L'ANIMATION EXISTE se lit dans le style calculé, sans la jouer.
+    */
+    const defilementAnime = await page.evaluate(
+      () => getComputedStyle(document.documentElement).scrollBehavior,
+    )
+    if (defilementAnime !== 'smooth') {
+      echecs.push(
+        `Le défilement vers les ancres est « ${defilementAnime} » et non « smooth » : ` +
+          'cliquer un lien de l’en-tête téléporte au lieu de faire descendre la page.',
+      )
+    }
+
+    await page.addStyleTag({ content: 'html { scroll-behavior: auto !important; }' })
+    liens = await page.evaluate(() =>
+      [...document.querySelectorAll('[data-bande="entete"] a[href^="#"]')].map((a) =>
+        a.getAttribute('href'),
+      ),
+    )
+    if (liens.length === 0) {
+      echecs.push("Aucun lien d'ancre dans l'en-tête : la navigation de la home a disparu.")
+    }
+    for (const lien of liens) {
+      await page.evaluate(() => {
+        window.scrollTo(0, 0)
+      })
+      await page.click(`[data-bande="entete"] a[href="${lien}"]`)
+      const pose = await page.evaluate((cible) => {
+        const section = document.querySelector(cible)
+        const entete = document.querySelector('[data-bande="entete"]')
+        return {
+          haut: Math.round(section?.getBoundingClientRect().top ?? 0),
+          basEntete: Math.round(entete?.getBoundingClientRect().bottom ?? 0),
+          defile: Math.round(window.scrollY),
+        }
+      }, lien)
+      if (pose.defile === 0) {
+        echecs.push(`L'ancre ${lien} ne fait pas défiler la page du tout.`)
+      } else if (pose.haut < pose.basEntete) {
+        echecs.push(
+          `L'ancre ${lien} pose la section à ${String(pose.haut)} px, sous un en-tête qui ` +
+            `descend à ${String(pose.basEntete)} : son titre est caché derrière. ` +
+            'Il manque un `scroll-margin-top`.',
+        )
+      }
+    }
   } finally {
     await navigateur?.close().catch(() => undefined)
     serveur.arreter()
@@ -415,7 +567,9 @@ async function executer() {
   }
   console.log(
     `Planche 19a : ${String(attendus.length)} bandes conformes, ${String(compares)} tailles de ` +
-      'texte exactes, mesures et fonds vérifiés, ruban et pulsations actifs.',
+      `texte exactes, ${String(rendus.length)} images chargées au bon diamètre, ` +
+      `${String(liens.length)} ancres bien posées, mesures et fonds vérifiés, ` +
+      'ruban et pulsations actifs.',
   )
 }
 

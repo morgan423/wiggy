@@ -10,6 +10,35 @@
   --police-ui: var(--font-jakarta);
 }
 
+/*
+  ── Le défilement vers une ancre ──────────────────────────────────────────
+
+  Cliquer « Tarif » dans l'en-tête TÉLÉPORTAIT la page : le lien fonctionnait,
+  et on ne savait pas où on venait d'atterrir ni d'où l'on venait. Le défilement
+  animé rend le trajet, et c'est le trajet qui dit que la page est longue et
+  qu'on est descendu.
+
+  ⚠️ SOUS `prefers-reduced-motion`, ON REVIENT AU SAUT. Un défilement long est
+  l'un des mouvements qui déclenchent le mal des transports chez les personnes
+  qui l'ont réglé ; c'est exactement le cas que ce réglage vise. Le saut n'est
+  pas une dégradation, c'est le comportement voulu.
+
+  ⚠️ ET LA MARGE D'ANCRE N'EST PAS UN DÉTAIL. L'en-tête est COLLANT et mesure
+  88 px : sans elle, la section visée s'arrête pile sous lui, et son titre reste
+  caché derrière. On atterrit alors au bon endroit avec l'impression de s'être
+  trompé. Les 88 px sont mesurés sur le rendu, pas estimés, et 24 px de
+  respiration s'y ajoutent pour que le titre ne colle pas au bord.
+*/
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+section[id] {
+  scroll-margin-top: 112px;
+}
+
 body {
   background: var(--color-fond);
   color: var(--color-texte-principal);

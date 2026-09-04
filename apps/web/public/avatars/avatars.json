@@ -1,0 +1,17 @@
+{
+  "_lisez_moi": "Le système d'avatars de Wiggy (planche 3b, briefs dans Avatar/briefs-avatars-wiggy.md). Huit personnages de référence. La coiffure EST la personnalité : c'est l'élément dominant de chaque avatar, et c'est ce qui les rend reconnaissables en 32 px. Deux tailles fournies, 160 et 320, la seconde servant au double densité. Les masters 1254 px et le brief d'extension vivent hors du dépôt, dans le dossier Avatar.",
+  "_regle_de_composition": "Jamais deux pastilles de même couleur côte à côte quand les avatars sont affichés en rangée. L'ordre 1 à 8 ci-dessous respecte déjà cette règle.",
+  "_manque_connu": "La variante sans pastille, sur fond transparent, n'existe pas encore. Le brief la demande. Ne pas la simuler en découpant le PNG.",
+  "avatars": [
+    { "id": "awa",    "rang": 1, "prenom": "Awa",    "cheveux": "afro volumineux teinté prune",              "pastille": "miel" },
+    { "id": "marc",   "rang": 2, "prenom": "Marc",   "cheveux": "barbe pleine, cheveux courts dégradés",     "pastille": "abricot" },
+    { "id": "jeanne", "rang": 3, "prenom": "Jeanne", "cheveux": "carré mi-long, balayage rose pastel",       "pastille": "framboise" },
+    { "id": "lou",    "rang": 4, "prenom": "Lou",    "cheveux": "deux macarons hauts, noirs brillants",      "pastille": "prune" },
+    { "id": "karim",  "rang": 5, "prenom": "Karim",  "cheveux": "boucles courtes serrées, tempes dégradées", "pastille": "creme" },
+    { "id": "elsa",   "rang": 6, "prenom": "Elsa",   "cheveux": "longue chevelure ondulée roux cuivré",      "pastille": "miel" },
+    { "id": "theo",   "rang": 7, "prenom": "Théo",   "cheveux": "locks mi-longues en demi-queue",            "pastille": "abricot" },
+    { "id": "nadia",  "rang": 8, "prenom": "Nadia",  "cheveux": "foulard framboise noué en turban",          "pastille": "prune" }
+  ],
+  "tailles": [160, 320],
+  "gabarit": "/avatars/{id}-{taille}.webp"
+}

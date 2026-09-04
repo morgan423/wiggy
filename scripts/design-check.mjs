@@ -2,7 +2,7 @@
 //
 // Ces règles ne sont écrites nulle part dans le rendu : elles ne survivent pas
 // à la bonne volonté. Ce script les rend vérifiables. `npm run design:check`.
-import { readFileSync } from 'node:fs'
+import { readFileSync, existsSync } from 'node:fs'
 import { join, dirname, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { glob } from 'node:fs/promises'
@@ -297,6 +297,71 @@ for (const celebration of ['celebration-carte', 'bouclee-titre']) {
       'celebration-non-degradee',
       `\`${celebration}\` n’est pas neutralisée sous prefers-reduced-motion`,
     )
+  }
+}
+
+/*
+  ── LE CATALOGUE D'AVATARS NE DÉRIVE PAS ─────────────────────────────────────
+
+  `@wiggy/core` porte une COPIE du manifeste, parce qu'il est portable : il ne
+  lit pas le disque et ne connaît pas l'arborescence d'une application. Une
+  copie non gardée finit toujours par mentir — Design ajoute un neuvième
+  personnage, le manifeste le sait, le code l'ignore, et personne ne le voit.
+
+  Trois choses doivent coïncider, et c'est le trio qui compte : le manifeste
+  livré par Design, la copie dans `core`, et les FICHIERS RÉELLEMENT PRÉSENTS.
+  Les deux premiers peuvent s'accorder sur un avatar qui n'existe pas ; c'est
+  le troisième qui attrape ce cas-là, celui qui ne laisse qu'un trou dans la
+  page et se découvre en production.
+*/
+{
+  const dossier = join(racine, 'apps/web/public/avatars')
+  const manifeste = JSON.parse(readFileSync(join(dossier, 'avatars.json'), 'utf8'))
+  const source = readFileSync(join(racine, 'packages/core/src/avatar.ts'), 'utf8')
+  const copie = [
+    ...source.matchAll(/\{ id: '([^']+)', rang: (\d+), prenom: '[^']*', pastille: '([^']+)' \}/g),
+  ]
+
+  const attendus = manifeste.avatars.map((a) => `${a.id}/${String(a.rang)}/${a.pastille}`)
+  const declares = copie.map((m) => `${m[1]}/${m[2]}/${m[3]}`)
+  if (attendus.join('|') !== declares.join('|')) {
+    signaler(
+      join(racine, 'packages/core/src/avatar.ts'),
+      0,
+      'avatars-catalogue-derive',
+      `ILLUSTRATIONS ne correspond plus au manifeste (${String(declares.length)} entrée(s) ` +
+        `contre ${String(attendus.length)}). Le manifeste fait foi.`,
+    )
+  }
+  for (const a of manifeste.avatars) {
+    for (const taille of manifeste.tailles) {
+      const fichier = join(dossier, `${a.id}-${String(taille)}.webp`)
+      if (!existsSync(fichier)) {
+        signaler(
+          join(dossier, 'avatars.json'),
+          0,
+          'avatar-fichier-absent',
+          `le manifeste annonce ${a.id}-${String(taille)}.webp, qui n'est pas là`,
+        )
+      }
+    }
+  }
+  /*
+    ⚠️ AUCUNE ADRESSE D'AVATAR NE S'ÉCRIT À LA MAIN. `urlIllustration` lève sur
+    un identifiant ou une taille inconnus ; une chaîne écrite en dur contourne
+    ce garde-fou et redevient un 404 silencieux. C'est aussi ce qui empêche
+    d'inventer une troisième taille, dont les masters ne sont pas dans le dépôt.
+  */
+  for (const chemin of fichiers) {
+    const contenu = readFileSync(chemin, 'utf8')
+    for (const m of contenu.matchAll(/['"`]\/avatars\/[^'"`]+['"`]/g)) {
+      signaler(
+        chemin,
+        contenu.slice(0, m.index).split('\n').length,
+        'avatar-url-en-dur',
+        `${m[0]} — passe par urlIllustration(), qui refuse un id ou une taille inconnus`,
+      )
+    }
   }
 }
 

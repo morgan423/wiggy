@@ -25,3 +25,10 @@ docs/journal-evenements.md
 # Fichier de transit vers l'éditeur Supabase : concaténation brute de SQL déjà
 # écrit ailleurs. Il est ignoré par Git et ne fait foi sur rien.
 MIGRATIONS-A-COLLER*.sql
+
+# Manifeste des avatars, LIVRÉ PAR DESIGN avec le jeu d'illustrations. Ses
+# colonnes sont alignées à la main : c'est une table qui se lit, et le
+# reformater la casserait sans rien gagner. Nous ne l'écrivons pas, nous le
+# recevons — et `design:check` vérifie qu'il reste cohérent avec le code et
+# avec les fichiers présents, ce qui est la seule garantie qui compte ici.
+apps/web/public/avatars/avatars.json

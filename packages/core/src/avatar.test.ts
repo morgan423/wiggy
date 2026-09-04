@@ -7,6 +7,11 @@ import {
   sourceAvatar,
   PASTILLES,
   TEXTE_SUR_PASTILLE,
+  ILLUSTRATIONS,
+  TAILLES_ILLUSTRATION,
+  estUneIllustration,
+  urlIllustration,
+  rangeeValide,
 } from './avatar.ts'
 
 test('l’initiale gère les noms réels du métier', () => {
@@ -53,4 +58,47 @@ test('la photo prime, l’illustration ensuite, l’initiale en dernier', () => 
   assert.equal(sourceAvatar({ illustration: 'awa' }), 'illustration')
   assert.equal(sourceAvatar({}), 'initiale')
   assert.equal(sourceAvatar({ photoUrl: '', illustration: null }), 'initiale')
+})
+
+test("système d’avatars — L'ORDRE DU MANIFESTE RESPECTE DÉJÀ LA RÈGLE DE COMPOSITION", () => {
+  // Le manifeste l'affirme ; ici on le vérifie. Une affirmation dans un
+  // fichier de données ne se teste pas toute seule, et c'est exactement le
+  // genre de promesse qui se casse au premier ajout de personnage.
+  assert.equal(
+    rangeeValide(ILLUSTRATIONS.map((i) => i.id)),
+    true,
+    'deux pastilles de même couleur se suivent dans l’ordre 1 à 8',
+  )
+})
+
+test('système d’avatars — une rangée fautive est refusée, pas réparée en silence', () => {
+  // Awa et Elsa sont toutes deux en miel : côte à côte, elles forment la
+  // tache que la règle interdit.
+  assert.equal(rangeeValide(['awa', 'elsa']), false)
+  assert.equal(rangeeValide(['awa', 'marc', 'elsa']), true)
+})
+
+test('système d’avatars — UNE TAILLE NON LIVRÉE LÈVE, elle ne fabrique pas une URL en 404', () => {
+  assert.equal(urlIllustration('awa', 160), '/avatars/awa-160.webp')
+  assert.equal(urlIllustration('awa', 320), '/avatars/awa-320.webp')
+  // @ts-expect-error — c'est précisément ce qu'on veut interdire au runtime.
+  assert.throws(() => urlIllustration('awa', 96), /non livrée/)
+})
+
+test('système d’avatars — un personnage inconnu lève plutôt que de laisser un trou dans la page', () => {
+  assert.equal(estUneIllustration('nadia'), true)
+  assert.equal(estUneIllustration('sophie'), false)
+  assert.throws(() => urlIllustration('sophie'), /inconnu/)
+})
+
+test('système d’avatars — les deux seules tailles livrées sont 160 et 320', () => {
+  assert.deepEqual([...TAILLES_ILLUSTRATION], [160, 320])
+})
+
+test("système d’avatars — l'illustration passe AVANT l'initiale, et APRÈS la photo", () => {
+  // La règle du board, reprise ici avec un identifiant réel : une pro qui a
+  // mis sa photo la garde, une pro qui n'a rien tombe sur l'initiale.
+  assert.equal(sourceAvatar({ photoUrl: '/moi.jpg', illustration: 'awa' }), 'photo')
+  assert.equal(sourceAvatar({ illustration: 'awa' }), 'illustration')
+  assert.equal(sourceAvatar({}), 'initiale')
 })

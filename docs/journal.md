@@ -20,6 +20,126 @@ _Rien en attente : les trois questions ouvertes ont été tranchées le 03/09._
 
 ---
 
+## 2026-09-04 (15) Étape : les avatars, le bloc Ambassadrices, la FAQ et les ancres
+
+**Fait :** première application complète de la procédure de l'entrée (14), sur la planche 19a
+ré-exportée le 04/09 à 20 h 11 avec ses avatars, son bloc Ambassadrices révisé et sa bande
+« Fait pour tous les cheveux ».
+
+### Le rendu de la planche a d'abord dû être réparé
+
+La planche référence ses images par **identifiant opaque** (`src="9dfa4e1a-…"`) et ne livre pas
+les binaires. Rendue telle quelle, elle sort avec huit images cassées : on perd exactement ce
+qu'on vient voir. `planche:rendre` réécrit donc les `src` vers les avatars du dépôt, dans une
+copie de travail, et **le dit** — la géométrie est fidèle, l'identité ne l'est pas.
+
+### Les huit personnages, branchés là où ils étaient attendus
+
+`components/avatar.tsx` portait depuis le début un registre vide avec ce commentaire : « le jour
+où les illustrations arrivent, on le remplit et tous les avatars du produit basculent ». C'est
+exactement ce qui s'est passé — un remplissage, **aucun écran retouché**. L'avatar dessiné à la
+main en cinq blocs pleins, posé faute de mieux, part avec.
+
+Quatre emplacements sur la home : le coin de la carte du héros (76), la bande « tous les
+cheveux » (112, incliné de 4°), les trois cartes d'avis (40), le trio du programme (48, anneau
+miel, chevauchement de 12).
+
+### Ce que la planche ne dit pas, et que je n'ai pas décidé en silence
+
+Elle laisse `alt=""` sur quatre images sur huit ; les quatre autres portent « Sophie »,
+« Sandrine », « Awa », « Paul », dont **un seul — Awa — existe dans le système à huit
+personnages**. La correspondance est donc indéterminée. Elle vit dans un fichier unique,
+`distribution-avatars.ts`, nommée comme une proposition et signalée ci-dessous.
+
+Ce qui n'est pas arbitraire : Awa garde son illustration puisque la planche la nomme ; les huit
+servent exactement une fois ; et les deux rangées respectent la règle du manifeste — jamais deux
+pastilles de même couleur côte à côte — **vérifiée au chargement du module**, qui lève, plutôt
+qu'écrite en commentaire.
+
+### Trois défauts que seul le rendu a montrés
+
+1. **Le trio d'Ambassadrices était absent de ma capture, et présent dans la page.** `next/image`
+   pose `loading="lazy"` : une capture pleine page ne fait jamais défiler la fenêtre, donc les
+   images sous la ligne de flottaison ne se chargent pas. **Le défaut était dans mon outil**, et
+   du pire genre — il accusait un code correct. Troisième piège de la même famille que le fondu
+   et les polices, corrigé au même endroit.
+2. **Le contrôle des diamètres accusait 120 au lieu de 112** : `getBoundingClientRect()` rend le
+   rectangle englobant APRÈS rotation. `offsetWidth` compare ce qui est comparable.
+3. **Le contrôle des ancres ne pouvait rien attraper.** Il attendait que le défilement animé se
+   pose en comparant deux relevés ; dans une fenêtre pilotée, l'animation se met en pause, et
+   deux relevés identiques ne veulent pas dire « arrivé ». Il mesurait une position intermédiaire,
+   toujours loin sous l'en-tête, donc toujours verte. Les deux questions sont désormais séparées :
+   où ça atterrit se mesure **sans** l'animation, que l'animation existe se lit dans le style.
+
+### Les deux derniers points
+
+**La FAQ** ne s'aligne plus en grille. Une grille aligne ses RANGÉES : la hauteur d'une rangée est
+celle de sa plus haute carte, une question courte laisse un blanc sous elle, et la suivante attend
+la plus longue pour démarrer. `items-start` n'y change rien — il colle la carte en haut et laisse
+le blanc dessous. Un flux en `columns` fait couler les cartes avec **toujours le même écart**,
+chaque colonne remplie indépendamment.
+
+**Les ancres de l'en-tête font descendre la page.** Elles téléportaient : le lien marchait, et on
+ne savait ni où l'on venait d'atterrir ni d'où l'on venait. Avec, en prime, le point qui n'est pas
+un détail : l'en-tête est collant et mesure 88 px **mesurés, pas estimés** — sans marge d'ancre, la
+section visée s'arrête pile dessous et son titre reste caché. Sous `prefers-reduced-motion`, on
+revient au saut : c'est le comportement voulu, pas une dégradation.
+
+### Cinq gardes, toutes prouvées par un échec délibéré
+
+| Garde                     | Ce qu'elle attrape                                                |
+| ------------------------- | ----------------------------------------------------------------- |
+| `design:check` catalogue  | la copie dans `core` qui dérive du manifeste livré                |
+| `design:check` fichiers   | un avatar annoncé au manifeste et absent du disque                |
+| `design:check` URL en dur | une adresse d'avatar écrite à la main, qui contourne le garde-fou |
+| `planche:check` ⑦         | images en nombre, en diamètre, et **réellement chargées**         |
+| `planche:check` ⑧         | une ancre qui atterrit sous l'en-tête, ou qui ne défile pas       |
+
+Une limite, vérifiée plutôt que supposée : **un fichier retiré du dépôt ne déclenche pas ⑦ en
+local**, Next servant sa copie de `.next/cache`. C'est `design:check` qui couvre ce cas, sans
+navigateur et sans cache. C'est écrit dans le contrôle, pour que personne ne lui prête une portée
+qu'il n'a pas.
+
+**Décisions :** aucune.
+
+**Écarts au brief :** deux, tous deux parce que la planche ne tranche pas.
+
+1. **La distribution des avatars est une proposition**, pas une lecture de la planche (ci-dessus).
+2. **`14g` et `3b` ne spécifient pas d'emplacement.** Le brief les cite ; `3b` est une planche de
+   RÉFÉRENCE — une seule image pleine page présentant les huit — et `14g` dit encore, en toutes
+   lettres, « Avatar : substitut neutre (initiale sur encre 14 %) **en attendant le brief
+   illustration** ». Elle se déclare provisoire et l'illustration existe désormais, mais elle
+   porte aussi une affordance « Choisir mon avatar ou ma photo » dont aucune planche ne montre le
+   sélecteur. Je n'ai donc rien implémenté hors 19a.
+
+**Questions ouvertes :**
+
+1. **Qui joue quoi ?** Sophie, Sandrine et Paul n'existent pas dans le système à huit. Design
+   tranche, ou on renomme les témoignages sur les personnages livrés.
+2. **Le sélecteur d'avatar de 14g** : la pro choisit-elle son personnage parmi les huit ? Il
+   faudrait une planche. Sans elle, le substitut neutre reste en place.
+3. **La variante sans pastille** est demandée par le brief et non livrée. Aucun écran de 19a n'en
+   a besoin ; je ne l'ai pas simulée en découpant.
+4. Les trois de l'entrée (13) restent ouvertes.
+
+**À recetter par Morgan :**
+
+1. **Le héros, la bande « tous les cheveux », les avis, le programme** : les huit personnages
+   servent une fois chacun.
+2. **Le bloc Ambassadrices** : médaille, trio, bouton, centrés dans la moitié droite.
+3. **La FAQ** : écart constant entre les blocs, tout aligné en haut, deux colonnes indépendantes.
+4. **Clique « Le produit », « Tarif », « Ambassadrices »** : la page descend, et le titre visé
+   n'est pas caché sous l'en-tête.
+5. **Active « réduire les animations »**, reclique : la page saute au lieu de glisser.
+6. **Change un identifiant d'avatar pour un inconnu**, puis `npm run planche:check` : il compte
+   une image de moins.
+7. **Mets `scroll-margin-top: 0`**, puis relance : il dit quelle ancre se cache derrière l'en-tête.
+8. **Change une pastille dans `avatars.json`**, puis `npm run design:check` : il refuse la dérive.
+
+**Statut à reporter dans la roadmap :** la home : « conforme à 19a du 04/09 20 h 11 ».
+
+---
+
 ## 2026-09-04 (14) Étape : le « rendre et regarder » devient une procédure et une commande
 
 **Fait :**

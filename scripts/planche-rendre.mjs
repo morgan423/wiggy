@@ -29,7 +29,7 @@
 //
 // Les images vont dans `captures/`, ignoré par git : ce sont des pièces de
 // travail, elles ne se versionnent pas.
-import { mkdirSync } from 'node:fs'
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { chromium } from 'playwright-core'
@@ -62,6 +62,42 @@ const FIGER = `
   *, *::before, *::after { animation-play-state: paused !important; }
 `
 
+/*
+  ⚠️ LES IMAGES DE LA PLANCHE SONT DES UUID SANS FICHIER EN REGARD.
+
+  Le format d'export de Design référence ses images par identifiant opaque
+  (`src="9dfa4e1a-…"`) et ne livre pas les binaires à côté. Rendue telle quelle,
+  la planche sort avec huit images cassées : on perd exactement ce qu'on est
+  venu voir, et on croit avoir comparé.
+
+  On réécrit donc les `src` vers les avatars du dépôt, dans une copie de travail.
+  ⚠️ CE QUE ÇA MONTRE ET CE QUE ÇA NE MONTRE PAS : la GÉOMÉTRIE est fidèle
+  (tailles, cadrages, chevauchements, ombres), l'IDENTITÉ ne l'est pas — c'est un
+  remplissage dans l'ordre du manifeste. La planche ne dit pas quel avatar va où,
+  et ce script ne peut pas l'inventer. La question se pose à Design.
+*/
+function planchePreparee(numero) {
+  const source = join(racine, `../../Design/planches/${numero}.html`)
+  const html = readFileSync(source, 'utf8')
+  const manifeste = JSON.parse(
+    readFileSync(join(racine, 'apps/web/public/avatars/avatars.json'), 'utf8'),
+  )
+  const fichiers = manifeste.avatars.map((a) =>
+    join(racine, `apps/web/public/avatars/${a.id}-320.webp`),
+  )
+
+  const connus = new Map()
+  const rendu = html.replaceAll(/src="([0-9a-f-]{36})"/g, (entier, identifiant) => {
+    // Les polices sont aussi des UUID, mais elles arrivent par le <link> Google
+    // qui, lui, marche : on ne touche qu'aux `src` d'images.
+    if (!connus.has(identifiant)) connus.set(identifiant, fichiers[connus.size % fichiers.length])
+    return `src="file://${connus.get(identifiant)}"`
+  })
+  const copie = join(SORTIE, `.planche-${numero}-preparee.html`)
+  writeFileSync(copie, rendu)
+  return { adresse: `file://${copie}`, substituees: connus.size }
+}
+
 async function rendre(page, adresse, nom, fenetre) {
   await page.goto(adresse, { waitUntil: 'networkidle' })
   await page.addStyleTag({ content: FIGER })
@@ -69,6 +105,36 @@ async function rendre(page, adresse, nom, fenetre) {
   // de police, donc des largeurs de texte fausses et des retours à la ligne
   // qui n'existent pas.
   await page.evaluate(() => document.fonts.ready)
+  /*
+    ⚠️ LES IMAGES DIFFÉRÉES NE SE CHARGENT JAMAIS DANS UNE CAPTURE PLEINE PAGE.
+
+    `next/image` pose `loading="lazy"` par défaut. Une capture pleine page rend
+    tout le document sans jamais faire défiler la fenêtre : les images sous la
+    ligne de flottaison restent à l'état vide, et la capture montre des trous
+    là où la page est parfaitement juste. Constaté le 04/09 sur le trio du
+    programme Ambassadrices, que j'ai cru absent alors qu'il était là.
+
+    C'est le même piège que les fondus d'apparition et que les polices en
+    différé, et il a la même conséquence : la comparaison devient fausse, et
+    fausse dans le sens qui coûte le plus cher — elle accuse un code correct.
+
+    On repasse donc chaque image en chargement immédiat et on attend qu'elles
+    aient toutes abouti.
+  */
+  await page.evaluate(async () => {
+    const images = [...document.querySelectorAll('img')]
+    for (const image of images) image.loading = 'eager'
+    await Promise.all(
+      images.map((image) =>
+        image.complete
+          ? Promise.resolve()
+          : new Promise((fini) => {
+              image.addEventListener('load', fini, { once: true })
+              image.addEventListener('error', fini, { once: true })
+            }),
+      ),
+    )
+  })
   await page.waitForTimeout(600)
   await page.screenshot({ path: join(SORTIE, `${nom}.png`), fullPage: true })
   if (fenetre) {
@@ -98,9 +164,17 @@ async function executer() {
     const page = await navigateur.newPage({ viewport: { width: LARGEUR, height: 1000 } })
 
     const cadre = hauteur ? { hauteur: Number(hauteur) } : null
+    const planche = planchePreparee(numero)
+    if (planche.substituees > 0) {
+      console.log(
+        `\n⚠️ ${String(planche.substituees)} image(s) de la planche sont des UUID sans fichier : ` +
+          `remplacées par des avatars du dépôt.\n   La géométrie est fidèle, PAS l'identité — ` +
+          `la planche ne dit pas quel avatar va où.`,
+      )
+    }
     await rendre(
       page,
-      `file://${join(racine, `../../Design/planches/${numero}.html`)}`,
+      planche.adresse,
       `planche-${numero}`,
       cadre && yPlanche ? { ...cadre, y: Number(yPlanche) } : null,
     )
