@@ -18,6 +18,11 @@ export default tseslint.config(
       'apps/pro/App.tsx',
       'apps/pro/index.ts', // gabarit Expo, remplacé plus tard
       '**/*.d.ts',
+      // Le service worker : il tourne dans un contexte `ServiceWorkerGlobalScope`
+      // que le projet TypeScript ne décrit pas, et il est servi tel quel depuis
+      // `public/`. Le typer reviendrait à décrire une seconde plateforme pour un
+      // seul fichier.
+      'apps/web/public/sw.js',
     ],
   },
 

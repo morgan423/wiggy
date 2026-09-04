@@ -39,6 +39,7 @@ Trois rôles interviennent :
 | `propositions` | `propositions_self` : pro authentifié peut **lire/écrire/modifier/supprimer** | `(pro_id = auth.uid())` |
 | `pros` | `pro_self` : pro authentifié peut **lire/écrire/modifier/supprimer** | `(id = auth.uid())` |
 | `pros` | `public_profile` : visiteuse anonyme peut **lire** | `published` |
+| `push_subscriptions` | `push_subscriptions_self` : pro authentifié peut **lire/écrire/modifier/supprimer** | `(pro_id = auth.uid())` |
 | `rate_limits` | 🔒 RLS active, **aucune politique** | Verrouillée par conception : écriture via route serveur uniquement (service_role). |
 | `service_area_communes` | `pro_owns` : pro authentifié peut **lire/écrire/modifier/supprimer** | `(pro_id = auth.uid())` |
 | `service_area_communes` | `public_area_communes` : visiteuse anonyme peut **lire** | `(EXISTS ( SELECT 1 FROM pros p WHERE ((p.id = service_area_communes.pro_id) AND p.published)))` |

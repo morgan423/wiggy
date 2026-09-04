@@ -3,13 +3,14 @@
 import { revalidatePath } from 'next/cache'
 import { redirect } from 'next/navigation'
 import { RdvInput, BlocageInput } from '@wiggy/api'
-import { heureLocaleVersInstant, finRendezVous, dureeReelle } from '@wiggy/core'
+import { heureLocaleVersInstant, finRendezVous, dureeReelle, ZONE } from '@wiggy/core'
 import { copy } from '@wiggy/copy'
 import { requirePro } from '@/lib/auth'
 import { supabaseServer } from '@/lib/supabase/server'
 import { prevenirCliente } from '@/lib/messagerie/prevenance'
 import { lancerJournee, jourDe, retenirDepartDuJour } from '@/lib/journee'
 import { ajouterAuJournal } from '@/app/app/clientes/actions'
+import { journaliser } from '@/lib/notifications'
 import { geocoder } from '@/lib/adresse'
 import { centreDeCommune } from '@/lib/lieu-approche'
 import { erreur, erreurBase, ok, champ, type EtatForm, champTexte } from '@/lib/forms'
@@ -94,13 +95,53 @@ const retour = (precision: Precision) =>
 export async function annulerRdv(donnees: FormData) {
   const id = champTexte(donnees, 'id')
   if (!id) return
-  await requirePro()
+  const { pro } = await requirePro()
   const supabase = await supabaseServer()
-  await supabase
+  const { data: annule } = await supabase
     .from('appointments')
     .update({ status: 'cancelled', cancelled_at: new Date().toISOString(), cancelled_by: 'pro' })
     .eq('id', id)
+    .select('starts_at, service_name, clients(first_name)')
+    .maybeSingle()
+
+  /*
+    B14 — l'annulation entre au journal QUELLE QU'EN SOIT L'ORIGINE.
+
+    Aujourd'hui la seule origine possible est la pro elle-même : la cliente n'a
+    pas encore de geste d'annulation (A10). L'entrée confirme donc son propre
+    geste, ce qui a déjà une valeur sur la webapp du soir (D3) où l'on annule
+    en série. Elle prendra tout son sens le jour où une cliente pourra annuler
+    de son côté, et le code n'aura pas à changer pour ça.
+  */
+  if (annule) {
+    await journaliser({
+      proId: pro.id,
+      kind: 'annulation',
+      titre: `${prenomCliente(annule.clients)} a été annulée`,
+      detail: `${annule.service_name} · ${quandCourt(annule.starts_at)}`,
+      lien: '/app/agenda',
+    })
+  }
   revalidatePath('/app/agenda')
+}
+
+/** Le prénom d'une relation cliente, ou « Une cliente » si la fiche manque. */
+function prenomCliente(relation: unknown): string {
+  const brut: unknown = Array.isArray(relation) ? relation[0] : relation
+  if (typeof brut !== 'object' || brut === null) return 'Une cliente'
+  const c = brut as Record<string, unknown>
+  return typeof c.first_name === 'string' ? c.first_name : 'Une cliente'
+}
+
+/** « mardi 9 à 14:30 » : de quoi reconnaître le rendez-vous sans l'ouvrir. */
+function quandCourt(iso: string): string {
+  return new Intl.DateTimeFormat('fr-FR', {
+    timeZone: ZONE,
+    weekday: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(new Date(iso))
 }
 
 /**
@@ -203,7 +244,7 @@ export async function refuserDemande(donnees: FormData) {
 async function deciderDemande(donnees: FormData, decision: 'valider' | 'refuser') {
   const id = champTexte(donnees, 'id')
   if (!id) return
-  await requirePro()
+  const { pro } = await requirePro()
   const supabase = await supabaseServer()
 
   // La RLS borne déjà à ce compte ; le filtre sur le statut évite qu'un double
@@ -217,12 +258,29 @@ async function deciderDemande(donnees: FormData, decision: 'valider' | 'refuser'
           cancelled_by: 'pro',
         }
 
-  const { error } = await supabase
+  const { data: traite, error } = await supabase
     .from('appointments')
     .update(misAJour)
     .eq('id', id)
     .in('status', ['pending', 'conditional'])
+    .select('starts_at, service_name, clients(first_name)')
+    .maybeSingle()
   if (error) console.error('decision_demande_failed', error.code)
+
+  // B14 — la demande TRAITÉE (A6 hors zone, A11 validation manuelle). Un fait
+  // accompli, au passé : la décision est prise, il n'y a plus rien à faire.
+  if (traite) {
+    await journaliser({
+      proId: pro.id,
+      kind: 'demande_traitee',
+      titre:
+        decision === 'valider'
+          ? `Demande de ${prenomCliente(traite.clients)} acceptée`
+          : `Demande de ${prenomCliente(traite.clients)} refusée`,
+      detail: `${traite.service_name} · ${quandCourt(traite.starts_at)}`,
+      lien: '/app/agenda',
+    })
+  }
 
   revalidatePath('/app/agenda')
 }

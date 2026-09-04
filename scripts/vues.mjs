@@ -28,7 +28,7 @@ const racine = join(dirname(fileURLToPath(import.meta.url)), '..')
 const DOSSIER = join(racine, 'captures')
 
 /** Deux comptes : ce que voit une pro installée, et ce que voit une pro le jour un. */
-const COMPTES = {
+export const COMPTES = {
   rempli: {
     id: '00000000-0000-4000-8000-00000000e001',
     slug: 'zzz-vues-rempli',
@@ -42,7 +42,7 @@ const COMPTES = {
     email: 'vues-vide@wiggy.invalid',
   },
 }
-const MOT_DE_PASSE = 'vues-wiggy-developpement'
+export const MOT_DE_PASSE = 'vues-wiggy-developpement'
 
 const COMMUNE = { insee: '64445', nom: 'Pau', cp: '64000', lat: 43.2951, lng: -0.3708 }
 const ADRESSE = { ligne: '1 boulevard des Pyrénées', cp: '64000', ville: 'Pau' }
@@ -96,7 +96,7 @@ const VUES = [
 
 // ───────────────────────────────────────────────────────────────────────────
 
-function api(valeurs) {
+export function api(valeurs) {
   const url = (valeurs.NEXT_PUBLIC_SUPABASE_URL ?? '').replace(/\/+$/, '')
   const cle = valeurs.SUPABASE_SERVICE_ROLE_KEY
   if (!url || !cle) throw new Error('NEXT_PUBLIC_SUPABASE_URL et SUPABASE_SERVICE_ROLE_KEY requis.')
@@ -126,7 +126,7 @@ function api(valeurs) {
   }
 }
 
-async function semer(client) {
+export async function semer(client) {
   await nettoyer(client)
 
   for (const compte of Object.values(COMPTES)) {
@@ -337,7 +337,7 @@ async function semer(client) {
   return { serviceId: prestation.id, rdvId: rdvs[1].id, clienteId: clientes[1].id }
 }
 
-async function nettoyer(client) {
+export async function nettoyer(client) {
   for (const compte of Object.values(COMPTES)) {
     await client.rest(`pros?id=eq.${compte.id}`, { method: 'DELETE' }).catch(() => undefined)
     await client.auth(`admin/users/${compte.id}`, { method: 'DELETE' }).catch(() => undefined)
@@ -345,7 +345,7 @@ async function nettoyer(client) {
 }
 
 /** Connexion par le vrai formulaire : c'est le chemin que suit une pro. */
-async function connecter(page, base, compte) {
+export async function connecter(page, base, compte) {
   await page.goto(`${base}/connexion`, { waitUntil: 'domcontentloaded' })
   await page.locator('#email').fill(compte.email)
   await page.locator('#motDePasse').fill(MOT_DE_PASSE)

@@ -12,6 +12,19 @@ phase 2 (`packages/copy/source/1a.json` à `13b.json`) et la spécification écr
 écran de Claude Design (`spec-14.json`). Ce document ne liste que ce qui ne vient ni de
 l'un ni de l'autre.
 
+## Fonctionnalités déclarées absentes, à ne pas simuler
+
+Ces éléments EXISTENT dans l'interface mais n'ont **aucun émetteur** : la fonctionnalité qui les
+produirait n'est pas construite. Ils sont marqués « bientôt » à l'écran plutôt que masqués, parce
+qu'un réglage sans émetteur ment moins s'il l'annonce. **On ne les simule pas.**
+
+| Élément                              | Ce qui manque                                                                                                                                                                                                                 | Attend |
+| ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| **Notification « nouvel avis »**     | Aucun avis n'existe : rien ne peut être journalisé. La ligne de réglage est visible.                                                                                                                                          | A7     |
+| **Notification « acompte reçu »**    | Aucun encaissement n'existe. La ligne de réglage est visible.                                                                                                                                                                 | B9     |
+| **Points d'acceptation ③ et ④ (G7)** | ③ renvoie au parcours Stripe (B9), ④ aux conditions Ambassadrices (G2). La mécanique de preuve, elle, est en place et testée.                                                                                                 | B9, G2 |
+| **Textes contractuels (G7)**         | CGV, confidentialité, CGU, consentement SMS et parrainage sont des **textes de bêta**, en base, qui le disent dans leur propre corps. Les définitifs arrivent de l'avocat au jalon J2 et s'insèrent **sans toucher au code**. | J2     |
+
 ## Écrans sans aucun copy dans le board
 
 | Écran                                        | Ce qu'il faut écrire                                                                                                                 | Urgence                                                                                              |

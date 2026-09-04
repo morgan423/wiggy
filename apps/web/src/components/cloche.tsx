@@ -1,6 +1,6 @@
 import { requirePro } from '@/lib/auth'
 import { supabaseServer } from '@/lib/supabase/server'
-import { badgeDeCloche, RETENTION_JOURS } from '@/lib/notifications'
+import { badgeDeCloche, RETENTION_JOURS, kindsQuiComptent } from '@/lib/notifications'
 import { ClocheOuCroix } from './cloche-bouton'
 
 /**
@@ -24,14 +24,26 @@ import { ClocheOuCroix } from './cloche-bouton'
  * affichée, que seul le navigateur connaît.
  */
 export async function Cloche() {
-  await requirePro()
+  const { pro } = await requirePro()
   const supabase = await supabaseServer()
   const limite = new Date(Date.now() - RETENTION_JOURS * 86_400_000).toISOString()
-  const { count } = await supabase
+
+  /*
+    ② Le badge se règle événement par événement. Le journal, lui, a tout reçu :
+    ce qui est décoché n'est pas absent, il est simplement silencieux, et la pro
+    le retrouve en ouvrant la cloche. C'est toute la différence entre « ne pas
+    me le signaler » et « ne pas me le dire ».
+
+    `null` veut dire « tout compte » : on évite alors un filtre `in` inutile.
+  */
+  const comptes = await kindsQuiComptent(pro.id)
+  let requete = supabase
     .from('notifications')
     .select('id', { count: 'exact', head: true })
     .is('lu_le', null)
     .gte('created_at', limite)
+  if (comptes !== null) requete = requete.in('kind', comptes)
+  const { count } = await requete
 
   return <ClocheOuCroix badge={badgeDeCloche(count ?? 0)} />
 }

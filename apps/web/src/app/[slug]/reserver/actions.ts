@@ -1,6 +1,6 @@
 'use server'
 
-import { finRendezVous } from '@wiggy/core'
+import { finRendezVous, ZONE } from '@wiggy/core'
 import { ReservationInput } from '@wiggy/api'
 import { supabaseAdmin, supabaseConfigured } from '@/lib/supabase/admin'
 import { modeDuPro } from '@/lib/mode'
@@ -8,6 +8,7 @@ import { quotaDisponible } from '@/lib/quota'
 import { creneauxProposables } from '@/lib/creneaux'
 import { rattacherPhotos } from '@/lib/photos'
 import { champ } from '@/lib/forms'
+import { journaliser } from '@/lib/notifications'
 import { aFaireAccepter, verifierEtEnregistrer } from '@/lib/legal'
 
 /**
@@ -239,6 +240,35 @@ export async function reserver(
     console.error('reservation_rdv_failed', error.code)
     return refus(donnees, 'Nous n’avons pas pu enregistrer votre demande.')
   }
+
+  /*
+    B14 — les deux événements que le tunnel produit, et qui n'étaient
+    journalisés ni l'un ni l'autre.
+
+    LA DISTINCTION EST CELLE DE LA PLANCHE 17a : un rendez-vous CONFIRMÉ est un
+    fait accompli, l'agenda a changé et il n'y a rien à faire ; une demande en
+    attente est un fait accompli lui aussi — elle est ARRIVÉE — mais la
+    décision, elle, vit dans « À décider » et non dans la cloche. Le journal dit
+    ce qui s'est passé, il ne redemande jamais d'agir.
+
+    C'est aussi pour cela que le titre est au passé dans les deux cas.
+  */
+  const quand = new Intl.DateTimeFormat('fr-FR', {
+    timeZone: ZONE,
+    weekday: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(debut)
+  await journaliser({
+    proId: d.proId,
+    kind: enAttente ? 'demande_a_valider' : 'nouveau_rdv',
+    titre: enAttente
+      ? `Nouvelle demande de ${d.prenom}`
+      : `${d.prenom} a réservé ${service.name.toLowerCase()}`,
+    detail: enAttente ? `${service.name} · ${quand}` : quand,
+    lien: '/app/agenda',
+  })
 
   // A4 : les photos ont déjà été déposées par le navigateur, sous un jeton.
   // On ne fait ici que les rattacher au rendez-vous qui vient de naître.

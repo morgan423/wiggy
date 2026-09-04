@@ -107,7 +107,8 @@ export function resumeJournees(
   const jour = aujourdHui.toISOString().slice(0, 10)
   const prochain = [...conges]
     .filter((c) => c.ends_at.slice(0, 10) >= jour)
-    .sort((a, b) => (a.starts_at < b.starts_at ? -1 : 1))[0]
+    .sort((a, b) => (a.starts_at < b.starts_at ? -1 : 1))
+    .at(0)
 
   return {
     principal: `${plage} · ${heures}`,

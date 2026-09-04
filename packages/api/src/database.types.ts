@@ -11,7 +11,7 @@ export type AcceptancePoint = 'inscription_pro' | 'reservation_cliente' | 'activ
 export type AppointmentSource = 'online' | 'manual'
 export type AppointmentStatus = 'pending' | 'conditional' | 'confirmed' | 'in_progress' | 'done' | 'cancelled'
 export type BookingConfirmationMode = 'auto' | 'manual'
-export type NotificationKind = 'reponse_proposition' | 'annulation' | 'acompte_recu' | 'avis_recu' | 'demande_traitee'
+export type NotificationKind = 'reponse_proposition' | 'annulation' | 'acompte_recu' | 'avis_recu' | 'demande_traitee' | 'nouveau_rdv' | 'demande_a_valider'
 export type PaymentMode = 'off' | 'client_choice' | 'required'
 export type PropositionKind = 'contre_proposition' | 'forfait' | 'report'
 export type PropositionStatus = 'en_attente' | 'acceptee' | 'refusee' | 'caduque'
@@ -605,6 +605,16 @@ export type Database = {
         updated_at: string
         push_reponse_cliente: boolean
         push_avis: boolean
+        badge_nouveau_rdv: boolean
+        badge_demande_a_valider: boolean
+        badge_reponse_cliente: boolean
+        badge_annulation: boolean
+        badge_avis: boolean
+        badge_acompte: boolean
+        push_nouveau_rdv: boolean
+        push_demande_a_valider: boolean
+        push_annulation: boolean
+        push_acompte: boolean
         }
         Insert: {
         pro_id: string
@@ -618,6 +628,16 @@ export type Database = {
         updated_at?: string
         push_reponse_cliente?: boolean
         push_avis?: boolean
+        badge_nouveau_rdv?: boolean
+        badge_demande_a_valider?: boolean
+        badge_reponse_cliente?: boolean
+        badge_annulation?: boolean
+        badge_avis?: boolean
+        badge_acompte?: boolean
+        push_nouveau_rdv?: boolean
+        push_demande_a_valider?: boolean
+        push_annulation?: boolean
+        push_acompte?: boolean
         }
         Update: {
         pro_id?: string
@@ -631,6 +651,16 @@ export type Database = {
         updated_at?: string
         push_reponse_cliente?: boolean
         push_avis?: boolean
+        badge_nouveau_rdv?: boolean
+        badge_demande_a_valider?: boolean
+        badge_reponse_cliente?: boolean
+        badge_annulation?: boolean
+        badge_avis?: boolean
+        badge_acompte?: boolean
+        push_nouveau_rdv?: boolean
+        push_demande_a_valider?: boolean
+        push_annulation?: boolean
+        push_acompte?: boolean
         }
         Relationships: []
       }
@@ -754,6 +784,39 @@ export type Database = {
         start_city?: string | null
         start_lat?: number | null
         start_lng?: number | null
+        }
+        Relationships: []
+      }
+      push_subscriptions: {
+        Row: {
+        id: string
+        pro_id: string
+        endpoint: string
+        p256dh: string
+        auth: string
+        appareil: string | null
+        created_at: string
+        last_ok_at: string | null
+        }
+        Insert: {
+        id?: string
+        pro_id: string
+        endpoint: string
+        p256dh: string
+        auth: string
+        appareil?: string | null
+        created_at?: string
+        last_ok_at?: string | null
+        }
+        Update: {
+        id?: string
+        pro_id?: string
+        endpoint?: string
+        p256dh?: string
+        auth?: string
+        appareil?: string | null
+        created_at?: string
+        last_ok_at?: string | null
         }
         Relationships: []
       }

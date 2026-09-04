@@ -1,6 +1,7 @@
 import type { Metadata } from 'next'
 import { requirePro } from '@/lib/auth'
 import { NavPrincipale } from '@/components/nav-principale'
+import { EnregistrerServiceWorker } from '@/components/pwa'
 
 export const metadata: Metadata = { robots: { index: false } }
 
@@ -30,6 +31,7 @@ export default async function LayoutApp({ children }: { children: React.ReactNod
 
   return (
     <div className="mx-auto flex min-h-screen w-full max-w-lg flex-col">
+      <EnregistrerServiceWorker />
       <main className="flex flex-1 flex-col px-4 pt-3.5">{children}</main>
       <NavPrincipale />
     </div>
