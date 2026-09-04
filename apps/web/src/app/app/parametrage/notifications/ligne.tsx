@@ -76,7 +76,19 @@ export function LigneMatrice({
   )
 }
 
-/** L'interrupteur du système, aux couleurs du produit. 44 px de zone tactile. */
+/**
+ * L'interrupteur, aux couleurs du produit.
+ *
+ * ⚠️ **La zone tactile ENTOURE le rail, elle ne l'EST pas.** Écrit d'abord avec
+ * `tactile` sur le rail lui-même, l'interrupteur sortait en disque : `.tactile`
+ * impose `min-height: 44px` autant que `min-width`, donc un rail de 44 × 24
+ * devenait 44 × 44, et la pastille posée à 2 px du haut d'une boîte deux fois
+ * trop grande dessinait un croissant. Les deux règles sont justes séparément ;
+ * c'est de les avoir mises sur le même élément qui était faux.
+ *
+ * Le bouton porte donc les 44 px du doigt, et le rail vit à l'intérieur, à sa
+ * vraie taille.
+ */
 function Interrupteur({
   libelle,
   actif,
@@ -95,15 +107,22 @@ function Interrupteur({
       onClick={() => {
         onBascule(!actif)
       }}
-      className={`tactile relative h-6 w-11 shrink-0 rounded-pilule transition-colors ${
-        actif ? 'bg-action' : 'bg-trait-discret'
-      }`}
+      className="tactile shrink-0"
     >
       <span
-        className={`absolute top-0.5 size-5 rounded-pilule bg-surface transition-[left] duration-[var(--duree-segment)] ${
-          actif ? 'left-[22px]' : 'left-0.5'
+        className={`relative block h-6 w-11 rounded-pilule transition-colors ${
+          actif ? 'bg-action' : 'bg-trait-discret'
         }`}
-      />
+      >
+        {/* La pastille : 20 px dans un rail de 44, donc 2 px de marge à gauche
+            et 22 px à droite. L'ombre lui donne son épaisseur, sans quoi elle
+            se lit comme un trou dans le rail plutôt que comme un bouton. */}
+        <span
+          className={`absolute top-0.5 size-5 rounded-pilule bg-surface shadow-carte transition-[left] duration-[var(--duree-segment)] ${
+            actif ? 'left-[22px]' : 'left-0.5'
+          }`}
+        />
+      </span>
     </button>
   )
 }

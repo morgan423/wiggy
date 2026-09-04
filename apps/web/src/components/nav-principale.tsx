@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { IconeTournee, IconeAgenda, IconeClientes, IconeProfil } from './icones-nav'
 
 /**
  * La navigation du produit : barre prune, EN BAS, à toutes les largeurs.
@@ -24,14 +25,23 @@ import { usePathname } from 'next/navigation'
  * entrée qui mène quelque part n'a plus de raison de manquer.
  */
 
+/*
+  Chaque entrée porte SON ICÔNE, comme la planche 14a : icône de 18 px,
+  3 px de gouttière, puis le libellé de 10 px en extra-gras.
+
+  Elles manquaient, et ce n'est pas un ornement : sur une barre de quatre
+  entrées, c'est la forme qu'on vise du pouce sans lire. Quatre mots de la même
+  longueur, de la même graisse et de la même couleur obligent à LIRE la barre à
+  chaque fois, ce qui est exactement ce qu'une navigation doit éviter.
+*/
 const ENTREES = [
-  { href: '/app/tournee', texte: 'Tournée' },
-  { href: '/app/agenda', texte: 'Agenda' },
-  { href: '/app/clientes', texte: 'Clientes' },
+  { href: '/app/tournee', texte: 'Tournée', Icone: IconeTournee },
+  { href: '/app/agenda', texte: 'Agenda', Icone: IconeAgenda },
+  { href: '/app/clientes', texte: 'Clientes', Icone: IconeClientes },
   // D17 : l'onglet se structure autour de la PRO, plus autour de ses
   // réglages. « Activité » descend d'un niveau et nomme le groupe des réglages
   // métier, à l'intérieur.
-  { href: '/app/parametrage', texte: 'Profil' },
+  { href: '/app/parametrage', texte: 'Profil', Icone: IconeProfil },
 ]
 
 export function NavPrincipale() {
@@ -52,10 +62,11 @@ export function NavPrincipale() {
             key={entree.href}
             href={entree.href}
             aria-current={actif ? 'page' : undefined}
-            className={`tactile flex-1 text-[10px] font-extrabold ${
+            className={`tactile flex-1 flex-col gap-[3px] text-[10px] font-extrabold ${
               actif ? 'text-celebration' : 'text-texte-sur-plein-doux hover:text-texte-sur-plein'
             }`}
           >
+            <entree.Icone />
             {entree.texte}
           </Link>
         )
