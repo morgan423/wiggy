@@ -241,7 +241,20 @@ export function RangeeEcran({
     <>
       <span className="flex min-w-0 flex-col gap-px">
         <span className="text-[13.5px] leading-[1.35] font-bold">{principal}</span>
-        {secondaire ? <span className="text-[11.5px] text-texte-attenue">{secondaire}</span> : null}
+        {secondaire ? (
+          /*
+            Sur une rangée d'invite, le secondaire ne s'atténue PAS : l'encre à
+            65 % sur l'abricot tombe à 3,2:1, sous le seuil AA. Relevé par
+            `npm run vues`, pas supposé.
+
+            Et le fond de la rangée est justement ce qui décide : atténuer sert
+            à hiérarchiser sur une surface claire ; sur une couleur pleine, ça
+            ne hiérarchise plus, ça efface.
+          */
+          <span className={`text-[11.5px] ${invite ? 'opacity-80' : 'text-texte-attenue'}`}>
+            {secondaire}
+          </span>
+        ) : null}
       </span>
       {resume || chevron ? (
         <span className="flex shrink-0 flex-col items-end text-[12px] text-texte-attenue">

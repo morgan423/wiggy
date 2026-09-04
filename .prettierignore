@@ -6,5 +6,6 @@ apps/web/src/app/_polices
 packages/tokens/wiggy-tokens.css
 packages/tokens/reference
 docs/matrice-acces.md
+docs/journal-evenements.md
 MIGRATIONS-A-COLLER*.sql
 packages/api/src/database.types.ts

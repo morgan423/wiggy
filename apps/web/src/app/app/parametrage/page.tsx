@@ -1,4 +1,4 @@
-import { resumePrestations, resumeZone, resumeJournees } from '@wiggy/core'
+import { resumePrestations, resumeZone, resumeJournees, peutRecevoir } from '@wiggy/core'
 import { copy, remplir } from '@wiggy/copy'
 import { requirePro } from '@/lib/auth'
 import { supabaseServer } from '@/lib/supabase/server'
@@ -12,6 +12,7 @@ import {
   PastilleEtat,
 } from '@/components/composition'
 import { Avatar } from '@/components/avatar'
+import { etapesFaites as parcoursFait } from '@/lib/parcours'
 
 /**
  * Le hub « Ton activité », planche 14c.
@@ -63,6 +64,11 @@ export default async function Parametrage() {
     verifs?.phone_verified_at ? null : 'ton téléphone',
   ].filter((m): m is string => m !== null)
 
+  // G3 — le parcours d'activation. Tant que la page ne peut pas recevoir de
+  // réservation, il passe AVANT tout le reste : c'est la seule chose à faire.
+  const faites = await parcoursFait(pro.id)
+  const enDemarrage = !peutRecevoir(faites)
+
   const listePrestations = prestations.data ?? []
   const listeCommunes = communes.data ?? []
   const listeHoraires = horaires.data ?? []
@@ -103,6 +109,21 @@ export default async function Parametrage() {
         }
       />
       <CorpsEcran>
+        {/*
+          G3 — l'entrée du parcours guidé. Une pro qui ne peut pas encore
+          recevoir de réservation n'a qu'une chose à faire, et elle doit être
+          en haut : le hub liste des réglages, le parcours donne un ordre.
+        */}
+        {enDemarrage ? (
+          <RangeeEcran
+            principal="Finir de préparer ma page"
+            secondaire="Cinq étapes, et tu prends tes premières réservations."
+            chevron
+            invite
+            href="/app/demarrage"
+          />
+        ) : null}
+
         {aVerifier.length > 0 ? (
           <RangeeEcran
             principal={

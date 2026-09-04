@@ -74,7 +74,20 @@ export default async function Clientes({
       <EnteteEcran variante="jour" statement={F.liste.titre} />
       <CorpsEcran serre>
         {liste.length === 0 ? (
-          <EtatVide titre={F.liste.videTitre} invitation={F.$aEcrire.videInvitation} />
+          <>
+            <EtatVide titre={F.liste.videTitre} invitation={F.$aEcrire.videInvitation} />
+            {/*
+              G3 — l'import du répertoire, à l'endroit exact où la question se
+              pose : devant un carnet vide. Le proposer ailleurs, c'est le
+              proposer quand on n'y pense pas.
+            */}
+            <Link
+              href="/app/clientes/importer"
+              className="mt-4 block rounded-carte border-2 border-dashed border-trait-discret px-3.5 py-3 text-center text-[12.5px] font-bold"
+            >
+              Récupérer mes clientes depuis mon téléphone
+            </Link>
+          </>
         ) : (
           <>
             <form method="get">

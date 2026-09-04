@@ -69,6 +69,16 @@ const VUES = [
   { nom: '08e-pro-paiement', compte: 'rempli', url: '/app/parametrage/paiement' },
   { nom: '08f-pro-notifications', compte: 'rempli', url: '/app/notifications' },
   { nom: '08g-pro-abonnement', compte: 'rempli', url: '/app/abonnement' },
+  {
+    nom: '08h-pro-notifications-reglages',
+    compte: 'rempli',
+    url: '/app/parametrage/notifications',
+  },
+  { nom: '08i-pro-import-clientes', compte: 'rempli', url: '/app/clientes/importer' },
+  // G3 — le parcours d'activation se regarde sur le compte VIDE : c'est son
+  // seul état intéressant, et le capturer sur un compte rempli montrerait cinq
+  // coches sans rien apprendre.
+  { nom: '24-pro-demarrage', compte: 'vide', url: '/app/demarrage' },
   { nom: '09-pro-agenda-nouveau', compte: 'rempli', url: '/app/agenda/nouveau' },
   { nom: '10-pro-tournee', compte: 'rempli', url: '/app/tournee' },
   { nom: '11-pro-accueil', compte: 'rempli', url: '/app' },
@@ -150,7 +160,11 @@ export async function semer(client) {
           city: COMMUNE.nom,
           pronoun: 'elle',
           headline: 'Coiffure à domicile, agglomération de Pau',
-          published: true,
+          // Le compte VIDE n'est pas en ligne, et c'est ce qu'est réellement un
+          // compte du jour un : sans prestation, sans zone et sans horaire, il
+          // n'y a rien à publier. Le semer publié montrait un parcours
+          // d'activation dont la dernière étape était déjà cochée.
+          published: compte === COMPTES.rempli,
         },
       ]),
     })
