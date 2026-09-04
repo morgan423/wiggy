@@ -197,6 +197,7 @@ export function RangeeEcran({
   principal,
   secondaire,
   resume,
+  resumeDetail,
   valeurCentimes,
   chevron = false,
   href,
@@ -207,8 +208,17 @@ export function RangeeEcran({
   principal: string
   /** Le détail, sous le libellé. */
   secondaire?: string
-  /** Le résumé de droite, en petit : « de 28 € à 75 € ». */
+  /** Le résumé de droite, en petit : « 4 prestations ». */
   resume?: string
+  /**
+   * La SECONDE ligne du résumé, sous la première, alignée à droite.
+   *
+   * D17 ⑥ — c'est elle qui fait la richesse du hub de 14c, dont le résumé est
+   * un bloc de deux lignes et non une ligne unique : « 4 prestations » PUIS
+   * « de 28 € à 75 € ». Tout mettre sur une ligne obligeait à choisir, et on
+   * perdait à chaque fois la moitié de ce qu'on venait vérifier.
+   */
+  resumeDetail?: string
   /** Le montant de droite, en Fraunces, en CENTIMES : un prix, un forfait. */
   valeurCentimes?: number
   chevron?: boolean
@@ -234,15 +244,20 @@ export function RangeeEcran({
         {secondaire ? <span className="text-[11.5px] text-texte-attenue">{secondaire}</span> : null}
       </span>
       {resume || chevron ? (
-        <span className="shrink-0 text-[12px] text-texte-attenue">
-          {resume}
-          {chevron ? (
-            <span
-              aria-hidden
-              className={`transition-colors group-hover:text-action ${resume ? 'ml-1' : ''}`}
-            >
-              ›
-            </span>
+        <span className="flex shrink-0 flex-col items-end text-[12px] text-texte-attenue">
+          <span className="flex items-center">
+            {resume}
+            {chevron ? (
+              <span
+                aria-hidden
+                className={`transition-colors group-hover:text-action ${resume ? 'ml-1' : ''}`}
+              >
+                ›
+              </span>
+            ) : null}
+          </span>
+          {resumeDetail ? (
+            <span className="text-[11px] leading-[1.3] opacity-80">{resumeDetail}</span>
           ) : null}
         </span>
       ) : null}

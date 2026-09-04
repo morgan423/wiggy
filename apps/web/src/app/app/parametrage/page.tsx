@@ -1,4 +1,4 @@
-import { formatEuros } from '@wiggy/core'
+import { resumePrestations, resumeZone, resumeJournees } from '@wiggy/core'
 import { copy, remplir } from '@wiggy/copy'
 import { requirePro } from '@/lib/auth'
 import { supabaseServer } from '@/lib/supabase/server'
@@ -118,7 +118,7 @@ export default async function Parametrage() {
 
         <RangeeEcran
           principal={T.$aEcrire.voirMaPage}
-          resume={pro.published ? undefined : T.$aEcrire.pasEnLigne}
+          resume={pro.published ? `wiggy.fr/${pro.slug}` : T.$aEcrire.pasEnLigne}
           chevron={!pro.published}
           href="/app/parametrage/profil"
         >
@@ -128,12 +128,28 @@ export default async function Parametrage() {
         {/* Le mot « Activité » descend d'un niveau : il nomme le groupe des
             réglages métier, plus l'onglet. */}
         <EtiquetteSection>{T.$aEcrire.groupeActivite}</EtiquetteSection>
+        {/*
+          D17 ⑥ — chaque rangée RÉSUME et ouvre sa section (14c).
+
+          Un résumé riche évite d'ouvrir ; un résumé pauvre oblige à ouvrir
+          chaque écran pour savoir où on en est, et le hub redevient un menu,
+          c'est-à-dire un clic de plus avant l'écran qu'on voulait. Le résumé
+          tient sur DEUX lignes alignées à droite, comme la planche : c'est ce
+          qui fait tenir « 4 prestations » et « de 45 € à 75 € » dans la largeur
+          d'un téléphone, sans avoir à choisir entre les deux.
+
+          Les états vides, eux, n'affichent AUCUN chiffre : ils invitent. La
+          richesse vaut pour un compte rempli, pas pour le jour un.
+        */}
         <RangeeEcran
           principal="Prestations"
           resume={
             listePrestations.length > 0
-              ? fourchette(listePrestations)
+              ? resumePrestations(listePrestations).principal
               : 'Ajoute ta première prestation'
+          }
+          resumeDetail={
+            listePrestations.length > 0 ? resumePrestations(listePrestations).detail : undefined
           }
           chevron
           href="/app/parametrage/prestations"
@@ -142,10 +158,13 @@ export default async function Parametrage() {
           principal="Zone d’intervention"
           resume={
             listeCommunes.length > 0
-              ? forfait
-                ? `${nomsDeCommunes(listeCommunes)} · base ${formatEuros(forfait.fee_cents)}`
-                : nomsDeCommunes(listeCommunes)
+              ? resumeZone(listeCommunes, forfait?.fee_cents).principal
               : '2-3 communes, ta tournée reste logique'
+          }
+          resumeDetail={
+            listeCommunes.length > 0
+              ? resumeZone(listeCommunes, forfait?.fee_cents).detail
+              : undefined
           }
           chevron
           href="/app/parametrage/zone"
@@ -154,10 +173,11 @@ export default async function Parametrage() {
           principal={T.$aEcrire.journeesEtConges}
           resume={
             listeHoraires.length > 0
-              ? listeConges.length > 0
-                ? `${joursTravailles(listeHoraires)} · ${String(listeConges.length)} congé${listeConges.length > 1 ? 's' : ''}`
-                : joursTravailles(listeHoraires)
+              ? resumeJournees(listeHoraires, listeConges).principal
               : 'Choisis tes jours et tes heures'
+          }
+          resumeDetail={
+            listeHoraires.length > 0 ? resumeJournees(listeHoraires, listeConges).detail : undefined
           }
           chevron
           href="/app/parametrage/horaires"
@@ -176,37 +196,4 @@ export default async function Parametrage() {
       </CorpsEcran>
     </>
   )
-}
-
-/** « de 28 € à 75 € », comme la planche. Une seule prestation ne fait pas une fourchette. */
-function fourchette(prestations: { price_cents: number }[]): string {
-  const prix = prestations.map((p) => p.price_cents)
-  const mini = Math.min(...prix)
-  const maxi = Math.max(...prix)
-  return mini === maxi ? formatEuros(mini) : `de ${formatEuros(mini)} à ${formatEuros(maxi)}`
-}
-
-/**
- * « Nantes, Rezé, Vertou », puis « + N communes » au-delà de trois.
- *
- * Jamais d'ellipsis sur un nom de commune : la planche 14c est explicite, une
- * commune coupée en deux ne se reconnaît plus.
- */
-function nomsDeCommunes(communes: { name: string }[]): string {
-  const noms = communes.map((c) => c.name)
-  if (noms.length <= 3) return noms.join(', ')
-  return `${noms.slice(0, 2).join(', ')} + ${String(noms.length - 2)} communes`
-}
-
-const ABREGE = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
-
-/** « Lun a Sam » quand les jours se suivent, sinon la liste. */
-function joursTravailles(horaires: { weekday: number }[]): string {
-  const jours = [...new Set(horaires.map((h) => h.weekday))].sort((a, b) => a - b)
-  if (jours.length === 0) return 'Aucun jour'
-  const continu = jours.every((j, i) => i === 0 || j === jours[i - 1] + 1)
-  if (continu && jours.length > 2) {
-    return `${ABREGE[jours[0]]} à ${ABREGE[jours[jours.length - 1]]}`
-  }
-  return jours.map((j) => ABREGE[j]).join(', ')
 }

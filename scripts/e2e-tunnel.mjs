@@ -306,7 +306,10 @@ async function jouer(base, page) {
   // Le refus d'abord : sans les cases, la réservation ne doit pas passer.
   await page.getByRole('button', { name: /Réserver ce créneau|Envoyer la demande/i }).click()
   await page.waitForTimeout(1500)
-  if (page.url().includes('/confirmation') || (await page.locator('text=/confirmé/i').count()) > 0) {
+  if (
+    page.url().includes('/confirmation') ||
+    (await page.locator('text=/confirmé/i').count()) > 0
+  ) {
     throw new Error('G7 : la réservation est passée SANS acceptation. C’est le défaut à empêcher.')
   }
 

@@ -163,6 +163,14 @@ async function semer(client) {
     body: JSON.stringify([
       { pro_id: id, name: 'Coupe et brushing', price_cents: 4500, duration_min: 45, active: true },
       { pro_id: id, name: 'Couleur et soin', price_cents: 7500, duration_min: 90, active: true },
+      { pro_id: id, name: 'Brushing', price_cents: 2800, duration_min: 30, active: true },
+      {
+        pro_id: id,
+        name: 'Mèches et balayage',
+        price_cents: 9500,
+        duration_min: 120,
+        active: true,
+      },
     ]),
   })
   await client.rest('service_areas', {
@@ -182,13 +190,40 @@ async function semer(client) {
         lat: COMMUNE.lat,
         lng: COMMUNE.lng,
       },
+      // Trois communes, comme la planche 14c : un hub qui ne montre qu'une
+      // seule ville ne prouve rien de son résumé, et c'est ce qui avait laissé
+      // passer « Zone d'intervention · Pau ».
+      {
+        pro_id: id,
+        insee_code: '64125',
+        name: 'Billère',
+        postal_code: '64140',
+        lat: 43.3053,
+        lng: -0.3903,
+      },
+      {
+        pro_id: id,
+        insee_code: '64284',
+        name: 'Jurançon',
+        postal_code: '64110',
+        lat: 43.2903,
+        lng: -0.3806,
+      },
     ]),
+  })
+  // A8 : le forfait de base. Il apparaît en seconde ligne du résumé de zone.
+  await client.rest('distance_fees', {
+    method: 'POST',
+    headers: { Prefer: 'return=minimal' },
+    body: JSON.stringify([{ pro_id: id, from_km: 0, fee_cents: 1000 }]),
   })
   await client.rest('working_hours', {
     method: 'POST',
     headers: { Prefer: 'return=minimal' },
     body: JSON.stringify(
-      [0, 1, 2, 3, 4, 5, 6].map((weekday) => ({
+      // Lundi à samedi, mercredi off : la planche 14c montre exactement ce cas,
+      // et un trou dans la semaine est ce qu'on vient vérifier sans ouvrir.
+      [0, 1, 3, 4, 5].map((weekday) => ({
         pro_id: id,
         weekday,
         starts_at: '09:00',
@@ -330,6 +365,7 @@ async function executer() {
   let echec
   const illisiblesGlobal = []
   const aaGlobal = []
+  const mesures = { hubEnEcrans: null }
   const capturees = []
 
   try {
@@ -364,6 +400,25 @@ async function executer() {
           .replace('{rdv}', rdvId)
           .replace('{cliente}', clienteId)
       await page.goto(url, { waitUntil: 'networkidle' }).catch(() => undefined)
+
+      /*
+        D17 ⑥ — le critère de Morgan, rendu vérifiable.
+
+        « En deux défilements, elle voit tout sans avoir besoin d'ouvrir. » Sur
+        le mobile de référence (390 × 844), cela veut dire que le hub tient en
+        environ deux hauteurs d'écran. Une phrase qu'on ne mesure pas devient
+        vraie par habitude ; celle-ci se mesure à chaque capture, et le chiffre
+        s'écrit dans `index.md`.
+
+        On mesure la HAUTEUR DU DOCUMENT, pas celle de l'image : une capture de
+        page entière fait exactement la taille du contenu, elle ne dirait donc
+        jamais qu'il déborde.
+      */
+      const hauteur = await page.evaluate(() => document.documentElement.scrollHeight)
+      const ecrans = hauteur / 844
+      if (vue.nom.includes('hub-rempli')) {
+        mesures.hubEnEcrans = ecrans
+      }
 
       const releves = await releverContrastes(page)
       const { illisibles, souslAA } = juger(releves)
@@ -431,6 +486,20 @@ async function executer() {
       )
     }
     process.exit(1)
+  }
+
+  /*
+    D17 ⑥ — « en deux défilements, elle voit tout sans avoir besoin d'ouvrir ».
+    Le chiffre est dit à chaque exécution, et il échoue au-delà de deux écrans :
+    c'est un critère, pas une intention.
+  */
+  if (mesures.hubEnEcrans !== null) {
+    const n = mesures.hubEnEcrans
+    console.log(`Hub rempli : ${n.toFixed(2)} hauteur(s) d’écran sur 390 × 844 (critère : ≤ 2).`)
+    if (n > 2) {
+      console.error('\n✖ Le hub dépasse deux défilements : il redevient une liste à parcourir.')
+      process.exit(1)
+    }
   }
 
   console.log('Contraste : aucun texte illisible.')
