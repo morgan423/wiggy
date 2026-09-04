@@ -20,6 +20,264 @@ _Rien en attente : les trois questions ouvertes ont été tranchées le 03/09._
 
 ---
 
+## 2026-09-04 (4) Étape : les icônes de la nav, les interrupteurs, et la repasse de propreté
+
+**Fait :**
+
+- **Les interrupteurs de la matrice de notifications sortaient en DISQUES**, avec un croissant
+  blanc dedans. J'avais posé `tactile` sur le rail lui-même : cette classe impose `min-height: 44px`
+  autant que `min-width`, donc un rail de 44 × 24 devenait 44 × 44, et la pastille posée à 2 px du
+  haut d'une boîte deux fois trop grande dessinait le croissant. Les deux règles sont justes
+  séparément ; c'est de les avoir mises sur le même élément qui était faux. **La zone tactile
+  entoure désormais le rail au lieu de l'être.** Vérifié : c'était la seule occurrence de cette
+  collision dans le produit.
+- **La barre de navigation n'avait aucune icône**, alors que la planche 14a en donne quatre. Elle
+  les dessine en boîtes CSS positionnées ; reprises en SVG **à la géométrie près**, en reportant la
+  mesure des bordures sur l'axe du trait — `box-sizing: border-box` place la bordure à l'INTÉRIEUR,
+  donc un cercle de 7 px à bordure de 2 a un rayon d'axe de 2,5 et non de 3,5. Trois icônes sur
+  quatre étaient à reprendre après ce calcul.
+- **Ce n'est pas un ornement** : sur une barre de quatre entrées, l'icône est la forme qu'on vise
+  du pouce sans lire. Quatre mots de même longueur, même graisse et même couleur obligeaient à
+  relire la barre à chaque fois.
+
+**La repasse de propreté avant bêta :**
+
+- **Aucun contournement dans le code** : zéro `eslint-disable`, zéro `@ts-ignore`, zéro
+  `@ts-expect-error`, zéro test ignoré. **Aucun TODO ni FIXME.** Aucun secret en dur, ni dans le
+  code ni **dans l'historique git**.
+- **Deux exceptions d'outillage sans motif écrit, éprouvées puis SUPPRIMÉES** : `apps/pro/App.tsx`
+  et `apps/pro/index.ts` étaient exclus du lint comme « gabarit Expo ». Ils passent sans
+  l'exception. Les autres portent désormais leur motif.
+- **Dix vulnérabilités modérées, toutes la même, hors périmètre de la bêta.** `apps/web` est à
+  **zéro**. Les dix sont `uuid` via `xcode` via Expo, dans `apps/pro`. Le chemin vulnérable vise
+  `v3/v5/v6 avec un tampon` ; `xcode` n'appelle que `v4()` sans tampon, c'est une dépendance de
+  **construction** qui ne voit aucune donnée, et `xcode@3.0.1` est la dernière version publiée.
+  Tout est dans `docs/securite-dependances.md`, avec les preuves.
+- **Un `overrides` npm sur `uuid` a été tenté sous ses deux formes, verrou régénéré : npm ne
+  l'applique pas** dans ce montage d'espaces de travail. **Je l'ai retiré** plutôt que de le
+  laisser : un correctif qui ne corrige pas affiche une sécurité qui n'existe pas.
+
+**Schéma :** aucune migration.
+
+**Décisions :** aucune.
+
+**Écarts au brief :** aucun.
+
+**Questions ouvertes :** aucune.
+
+**À recetter par Morgan :**
+
+1. Profil → Paramètres → Notifications : les interrupteurs sont des **pilules**, pas des disques.
+2. La barre du bas porte **quatre icônes** au-dessus des libellés, et celle de l'onglet actif est
+   en miel.
+
+**Statut à reporter dans la roadmap :** rien à bouger.
+
+---
+
+## 2026-09-04 (3) Étape : G7, G3, C9, B14, D17 ⑥ et D18
+
+Les trois derniers chantiers avant la bêta, plus les deux sujets arrivés en cours de route.
+
+**Fait :**
+
+### G7 — l'acceptation contractuelle tracée
+
+- **La contrainte qui a décidé de toute la forme** : les textes de l'avocat doivent se brancher au
+  jalon J2 **sans toucher au code**. **Les documents vivent donc en base**, et l'application n'en
+  connaît que les identifiants.
+- **Le versionnage n'est pas un champ, c'est la clé primaire.** `(slug, version)` : une nouvelle
+  version est une **ligne de plus**, jamais une mise à jour. Une acceptation passée pointe pour
+  toujours sur le texte exact montré ce jour-là, et réécrire l'histoire devient impossible.
+- **Deux règles tenues par la BASE et non par le code**, parce qu'aucune ne survivrait à la
+  discipline : **l'horodatage serveur** (un `default now()` se contourne en envoyant la colonne, le
+  déclencheur écrase) et **l'immuabilité**. Sur la seconde je m'étais trompé d'abord : l'absence de
+  politique RLS ne refuse pas la commande, elle la fait porter sur **zéro ligne** et « réussit » en
+  silence, et elle ne s'applique pas au rôle par lequel nous écrivons. Le déclencheur lève,
+  `service_role` compris. **Sept tests le prouvent sur une vraie base.**
+- **Case jamais pré-cochée**, et **version vérifiée à l'écriture** : un formulaire resté ouvert
+  pendant une mise à jour ne peut pas faire signer l'ancien texte.
+- **Entrée en vigueur datée** : une version se prépare à l'avance (le préavis de trente jours) sans
+  s'appliquer avant l'heure et **sans tâche planifiée**.
+- Points ① et ② branchés. ③ et ④ attendent B9 et G2, déclarés dans MANQUES.md.
+
+### G3 — l'onboarding guidé et l'import du répertoire
+
+- **Les écrans existaient tous, c'est le CHEMIN qui manquait.**
+- **L'objectif est chiffré et visible**, et **disparaît une fois le délai passé** : une pro qui n'y
+  est pas arrivée n'a pas besoin qu'on le lui reproche à chaque ouverture.
+- **L'état des étapes se DÉDUIT, il ne se stocke pas.** Une colonne mentirait dès la première
+  prestation supprimée.
+- **L'API Contact Picker n'existe que sur Chrome Android. Elle n'existe pas sur iOS, sur aucun
+  navigateur.** Construire l'import uniquement là-dessus, c'était livrer une fonctionnalité qui
+  marche sur un navigateur sur trois, et pas sur celui d'une large part de la cible. **Deux chemins,
+  le second étant le principal** : sélecteur natif quand il existe, **import de fichier** (vCard et
+  CSV) partout ailleurs. **Sur iPhone, l'écran dit pourquoi** il n'y a pas de bouton magique.
+- **Quatre champs lus, et rien d'autre.** Un carnet contient des anniversaires et des adresses :
+  aucune finalité ici, donc aucune collecte. Un test le tient.
+- **Le doublon se juge sur le téléphone normalisé, jamais sur le nom.** Un contact **sans téléphone
+  est gardé** et compté à part.
+- **Rien ne s'écrit avant que la pro ait vu ce qui sera créé.**
+
+### C9 — le durcissement PWA
+
+- **L'icône du dépôt faisait 128 px.** Sous 192, Android **refuse** de proposer l'installation : ce
+  n'était pas un défaut esthétique, c'était ① qui ne marchait pas. Reprise du livrable Design.
+- **La tournée survit à la zone blanche** : réseau d'abord, cache en secours. L'ordre compte —
+  servir le cache d'abord montrerait une journée périmée à une pro connectée, sans qu'elle le sache.
+- **Le service worker ne touche jamais à une écriture** : une écriture rejouée créerait un second
+  rendez-vous. Le hors-ligne en écriture attend le natif (C8), comme D4 le prévoit.
+- **`npm run pwa:check` le prouve dans un vrai Chrome**, en coupant le réseau.
+- **Un bug trouvé par ce contrôle et pas deviné** : `cache.put` refuse une réponse redirigée, et
+  comme il partageait le `try` du `fetch`, une redirection vers la connexion faisait servir la page
+  hors-ligne **alors que le réseau marchait**.
+
+### B14 — le moteur de notifications
+
+- `journaliser()` n'était appelé **qu'à un seul endroit** sur six événements.
+- **Le journal reçoit tout, toujours, et aucune fonction ne permet de le couper** : la seule façon
+  de garantir qu'un registre n'a pas de trous est de ne jamais offrir le moyen d'en faire un.
+- **Le défaut de push n'est pas saisi, il est CALCULÉ** depuis la nature déclarée de l'événement.
+  Un test recopie la table du 04/09 et tombe si une nature change sans qu'on y pense.
+- **Quatre événements branchés**, deux **déclarés en attente** et **non simulés**.
+  `npm run journal:inventaire` échoue si un événement dont la fonctionnalité existe n'est
+  journalisé nulle part.
+
+### D17 ⑥ et D18
+
+- Les résumés du hub retrouvent le niveau de 14c, dont le résumé de droite est un **bloc de deux
+  lignes**. **Le hub tient en 1,00 hauteur d'écran** sur 390 × 844, mesuré à chaque `npm run vues`
+  avec échec au-delà de deux.
+- D18 et la règle de journalisation inscrites dans CLAUDE.md.
+
+**Schéma :** **0021, 0022 et 0023, EN ATTENTE d'application par Morgan.** ⚠️ **0021 est
+bloquante** : sans elle, le tunnel refuse toute réservation. Ce n'est pas une panne, c'est le
+comportement voulu, fermé par défaut.
+
+**Décisions :** D18. La règle de journalisation. La règle des défauts de push.
+
+**Écarts au brief :**
+
+- **« Nouvelle demande » est journalisée au PASSÉ.** Ta liste la nomme par ce qu'elle appelle, mais
+  17a dit que le journal reçoit des faits accomplis : le fait accompli est qu'elle est **arrivée**,
+  la décision reste dans « À décider ».
+- **`demande_traitee` partage les réglages de `demande_a_valider`** : même flux, et une pro qui fait
+  taire les demandes fait taire tout le flux, pas sa moitié.
+- **L'annulation est journalisée quelle qu'en soit l'origine, comme demandé**, mais aujourd'hui la
+  seule origine possible est la pro elle-même (A10 n'existe pas).
+- **`npm run vues` semait le compte VIDE comme publié**, ce qui cochait d'avance la dernière étape
+  du parcours. Corrigé.
+- **Contraste corrigé au passage** : le secondaire d'une rangée d'invite tombait à 3,2:1 sur
+  l'abricot.
+
+**Questions ouvertes :** aucune.
+
+**À recetter par Morgan :**
+
+1. **D'ABORD : colle 0021 à 0023.** Sans 0021, aucune réservation ne passe. Puis `npm run db:etat`.
+2. **Réserve un rendez-vous** sur ta page publique. Sans cocher : refusé. En cochant : confirmé, et
+   la cloche l'annonce.
+3. **Ouvre `/legal/cgv`** : le texte, sa version, sa date d'entrée en vigueur.
+4. **Crée un compte** : CGV et confidentialité à cocher, **jamais pré-cochées**.
+5. **Profil → Paramètres → Notifications** : coupe le badge d'un événement, provoque-le, vérifie que
+   la cloche ne bouge pas **mais que la ligne est bien dans le journal**.
+6. **Autorise le push** sur ton téléphone, puis fais-toi une réservation depuis un autre appareil.
+7. **Installe Wiggy sur ton écran d'accueil.** Pas de barre d'adresse, démarrage sur la tournée.
+   Ouvre ta tournée, **passe en mode avion**, rouvre : elle est là.
+8. **Sur un compte neuf**, le hub propose « Finir de préparer ma page » et le parcours affiche le
+   compte à rebours des 48 h.
+9. **Clientes → Récupérer mes clientes** : dépose un `.vcf`. **Aperçu avant** création. Recommence
+   avec le même fichier : zéro doublon.
+
+**Statut à reporter dans la roadmap :** G7, G3, C9 : « recette à valider ». B14 : « moteur complet,
+recette à valider ». D17 : « ⑥ fait ». D18 : « tranchée et inscrite ».
+
+---
+
+## 2026-09-04 (2) Étape : l'état d'interaction des rangées, et la planche 18a
+
+**Fait :**
+
+- **La rangée faisait `hover:bg-fond`** : au survol, une carte prenait exactement la couleur du
+  corps de l'écran et **disparaissait** au lieu de se détacher. **Elles étaient TREIZE**, pas une :
+  tournée, agenda, fiche cliente, clientes, notifications, clôture, forfait de zone.
+- **Les cinq occurrences de panneau sont justes**, et gardées : un panneau est un plan posé
+  au-dessus de l'écran, où la crème n'est le fond de rien.
+- **La correction** : élévation au survol et **chevron en framboise**, aucun changement de fond.
+  Les deux restent justes sur n'importe quel fond.
+- **L'état pressé existait déjà, et globalement** : `globals.css` enfonce tout `button` et tout
+  `a[href]` au `--tap-scale`. Une rangée est un lien : **elle l'avait depuis toujours**.
+  **Le réécrire était un bug** : `scale:` et `transform: scale()` se multiplient, l'appui aurait
+  valu 0,94 au lieu de 0,97. Trouvé en lisant le CSS produit par le navigateur, pas le mien.
+- **`design:check` tient la règle, et il m'a fallu deux essais.** Le premier critère — « un élément
+  qui déclare son propre fond ne bascule pas vers un autre » — **n'a pas sonné** sur le défaut
+  d'origine : le `bg-surface` vit dans une variable. Un contrôle qui ne trouve pas le cas qui l'a
+  fait naître ne sert à rien. Le critère qui tient est **structurel**, avec un seul point
+  d'écriture (`SURVOL_PANNEAU`), donc aucune liste d'exemptions à pourrir.
+- **Planche 18a** : le motif du compte devient une **silhouette d'avatar**, remplacée par le visage
+  de la pro dès qu'elle a une photo, cerclé de miel quand le menu est ouvert. **La bascule cloche
+  vers croix est un fondu croisé**, pas un échange d'images. Le badge **disparaît à l'ouverture**.
+- **`npm run vues` ne créait aucune notification** : ni le compte ni le plafond « 9+ » n'avaient
+  jamais été rendus par un vrai écran.
+
+**Schéma :** aucune migration.
+
+**Décisions :** la règle des états d'interaction, et sa jumelle sur le pressé (CLAUDE.md).
+
+**Écarts au brief :** le menu garde « **Paramétrage** » alors que 18a écrit « Paramètres » —
+décision de Morgan avant board. J'ai en revanche pris l'**ordre** de la planche.
+
+**Questions ouvertes :** aucune.
+
+**À recetter par Morgan :**
+
+1. Survole une rangée : elle **se soulève**, son chevron passe en framboise, **son fond ne change
+   pas**.
+2. Sur téléphone, **appuie sans relâcher** : elle s'enfonce et repose son ombre.
+3. Les sélecteurs de date et d'heure gardent leur survol coloré : c'est l'exception, elle est voulue.
+4. Tape la cloche : elle **pivote et fond** vers la croix miel. Le badge disparaît.
+
+**Statut à reporter dans la roadmap :** D17 : « ④ et ⑤ conformes à 18a ».
+
+---
+
+## 2026-09-04 (1) Étape : l'idempotence des migrations et `npm run db:etat`
+
+**Fait :**
+
+- **Aucune de nos migrations n'était rejouable.** Un lot collé à la main s'est interrompu au milieu
+  et est devenu irrattrapable sans diagnostic. Ce n'était pas un défaut du lot : appliquer à la
+  main, par lots (D7), fait de l'interruption **le cas normal**.
+- **0017 à 0020 réécrites idempotentes**, et **la règle inscrite dans CLAUDE.md**.
+- **Le contrôle est une PREUVE, pas une relecture** : `npm run db:rejeu` applique puis **rejoue**
+  les migrations sur la même base. J'ai écarté le contrôle par expression rationnelle : un
+  `if not exists` sur un `create table` ne dit rien de ses index, de ses politiques ni de ses types.
+- **`npm run db:etat` dit ce qui est RÉELLEMENT appliqué**, en **nommant le projet interrogé**. Il a
+  répondu tout de suite à la question de la soirée : **les vingt migrations étaient passées**.
+- **Sonde déclarée** en tête de chaque migration, plutôt que déduite du SQL : une déduction serait
+  silencieusement fausse le jour où une migration ne créerait rien de nouveau, et **une sonde fausse
+  est pire qu'une sonde absente, elle affirme**.
+- **Lecture seule par CONSTRUCTION** (R2-4) : uniquement des `GET` PostgREST, un protocole qui ne
+  sait pas écrire.
+
+**Schéma :** aucune migration nouvelle.
+
+**Décisions :** la règle d'idempotence et la sonde de migration (CLAUDE.md).
+
+**Écarts au brief :** les sondes de 0001 à 0016 vivent dans le script et non dans les fichiers :
+ces migrations sont appliquées, et **une migration appliquée ne se réécrit jamais**.
+
+**Questions ouvertes :** aucune.
+
+**À recetter par Morgan :**
+
+1. `npm run db:etat` : il nomme la base et liste l'état réel de chaque migration.
+2. Recolle n'importe quel lot depuis 0017 : **il passe une seconde fois sans erreur**.
+
+**Statut à reporter dans la roadmap :** D7 : « idempotence et `db:etat` en place ».
+
+---
+
 ## 2026-09-03 (10) Étape : D17 ④ et ⑤, le menu du compte et la cloche qui se referme
 
 **Fait :**
