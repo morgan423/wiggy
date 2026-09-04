@@ -212,9 +212,50 @@ Côté cliente finale, tout reste web : zéro installation pour réserver.
 - **Ce qu'une planche ne dit pas se tranche, puis se journalise.** Un trou de spécification se
   comble avec Design, il ne s'invente pas en silence. La décision prise faute de mieux part dans
   « Écarts au brief » ou dans « En attente d'arbitrage », avec ce qu'elle engage.
-- **On se relit avant de livrer un écran** : rendre la planche et l'écran, les comparer côte à
-  côte, corriger les écarts, et ne livrer que ce qui se ressemble. « J'ai suivi la description »
-  n'est pas une vérification.
+- **ON REND, ON REGARDE, ON COMPARE. Ce n'est pas une relecture, c'est la première étape.**
+
+  Cette règle existait en une ligne depuis le début, et elle a été enfreinte le 04/09 sur la home :
+  la planche avait été **lue au script** (séquence des fonds, présence des animations, chaînes de
+  texte) sans jamais être **rendue**. Six défauts sont passés, dont trois blocs invisibles et
+  toutes les tailles de titre. Morgan les a vus en ouvrant la page. Elle est donc réécrite en
+  procédure, parce qu'une règle de vigilance ne tient pas et qu'une procédure tient.
+
+  **Elle s'applique à TOUT travail d'interface** : une planche entière, un écran, une bande, un
+  composant, une correction d'un seul bloc. Dans l'ordre, sans en sauter :
+
+  1. **Rendre la planche en image.** Playwright sur le fichier `../../Design/planches/XX.html`,
+     capture pleine page. Pas de lecture du HTML à la place : le HTML dit ce qui est déclaré,
+     l'image dit ce qui se voit.
+  2. **Rendre l'écran en image**, à la même largeur, animations figées et fondus d'apparition
+     neutralisés, sinon la capture sort blanche sous la ligne de flottaison.
+  3. **Les REGARDER tous les deux**, par paires de régions correspondantes, du haut vers le bas.
+     Regarder l'image, pas le code : c'est le seul moment où l'on voit ce que voit Morgan.
+  4. **Écrire les écarts** avant d'en corriger un seul, sinon on corrige le premier et on oublie
+     les cinq autres.
+  5. **Corriger, re-rendre, re-regarder.** Une correction non revue en image n'est pas faite : le
+     04/09, deux corrections « appliquées » ne peignaient rien.
+  6. **MESURER le rendu sur les points litigieux**, avec `getComputedStyle` sur les tailles, les fonds,
+     les largeurs. Une classe posée sur un élément peut n'exister dans aucune feuille ; l'attribut
+     est là, l'inspecteur la montre, elle ne peint rien. Seule la mesure le dit.
+  7. **Rendre l'écart opposable** : tout défaut trouvé à l'œil devient un critère dans
+     `scripts/planche-check.mjs`, **prouvé par un échec délibéré**. Un contrôle qui passait pendant
+     que le défaut existait n'a pas trouvé son critère.
+
+  **Trois classes de défauts sont invisibles à la relecture du code**, et ce sont elles que l'étape
+  attrape. Elles reviendront, sous d'autres formes :
+
+  - **le bloc de la couleur de son fond** : déclaré, arrondi, au bon endroit, et invisible ;
+  - **la classe qui ne peint pas** : déclarée hors couche donc battue par un utilitaire, ou
+    fabriquée à l'exécution donc produite par aucune feuille ;
+  - **la marge hors mesure** : écrite, correcte à lire, posée du mauvais côté de la boîte.
+
+  Aucune ne fait échouer quoi que ce soit toute seule. Aucune ne se voit en relisant le fichier.
+  **« J'ai suivi la description » et « le code est juste » ne sont pas des vérifications.**
+
+  Et quand un rendu ne ressemble toujours pas à la planche sans qu'on sache dire pourquoi : **le
+  dire à Morgan et redemander la planche**, plutôt que d'ajuster au jugé. Il l'a proposé
+  explicitement le 04/09.
+
 - **Le board fait foi pour la composition.** On ne recopie pas son HTML, on en respecte la
   structure, les proportions et le ratio. Il n'est pas une inspiration dont on retiendrait
   l'esprit : quand une planche montre un bloc pleine couleur qui contient sa carte, on construit

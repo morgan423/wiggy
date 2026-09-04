@@ -39,6 +39,7 @@
     "db:etat": "node scripts/db-etat.mjs",
     "journal:inventaire": "node scripts/journal-inventaire.mjs",
     "pwa:check": "node scripts/pwa-check.mjs",
+    "planche:rendre": "node scripts/planche-rendre.mjs",
     "planche:check": "node scripts/planche-check.mjs"
   },
   "devDependencies": {

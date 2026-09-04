@@ -20,6 +20,60 @@ _Rien en attente : les trois questions ouvertes ont été tranchées le 03/09._
 
 ---
 
+## 2026-09-04 (14) Étape : le « rendre et regarder » devient une procédure et une commande
+
+**Fait :**
+
+Morgan, après la recette de l'entrée (13) : « T'es fort en fait **quand tu regardes**. Enregistre
+bien ce process, je veux que chaque fois qu'on fait du design de l'UI/UX etc. tu refasses la même
+chose. »
+
+### La règle existait déjà, et c'est le problème
+
+`CLAUDE.md` demandait depuis le début de « rendre la planche et l'écran, les comparer côte à côte ».
+Une ligne, dans une liste de vingt. Elle a été enfreinte sur la home sans que rien ne s'en aperçoive.
+**Une règle de vigilance ne tient pas.** Elle est donc réécrite en **procédure ordonnée en sept
+étapes**, et elle s'applique à tout travail d'interface — une planche entière comme la correction
+d'un seul bloc.
+
+Y sont nommées les **trois classes de défauts invisibles à la relecture du code**, celles que
+l'étape existe pour attraper : le bloc de la couleur de son fond, la classe qui ne peint rien, la
+marge posée hors mesure. Aucune ne fait échouer quoi que ce soit toute seule ; aucune ne se voit en
+relisant le fichier.
+
+### Et il manquait l'outil, pas le courage
+
+Tant qu'il fallait improviser un script jetable à chaque comparaison, l'étape se sautait — c'est
+exactement ce qui s'est produit. `npm run planche:rendre -- 19a [yPlanche yEcran hauteur]` rend
+maintenant les deux pages, et à la demande une paire de fenêtres correspondantes, dans
+`captures/comparaison/`.
+
+Deux pièges y sont réglés une fois pour toutes, tous deux rencontrés le 04/09 : les **fondus
+d'apparition** sont neutralisés, sans quoi la moitié basse de la capture sort blanche ; et l'attente
+de `document.fonts.ready` évite de capturer la page en police de substitution, qui donne des
+largeurs de texte fausses et des retours à la ligne qui n'existent pas.
+
+Il **ne vérifie rien**, et c'est voulu : `planche:check` compare ce qu'on sait nommer, celui-ci sert
+à voir ce qu'on ne savait pas chercher. La règle qui les relie est dans la procédure — **tout écart
+trouvé à l'œil finit en critère dans `planche-check.mjs`, prouvé par un échec délibéré**.
+
+**Décisions :** aucune. C'est une consigne de méthode, pas un arbitrage produit.
+
+**Écarts au brief :** aucun.
+
+**Questions ouvertes :** aucune nouvelle. Les trois de l'entrée (13) restent ouvertes.
+
+**À recetter par Morgan :**
+
+1. **`npm run planche:rendre -- 19a`** : deux images dans `captures/comparaison/`.
+2. **`npm run planche:rendre -- 19a 780 640 700`** : en plus, la paire de fenêtres à comparer.
+3. **Relis la procédure dans `CLAUDE.md`** : sept étapes, et les trois classes de défauts qu'elle
+   attrape. C'est ce que je dois suivre à chaque fois, sans que tu aies à le redemander.
+
+**Statut à reporter dans la roadmap :** rien à bouger.
+
+---
+
 ## 2026-09-04 (13) Étape : la home rendue et comparée à la planche, enfin
 
 **Fait :**
