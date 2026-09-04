@@ -59,6 +59,48 @@ export function sondeDe(nom, contenu) {
   return declaree ?? SONDES_GELEES[nom.slice(0, 4)] ?? null
 }
 
+/**
+ * Les schémas que PostgREST n'expose PAS. Une sonde qui les vise part en 404,
+ * et un 404 se lit comme une absence : le script annoncerait « en attente » sur
+ * une migration parfaitement appliquée, sans jamais dire qu'il n'a rien pu
+ * regarder.
+ *
+ * **Une panne de sonde n'est pas une absence.** Le script sait déjà distinguer
+ * les deux pour les autres codes HTTP ; ici il faut le savoir AVANT d'appeler,
+ * puisque la réponse est indiscernable.
+ */
+const SCHEMAS_INACCESSIBLES = /^(pg_|information_schema\b)/
+
+/**
+ * Pourquoi une sonde ne peut pas être vraie, ou `null` si elle tient debout.
+ *
+ * Deux défauts se sont produits le même jour, dans le même lot, et ce sont les
+ * deux seuls que ce contrôle attrape :
+ *
+ * ① **la sonde vise un schéma non exposé** — celle de 0026 visait `pg_proc` ;
+ * ② **la sonde est celle d'une migration précédente** — celle de 0025 avait
+ *    emprunté celle de 0021, et se serait déclarée appliquée dès que 0021
+ *    l'était. Une sonde doit désigner ce que SA migration crée, et rien
+ *    d'autre : deux sondes identiques sont toujours une erreur.
+ */
+export function sondeInvalide(sonde, dejaVues) {
+  const table = sonde.split('?')[0].split('.')[0]
+  if (SCHEMAS_INACCESSIBLES.test(table)) {
+    return (
+      `vise « ${table} », que PostgREST n'expose pas : l'appel partirait en 404 ` +
+      `et serait lu comme une absence. Une panne de sonde n'est pas une absence.`
+    )
+  }
+  const precedente = dejaVues.get(sonde)
+  if (precedente) {
+    return (
+      `est déjà celle de ${precedente} : elle répondrait « appliquée » avant que ` +
+      `cette migration le soit. Une sonde désigne ce que SA migration crée.`
+    )
+  }
+  return null
+}
+
 /** Interroge PostgREST. `GET` uniquement : ce protocole ne sait pas écrire. */
 function lecteur(valeurs) {
   const url = (valeurs.NEXT_PUBLIC_SUPABASE_URL ?? '').replace(/\/+$/, '')
@@ -114,11 +156,22 @@ async function executer() {
 
   const fichiers = await listMigrations()
   const sansSonde = []
+  const sondesVues = new Map()
   const appliquees = []
   const manquantes = []
 
   for (const f of fichiers) {
     const sonde = sondeDe(f, await readFile(join(migrationsDir, f), 'utf8'))
+    if (sonde) {
+      // On refuse d'ÉMETTRE une sonde qui ne peut pas être vraie : la lire
+      // reviendrait à annoncer un état qu'on n'a pas constaté.
+      const motif = sondeInvalide(sonde, sondesVues)
+      if (motif) {
+        console.error(`\n✖ ${f} : la sonde « ${sonde} » ${motif}`)
+        process.exit(1)
+      }
+      sondesVues.set(sonde, f)
+    }
     if (!sonde) {
       sansSonde.push(f)
       console.log(`  ?    ${f}  (aucune sonde déclarée)`)

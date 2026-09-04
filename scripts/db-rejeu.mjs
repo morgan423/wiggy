@@ -8,21 +8,42 @@
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import { createDb, migrationsDir, listMigrations } from './db.mjs'
-import { sondeDe } from './db-etat.mjs'
+import { sondeDe, sondeInvalide } from './db-etat.mjs'
 
 const PREMIERE = 17
 
 // Toute migration non gelée déclare sa SONDE : c'est elle qui permet à
 // `npm run db:etat` de dire si elle est passée. Sans elle, on retomberait dans
 // le registre déclaratif qu'on vient de quitter.
+//
+// Et elle doit pouvoir être VRAIE : une sonde qui vise un schéma non exposé, ou
+// qui reprend celle d'une migration précédente, ne dit rien tout en ayant l'air
+// de dire quelque chose. Le contrôle vit ICI en plus de `db:etat` parce qu'il
+// tourne dans `npm run verify` : la sonde fautive est arrêtée AVANT d'atteindre
+// une vraie base, pas au moment où l'on interroge celle-ci.
 const sansSonde = []
+const sondesInvalides = []
+const sondesVues = new Map()
 for (const f of (await listMigrations()).filter((f) => Number(f.slice(0, 4)) >= PREMIERE)) {
-  if (!sondeDe(f, await readFile(join(migrationsDir, f), 'utf8'))) sansSonde.push(f)
+  const sonde = sondeDe(f, await readFile(join(migrationsDir, f), 'utf8'))
+  if (!sonde) {
+    sansSonde.push(f)
+    continue
+  }
+  const motif = sondeInvalide(sonde, sondesVues)
+  if (motif) sondesInvalides.push(`${f} : « ${sonde} » ${motif}`)
+  else sondesVues.set(sonde, f)
 }
 if (sansSonde.length > 0) {
   console.error('\nCes migrations ne déclarent pas de sonde `-- @sonde:` :')
   for (const f of sansSonde) console.error(`  ✖ ${f}`)
   console.error('\nSans sonde, `npm run db:etat` ne peut pas dire si elles sont passées.\n')
+  process.exit(1)
+}
+if (sondesInvalides.length > 0) {
+  console.error('\nCes sondes ne peuvent pas être vraies :')
+  for (const m of sondesInvalides) console.error(`  ✖ ${m}`)
+  console.error('')
   process.exit(1)
 }
 

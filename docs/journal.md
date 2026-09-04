@@ -20,6 +20,77 @@ _Rien en attente : les trois questions ouvertes ont été tranchées le 03/09._
 
 ---
 
+## 2026-09-04 (6) Correctif : une sonde doit pouvoir être vraie
+
+**Fait :**
+
+- **La sonde de 0026 était fausse deux fois**, et Morgan a raison sur les deux : elle visait
+  `pg_proc`, que PostgREST n'expose pas — l'appel partait en 404, et **mon script lisait une
+  inaccessibilité comme une absence** — et `acceptance_immuable` existant depuis 0021, elle aurait
+  de toute façon répondu « appliquée » trop tôt.
+- **C'est la même classe de défaut que celle corrigée pour 0025 une heure plus tôt, reproduite dans
+  le même lot.** Corriger la ligne sans fermer la classe l'aurait laissée revenir.
+
+### ② Le contrôle : une sonde impossible est désormais une erreur bruyante
+
+`sondeInvalide()` refuse les deux seules façons dont une sonde ne peut pas être vraie, et ce sont
+exactement les deux qui se sont produites :
+
+- **elle vise un schéma non exposé** (`pg_`, `information_schema`) : l'appel partirait en 404, et un
+  404 se lit comme une absence. **Une panne de sonde n'est pas une absence** — le script savait
+  déjà distinguer les deux pour les autres codes, il fallait le savoir AVANT d'appeler, la réponse
+  étant sinon indiscernable ;
+- **elle reprend celle d'une migration précédente** : deux sondes identiques sont toujours une
+  erreur, puisqu'une sonde désigne ce que SA migration crée.
+
+Le contrôle vit dans **`db:rejeu`**, donc dans `npm run verify` : la sonde fautive est arrêtée
+**avant d'atteindre une vraie base**, pas au moment où l'on interroge celle-ci. `db:etat` refuse en
+plus d'**émettre** une sonde impossible, plutôt que d'en lire l'absence. **Les deux défauts ont été
+remis exprès pour vérifier que chacun tombe.**
+
+### ③ Comment sonder une migration qui ne crée rien
+
+C'est la question de fond, et il y a maintenant **trois formes de sonde**, inscrites dans
+CLAUDE.md :
+
+| La migration…                                       | Sa sonde                                 |
+| --------------------------------------------------- | ---------------------------------------- |
+| crée un **objet**                                   | `table` ou `table.colonne`               |
+| n'insère qu'une **ligne** (un texte contractuel)    | `table?colonne=eq.valeur`                |
+| ne change qu'un **comportement** (fonction, droits) | `migrations_marqueurs?migration=eq.NNNN` |
+
+La troisième forme est nouvelle. Une migration qui ne change qu'un comportement inscrit son numéro
+dans une table minuscule, `migrations_marqueurs`, créée par 0026 et réutilisable ensuite.
+
+**Et ce n'est pas un retour au registre déclaratif**, ce qui serait le reproche évident. La
+différence tient à la POSITION : **le marqueur est la dernière instruction du fichier**. L'éditeur
+Supabase exécute un lot collé en une transaction, donc le marqueur ne peut exister que si tout ce
+qui le précède a réussi. Il **constate**, il n'annonce pas — une migration à moitié passée ne laisse
+pas de marqueur. C'est plus faible qu'une sonde d'objet, qui regarde l'effet lui-même, et c'est
+pourquoi elle reste la forme par défaut : le marqueur est le dernier recours, pas la facilité.
+
+**Schéma :** **0026 seule reste EN ATTENTE.** `npm run db:etat` constate que **0024 et 0025 sont
+désormais appliquées**. La migration 0026 n'a pas été recollée : elle n'avait jamais été appliquée,
+et c'est bien sa sonde qui était fausse, pas elle. Elle porte en plus, désormais, la table
+`migrations_marqueurs` et son propre marqueur.
+
+**Décisions :** les trois formes de sonde, et le refus d'une sonde qui ne peut pas être vraie.
+
+**Écarts au brief :** aucun.
+
+**Questions ouvertes :** aucune.
+
+**À recetter par Morgan :**
+
+1. `node scripts/db-bundle.mjs --depuis 0026`, colle, puis `npm run db:etat` : les vingt-six lignes
+   passent à « ok ».
+2. Remplace la sonde de 0026 par `pg_proc` ou par `push_subscriptions`, puis lance
+   `npm run db:rejeu` : **il refuse, en disant laquelle des deux fautes** c'est.
+
+**Statut à reporter dans la roadmap :** rien à bouger.
+
+---
+
 ## 2026-09-04 (5) Étape : A12, le score de cohérence, et E3, la télémétrie de bêta
 
 **LE POINT QUE MORGAN VÉRIFIERA EN PREMIER, dit d'emblée : je n'ai PAS eu à refactorer la

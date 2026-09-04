@@ -264,6 +264,20 @@ Côté cliente finale, tout reste web : zéro installation pour réserver.
   `npm run db:etat` de dire quelles migrations sont **réellement** appliquées, en interrogeant la
   base. Les sondes des migrations 0001 à 0016 vivent dans le script, parce que ces fichiers sont
   gelés. `db:rejeu` échoue si une migration non gelée n'en déclare pas.
+  **Une sonde doit pouvoir être VRAIE**, et `db:rejeu` refuse les deux façons dont elle ne l'est
+  pas (règle du 04/09, après deux occurrences le même jour) : ① elle **vise un schéma que PostgREST
+  n'expose pas** (`pg_catalog`, `information_schema`), auquel cas l'appel part en 404 et une
+  **panne de sonde se lit comme une absence** ; ② elle **reprend celle d'une migration
+  précédente**, auquel cas elle répond « appliquée » avant que la migration le soit.
+  **Trois formes de sonde, selon ce que la migration crée** :
+  - elle crée un **objet** : `-- @sonde: table` ou `table.colonne` ;
+  - elle n'insère qu'une **ligne** (un texte contractuel, par exemple) :
+    `-- @sonde: table?colonne=eq.valeur` ;
+  - elle ne change qu'un **comportement** (corps de fonction, déclencheur, droits) : rien n'est
+    sondable par un `GET`. Elle inscrit alors son numéro dans `migrations_marqueurs`, **en dernière
+    instruction du fichier**, et se sonde par `migrations_marqueurs?migration=eq.NNNN`. Ce n'est pas
+    un registre déclaratif : l'éditeur Supabase exécute un lot en une transaction, donc le marqueur
+    ne peut exister que si tout ce qui le précède a réussi.
 - **Deux environnements Supabase (D7)**, et `supabase/ETAT.md` suit les deux, une colonne par
   projet. **Une migration s'applique toujours au développement d'abord, à la production ensuite,
   jamais l'inverse.** **La production ne sert jamais à une recette** : elle porte les fiches de

@@ -1,5 +1,5 @@
 -- 0026 — G7 : une acceptation disparaît AVEC le compte, jamais toute seule.
--- @sonde: pg_proc?select=proname&proname=eq.acceptance_immuable
+-- @sonde: migrations_marqueurs?migration=eq.0026
 --
 -- ⚠️ IDEMPOTENTE : voir l'en-tête de 0017.
 --
@@ -20,6 +20,43 @@
 -- isolée et donc refusée ; s'il a déjà disparu, c'est une cascade et elle
 -- passe. Un `update`, lui, reste refusé sans condition : un fait daté ne se
 -- corrige pas.
+
+/*
+  LE MARQUEUR DE MIGRATION, et pourquoi il naît ici.
+
+  Cette migration ne crée AUCUN objet : elle remplace le corps d'une fonction.
+  Il n'y a donc rien que `npm run db:etat` puisse aller regarder pour dire si
+  elle est passée — et ma première sonde visait `pg_proc`, que PostgREST
+  n'expose pas : l'appel partait en 404, et le script lisait une INACCESSIBILITÉ
+  comme une ABSENCE. Elle aurait de toute façon menti, `acceptance_immuable`
+  existant depuis 0021.
+
+  C'est une classe de défaut, pas une ligne : toute migration qui ne change
+  qu'un comportement (corps de fonction, déclencheur, droits) est insondable par
+  un `GET`. D'où cette table, minuscule et unique, que ces migrations-là
+  marquent elles-mêmes.
+
+  ⚠️ **CE N'EST PAS UN REGISTRE DÉCLARATIF**, et la différence tient à la
+  POSITION de l'insertion : le marqueur est la DERNIÈRE instruction du fichier.
+  L'éditeur Supabase exécute un lot collé en une transaction ; le marqueur ne
+  peut donc exister que si tout ce qui le précède a réussi. Il constate, il
+  n'annonce pas. Une migration à moitié passée ne laisse pas de marqueur.
+*/
+create table if not exists migrations_marqueurs (
+  -- Le numéro de la migration, « 0026 ». Sa clé primaire interdit le doublon.
+  migration    text primary key,
+  applique_le  timestamptz not null default now()
+);
+
+comment on table migrations_marqueurs is
+  'Marqueurs des migrations qui ne creent aucun objet sondable par PostgREST. '
+  'Insere en DERNIERE instruction du fichier : sa presence prouve que tout ce '
+  'qui precede a reussi.';
+
+-- Verrouillée par conception, comme `city_waitlist` : RLS active, aucune
+-- politique. Seul le rôle serveur la lit, et `db:etat` est en lecture seule.
+alter table migrations_marqueurs enable row level security;
+revoke all on migrations_marqueurs from anon, authenticated;
 
 create or replace function acceptance_immuable()
 returns trigger
@@ -54,3 +91,7 @@ drop trigger if exists acceptances_immuables on acceptances;
 create trigger acceptances_immuables
   before update or delete on acceptances
   for each row execute function acceptance_immuable();
+
+-- ⚠️ EN DERNIER, et c'est tout l'argument : voir le commentaire plus haut.
+insert into migrations_marqueurs (migration) values ('0026')
+on conflict (migration) do nothing;
