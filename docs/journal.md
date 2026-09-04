@@ -20,6 +20,77 @@ _Rien en attente : les trois questions ouvertes ont été tranchées le 03/09._
 
 ---
 
+## 2026-09-04 (12) Étape : la planche révisée, relue en entier
+
+**Fait :**
+
+### Les deux CARROUSELS d'interface
+
+La révision ajoute deux animations, `wiggy-screen` et `wiggy-dot`, et transforme les deux vignettes
+en **carrousels de trois écrans** avec leurs trois points :
+
+- **Le héros** : « Ta tournée, Sophie. », « Une demande à valider. », « Journée bouclée. »
+- **La tournée** : « Mardi 12 mai », « Jeudi 14 mai » (avec un créneau proposé), « Ta semaine »
+
+**Aucun script.** 13,5 s pour trois écrans, soit 4,5 s chacun, obtenus par des **retards négatifs**
+(-4,5 s et -9 s) : les trois animations sont identiques et démarrent déjà entamées. Elles restent
+donc en phase pour toujours, là où un compteur en JavaScript dériverait et demanderait un nettoyage
+au démontage.
+
+**Sous `prefers-reduced-motion`, seul le premier écran reste**, et sans une ligne de plus : les deux
+autres portent `opacity: 0` au repos et c'est l'animation qui les amène. Le carrousel dégrade en
+capture fixe.
+
+### Les largeurs, et la seule qui manquait vraiment
+
+La planche borne désormais huit blocs. Trois étaient nouveaux : **22ch** sur « Le soir, c'est encore
+du travail », **60ch** sur la mention des Ambassadrices, **18ch** sur l'appel final, plus **660 px**
+sur la colonne du héros. Les autres étaient déjà en place.
+
+### Le ruban a perdu une phrase
+
+Il n'en porte plus que **trois** : « Fait pour tous les cheveux » l'a quitté en même temps qu'elle
+quittait le héros, puisqu'elle est devenue une bande à elle seule. Le test du copy deck l'a signalé
+tout seul en comparant le deck aux chaînes réextraites.
+
+### Le contrôle a dû être repris, et c'est la deuxième fois sur le même sujet
+
+**Échantillonner l'opacité des carrousels ne marche pas.** Leur courbe est PLATE pendant
+l'essentiel du cycle — 0 à 26 %, puis 33 à 93 % — et deux relevés espacés de 700 ms tombent presque
+toujours dans la même plage. Le contrôle échouait alors que tout marchait : **un contrôle
+capricieux finit ignoré**, ce qui est pire qu'un contrôle absent.
+
+Il interroge maintenant **l'animation elle-même** : `getAnimations()` ne rend rien quand les
+keyframes n'existent pas — c'est précisément ce qui manquait à ma première version du contrôle du
+ruban — et son `currentTime` avance si et seulement si elle tourne. Indépendant de la phase, donc
+jamais capricieux. S'y ajoute la vérification des **décalages** : trois écrans qui partiraient
+ensemble donneraient une pile immobile, techniquement animée.
+
+**Les deux façons de casser un carrousel ont été essayées** : keyframes supprimés, puis décalages
+retirés. Chacune fait tomber la commande avec son propre message.
+
+**Schéma :** aucune migration. 0027 reste EN ATTENTE.
+
+**Décisions :** aucune.
+
+**Écarts au brief :** aucun. Les six écrans sont du copy de planche, versés au deck et vérifiés
+chaîne par chaîne.
+
+**Questions ouvertes :** aucune nouvelle.
+
+**À recetter par Morgan :**
+
+1. **Regarde le héros et la tournée pendant quinze secondes** : trois écrans se relaient dans
+   chaque carte, les points suivent.
+2. **Active « réduire les animations »** : il ne reste que le premier écran de chaque carrousel, et
+   rien ne manque.
+3. **Casse un décalage** dans `vitrine.tsx`, puis `npm run planche:check` : il refuse en disant que
+   les écrans se relaieraient tous en même temps.
+
+**Statut à reporter dans la roadmap :** la home : « conforme à 19a révisée ».
+
+---
+
 ## 2026-09-04 (11) Correctif : la carte mise en avant, et une planche qui a bougé
 
 **Fait :**

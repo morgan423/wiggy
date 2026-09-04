@@ -37,12 +37,7 @@
       }
     ]
   },
-  "bandeau": [
-    "Ta page en ligne le jour même",
-    "Aucune migration obligatoire",
-    "Sans engagement",
-    "Fait pour tous les cheveux"
-  ],
+  "bandeau": ["Ta page en ligne le jour même", "Aucune migration obligatoire", "Sans engagement"],
   "probleme": {
     "titre": "Le soir, c'est encore du travail.",
     "chiffre": "5 à 10 h",
@@ -246,5 +241,85 @@
   },
   "gabarits": {
     "ambassadricesMention": "Compteur branché sur le réel : {restantes} restantes aujourd’hui. Conditions : compte nouveau, SIRET distinct, conversion encaissée au-delà de l’essai, filleule exerçant à domicile."
+  },
+  "vitrine": {
+    "heros": {
+      "tournee": {
+        "titre": "Ta tournée, Sophie.",
+        "rdvs": [
+          {
+            "heure": "9:00",
+            "libelle": "Marie · Quartier Zola",
+            "etat": "Terminé"
+          },
+          {
+            "heure": "10:30",
+            "libelle": "Chantal · Quartier Zola",
+            "etat": "En cours"
+          },
+          {
+            "heure": "14:30",
+            "libelle": "Amélie · Centre-ville"
+          }
+        ]
+      },
+      "demande": {
+        "titre": "Une demande à valider.",
+        "prenom": "Amélie",
+        "etat": "En attente",
+        "quoi": "Coupe & brushing · Jeu 14:30",
+        "ou": "Centre-ville · à 6 min de ta tournée",
+        "confirmer": "Confirmer",
+        "proposer": "Proposer un autre créneau"
+      },
+      "bouclee": {
+        "titre": "Journée bouclée.",
+        "lignes": ["5 rendez-vous", "Confirmations envoyées", "Rappels de demain programmés"],
+        "conclusion": "0 message à écrire ce soir."
+      }
+    },
+    "tournee": {
+      "jour": {
+        "titre": "Mardi 12 mai",
+        "rdvs": [
+          {
+            "heure": "9:00",
+            "libelle": "Marie · Quartier Zola"
+          },
+          {
+            "heure": "10:30",
+            "libelle": "Chantal · Quartier Zola"
+          },
+          {
+            "heure": "14:30",
+            "libelle": "Amélie · Centre-ville"
+          }
+        ],
+        "trajets": ["8 min de trajet", "12 min de trajet"]
+      },
+      "propose": {
+        "titre": "Jeudi 14 mai",
+        "avant": {
+          "heure": "10:00",
+          "libelle": "Marie · Quartier Zola"
+        },
+        "propose": {
+          "heure": "11:45",
+          "etiquette": "Créneau proposé",
+          "delai": "à 6 min",
+          "libelle": "Amélie · Coupe & brushing"
+        },
+        "apres": {
+          "heure": "14:30",
+          "libelle": "Chantal · Quartier Zola"
+        },
+        "mention": "Wiggy propose, tu disposes."
+      },
+      "semaine": {
+        "titre": "Ta semaine",
+        "jours": ["L", "M", "M", "J", "V"],
+        "mention": "Les creux se remplissent tout seuls."
+      }
+    }
   }
 }

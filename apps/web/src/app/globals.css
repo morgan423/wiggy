@@ -299,6 +299,63 @@ a[href]:active,
     opacity: 0.45;
   }
 }
+/*
+  Les deux CARROUSELS d'interface de la planche révisée : trois écrans qui se
+  relaient dans la même carte, et trois points qui disent où l'on en est.
+
+  13,5 s pour trois écrans, soit 4,5 s chacun, obtenus par des retards NÉGATIFS
+  (-4,5 s et -9 s) : les trois animations sont identiques et démarrent déjà
+  entamées. Aucun script, aucun état à tenir, et les trois restent en phase pour
+  toujours — un compteur en JavaScript dériverait.
+*/
+@keyframes wiggy-screen {
+  0%,
+  26% {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+  33%,
+  93% {
+    opacity: 0;
+    transform: scale(0.96);
+    filter: blur(5px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+    filter: blur(0);
+  }
+}
+@keyframes wiggy-dot {
+  0%,
+  26% {
+    opacity: 1;
+    transform: scale(1.3);
+  }
+  33%,
+  93% {
+    opacity: 0.35;
+    transform: scale(1);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1.3);
+  }
+}
+.ecran-vitrine {
+  animation: wiggy-screen 13.5s ease-in-out infinite;
+}
+.point-vitrine {
+  animation: wiggy-dot 13.5s ease-in-out infinite;
+}
+.retard-1 {
+  animation-delay: -9s;
+}
+.retard-2 {
+  animation-delay: -4.5s;
+}
+
 .ruban-defilant {
   display: flex;
   width: max-content;
@@ -378,6 +435,8 @@ a[href]:active,
      est exactement ce que ce réglage existe pour éteindre, et une opacité qui
      respire est du mouvement même quand rien ne se déplace. */
   .ruban-defilant,
+  .ecran-vitrine,
+  .point-vitrine,
   .pulsation,
   .pulsation-courte,
   .pulsation-decalee {

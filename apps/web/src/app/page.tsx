@@ -5,6 +5,7 @@ import { placesAmbassadricesRestantes } from '@wiggy/core'
 import { sectionAvisAffichable, temoignagesDePlanche } from '@/lib/avis-placeholder'
 import { BalisageHome } from './balisage-home'
 import { Apparitions } from '@/components/apparitions'
+import { VitrineHeros, VitrineTournee } from './vitrine'
 import { GrillePrix } from './grille-prix'
 
 const S = copy.siteAccueil
@@ -117,7 +118,9 @@ function Hero() {
       <div className={`${DEDANS} flex flex-col items-center gap-12 px-14 pt-14 pb-16 md:flex-row`}>
         {/* `flex: 1.5` contre une carte FIXE de 320 px : la planche ne fait pas
             une grille de fractions, elle pose une carte de largeur donnée. */}
-        <div className="flex flex-1 flex-col gap-[22px] md:flex-[1.5]">
+        {/* `max-width: 660px` sur la planche : la colonne ne s'étire plus
+            jusqu'à la carte, elle a sa mesure. */}
+        <div className="flex max-w-[660px] flex-1 flex-col gap-[22px] md:flex-[1.5]">
           {/* H1 UNIQUE de la page, sur le claim. Toutes les autres sections
               ouvrent en h2 : c'est la seule hiérarchie que le SEO comprend. */}
           <h1 className="statement tracking-tight">{S.hero.claim}</h1>
@@ -153,42 +156,10 @@ function Hero() {
           <p className="text-[12.5px] text-texte-attenue">{S.hero.rassurance}</p>
         </div>
         <div className="w-full shrink-0 md:w-[320px]">
-          <VignetteTournee />
+          <VitrineHeros />
         </div>
       </div>
     </section>
-  )
-}
-
-/** La tournée de Sophie, en vignette. Données de démonstration, assumées. */
-function VignetteTournee() {
-  return (
-    <div className="rounded-bloc bg-surface p-5 shadow-flottante">
-      <p className="text-[15px] font-bold">{S.hero.vignetteTitre}</p>
-      <ul className="mt-4 flex flex-col gap-2">
-        {S.hero.vignetteRdvs.map((r) => (
-          <li
-            key={r.heure}
-            className="flex items-center gap-3 rounded-carte bg-surface px-3.5 py-3 text-[12.5px]"
-          >
-            <span className="w-11 shrink-0 font-mono font-bold">{r.heure}</span>
-            <span className="min-w-0 flex-1 truncate font-semibold">{r.libelle}</span>
-            {'etat' in r && r.etat ? (
-              <span
-                // Planche 19a : « En cours » PULSE, à 2,4 s. C'est le seul
-                // état vivant de la vignette, et c'est ce qui fait comprendre
-                // qu'on regarde une journée en train de se dérouler.
-                className={`shrink-0 rounded-pilule px-2.5 py-1 text-[10.5px] font-extrabold text-texte-sur-miel ${
-                  r.etat === 'En cours' ? 'pulsation-courte bg-attente' : 'bg-celebration'
-                }`}
-              >
-                {r.etat}
-              </span>
-            ) : null}
-          </li>
-        ))}
-      </ul>
-    </div>
   )
 }
 
@@ -236,7 +207,7 @@ function Probleme() {
   return (
     <section data-bande="probleme" data-apparait className={`bg-surface ${BANDE}`}>
       <div className={`${DEDANS} flex flex-col gap-7`}>
-        <h2 className="display max-w-2xl tracking-tight">{S.probleme.titre}</h2>
+        <h2 className="display max-w-[22ch] tracking-tight">{S.probleme.titre}</h2>
         <div className="mt-10 grid gap-5 md:grid-cols-3">
           {S.probleme.cartes.map((c) => (
             <article key={c.titre} className="rounded-carte bg-surface p-6">
@@ -283,58 +254,10 @@ function Tournee() {
           <p className="text-[13px] font-bold text-texte-sur-plein-doux">{S.tournee.mention}</p>
         </div>
         <div className="w-full shrink-0 md:w-[300px]">
-          <Timeline />
+          <VitrineTournee />
         </div>
       </div>
     </section>
-  )
-}
-
-/**
- * La timeline. Planche 19a en large, **planche 19c en 390**.
- *
- * En mobile, le rail passe en vertical et le libellé de trajet devient une
- * pastille abricot pâle **posée à cheval sur le rail**, entre deux cartes. Rien
- * n'est coupé, rien ne descend sous 11 px.
- */
-function Timeline() {
-  /*
-    Planche 19a, relue. Il n'y a **AUCUN RAIL** dans la timeline de bureau : je
-    l'avais importé de la planche mobile 19c, où le trajet se pose « à cheval
-    sur le rail » parce que la liste est verticale et serrée. En 1200, la
-    planche empile simplement des cartes et glisse entre elles une ligne de
-    texte « · · · 8 min de trajet ». Mon rail inventé passait sous ces lignes et
-    les chevauchait.
-
-    Le rendez-vous EN COURS porte une bordure framboise : c'est la seule marque
-    d'état de la vignette.
-  */
-  return (
-    <div className="flex flex-col gap-2.5 rounded-bloc bg-fond p-5 text-texte-principal">
-      <p className="titre">{S.tournee.jour}</p>
-      {S.tournee.rdvs.map((r, i) => (
-        <div key={r.heure} className="flex flex-col gap-2.5">
-          <p
-            className={`flex items-center gap-2.5 rounded-[14px] bg-surface px-3 py-2.5 ${
-              i === 1 ? 'border-2 border-action' : ''
-            }`}
-          >
-            <span className="text-[13px] font-extrabold">{r.heure}</span>
-            <span className="text-[12px] font-semibold">{r.libelle}</span>
-          </p>
-          {i < S.tournee.trajets.length ? (
-            <p
-              className={`pl-3.5 text-[11px] font-semibold text-texte-secondaire ${
-                i === 0 ? 'pulsation' : 'pulsation-decalee'
-              }`}
-            >
-              <span aria-hidden>· · · </span>
-              {S.tournee.trajets[i]}
-            </p>
-          ) : null}
-        </div>
-      ))}
-    </div>
   )
 }
 
@@ -498,7 +421,7 @@ function Ambassadrices({ restantes }: { restantes: number }) {
             <strong className="font-extrabold">{S.ambassadrices.titre2}</strong>{' '}
             {S.ambassadrices.texte2}
           </p>
-          <p className="text-[13px] font-bold opacity-75">
+          <p className="max-w-[60ch] text-[13px] font-bold opacity-75">
             {remplir(S.gabarits.ambassadricesMention, { restantes: String(restantes) })}
           </p>
         </div>
@@ -592,7 +515,7 @@ function Final() {
       */}
       <section data-bande="final" data-apparait className={`bg-fond px-14 py-[72px]`}>
         <div className={`${DEDANS} flex flex-col items-start gap-4.5`}>
-          <h2 className="display tracking-tight">{S.final.titre}</h2>
+          <h2 className="display max-w-[18ch] tracking-tight">{S.final.titre}</h2>
           <Link
             href="/inscription"
             className="tactile rounded-pilule bg-action px-[34px] py-[18px] text-[17px] font-bold text-texte-sur-plein hover:bg-action-survol"

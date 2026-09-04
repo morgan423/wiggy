@@ -160,6 +160,9 @@ async function executer() {
         opacites: [
           ...document.querySelectorAll('.pulsation, .pulsation-courte, .pulsation-decalee'),
         ].map((n) => getComputedStyle(n).opacity),
+        vitrines: [...document.querySelectorAll('.ecran-vitrine')].map(
+          (n) => getComputedStyle(n).opacity,
+        ),
       })
       const present = document.querySelector('.ruban-defilant') !== null
       const avant = releve()
@@ -177,6 +180,26 @@ async function executer() {
       )
     }
 
+    /*
+      Les deux CARROUSELS d'interface. Même exigence que le ruban : on mesure
+      l'effet, jamais la déclaration. Trois écrans par carrousel, trois points,
+      et au moins un des deux doit bouger pendant l'échantillon — à 4,5 s par
+      écran, 700 ms ne suffisent pas à garantir que TOUS aient changé.
+    */
+    const vitrines = await page.evaluate(() => ({
+      ecrans: document.querySelectorAll('.ecran-vitrine').length,
+      points: document.querySelectorAll('.point-vitrine').length,
+    }))
+    if (vitrines.ecrans !== 6) {
+      echecs.push(
+        `${String(vitrines.ecrans)} écran(s) de vitrine sur les 6 de la planche 19a ` +
+          '(trois dans le héros, trois dans la tournée).',
+      )
+    }
+    if (vitrines.points !== 6) {
+      echecs.push(`${String(vitrines.points)} point(s) de vitrine sur les 6 attendus.`)
+    }
+
     const bougent = mouvement.apres.opacites.filter(
       (o, i) => o !== mouvement.avant.opacites[i],
     ).length
@@ -187,6 +210,46 @@ async function executer() {
       )
     } else if (bougent === 0) {
       echecs.push('Aucune pulsation ne varie : les keyframes manquent, ou elles sont inertes.')
+    }
+
+    /*
+      LES CARROUSELS SE MESURENT AUTREMENT QUE LE RUBAN.
+
+      Échantillonner leur opacité ne marche pas : la courbe est PLATE pendant
+      l'essentiel du cycle (0 à 26 %, puis 33 à 93 %), et deux relevés espacés
+      de 700 ms tombent presque toujours dans la même plage. Le contrôle serait
+      capricieux, et un contrôle capricieux finit ignoré.
+
+      On interroge donc l'animation elle-même : `getAnimations()` ne rend RIEN
+      quand les keyframes n'existent pas — c'est ce qui manquait au premier
+      contrôle du ruban — et son `currentTime` avance si, et seulement si, elle
+      tourne. Indépendant de la phase, donc jamais capricieux.
+
+      S'y ajoute la vérification des DÉCALAGES : trois écrans qui partiraient
+      ensemble donneraient une pile immobile, techniquement animée.
+    */
+    const carrousels = await page.evaluate(async () => {
+      const ecrans = [...document.querySelectorAll('.ecran-vitrine')]
+      const anims = ecrans.map((e) => e.getAnimations()[0] ?? null)
+      const avant = anims.map((a) => (a ? Number(a.currentTime) : null))
+      const retards = ecrans.map((e) => getComputedStyle(e).animationDelay)
+      await new Promise((r) => setTimeout(r, 400))
+      const apres = anims.map((a) => (a ? Number(a.currentTime) : null))
+      return { sansAnimation: anims.filter((a) => a === null).length, avant, apres, retards }
+    })
+    if (carrousels.sansAnimation > 0) {
+      echecs.push(
+        `${String(carrousels.sansAnimation)} écran(s) de vitrine n'ont AUCUNE animation : ` +
+          'leurs keyframes n’existent pas.',
+      )
+    } else if (!carrousels.apres.some((t, i) => t !== null && t > (carrousels.avant[i] ?? 0))) {
+      echecs.push('Les carrousels ne tournent pas : leur temps d’animation n’avance pas.')
+    }
+    if (new Set(carrousels.retards).size < 3) {
+      echecs.push(
+        `Les écrans de vitrine ne sont pas décalés (${[...new Set(carrousels.retards)].join(', ')}) : ` +
+          'ils se relaieraient tous en même temps, donc jamais.',
+      )
     }
   } finally {
     await navigateur?.close().catch(() => undefined)
