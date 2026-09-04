@@ -36,14 +36,12 @@ export function GrillePrix() {
     section se fondait dans le reste de la page et les cartes flottaient.
   */
   return (
-    <section
-      data-bande="prix"
-      data-apparait
-      id="tarif"
-      className="bg-prune px-14 py-16 text-texte-sur-plein"
-    >
-      <div className="mx-auto w-full max-w-[1200px]">
-        <h2 className="display tracking-tight">{P.titre}</h2>
+    <section data-bande="prix" data-apparait id="tarif" className="bg-prune text-texte-sur-plein">
+      {/* Les marges vivent DANS la boîte de 1200, comme sur toutes les autres
+          bandes : posées sur la section, elles tombaient hors mesure et la
+          grille touchait les deux bords. */}
+      <div className="mx-auto w-full max-w-[1200px] px-14 py-16">
+        <h2 className="display text-[clamp(1.875rem,4vw,3rem)] tracking-tight">{P.titre}</h2>
 
         {/*
           ── 19a : la grille, à partir de md ──
@@ -119,7 +117,15 @@ function CarteLarge({ offre, vedette }: { offre: Offre; vedette: boolean }) {
       </header>
       <p className="text-[13px] font-extrabold">{offre.accroche}</p>
       <p className="flex items-baseline gap-1.5">
-        <span className="display tracking-tight">{offre.prix}</span>
+        {/* 58 sur la vedette, 40 sur les voisines : l'écart de prix se lit
+            avant le prix lui-même. */}
+        <span
+          className={`display tracking-tight ${
+            vedette ? 'text-[clamp(2.25rem,4.8vw,3.625rem)]' : 'text-[clamp(1.75rem,3.3vw,2.5rem)]'
+          }`}
+        >
+          {offre.prix}
+        </span>
         <span className={`text-[12px] font-bold ${vedette ? '' : 'text-texte-attenue'}`}>
           {P.parMois}
         </span>

@@ -5,7 +5,7 @@ import { placesAmbassadricesRestantes } from '@wiggy/core'
 import { sectionAvisAffichable, temoignagesDePlanche } from '@/lib/avis-placeholder'
 import { BalisageHome } from './balisage-home'
 import { Apparitions } from '@/components/apparitions'
-import { VitrineHeros, VitrineTournee } from './vitrine'
+import { Avatar, VitrineHeros, VitrineTournee } from './vitrine'
 import { GrillePrix } from './grille-prix'
 
 const S = copy.siteAccueil
@@ -18,8 +18,62 @@ const S = copy.siteAccueil
  * une grammaire uniforme : je l'avais remplacée par un conteneur centré à 1180
  * avec des marges au jugé, et chaque bande respirait un peu différemment.
  */
-const BANDE = 'px-14 py-16'
-const DEDANS = 'mx-auto w-full max-w-[1200px]'
+/*
+  ⚠️ L'ORDRE DES DEUX EST LE SUJET, et je l'avais inversé.
+
+  La planche pose une page de 1200 et met SES MARGES DEDANS : 56 px à gauche et
+  à droite du contenu, à l'intérieur de la boîte. J'avais mis la marge sur la
+  bande pleine largeur, donc À L'EXTÉRIEUR de la boîte de 1200 : la marge était
+  mangée par le vide du navigateur, et le contenu touchait les deux bords de la
+  boîte. C'est ce qui collait les interfaces au bord droit.
+
+  La bande ne porte donc plus que sa couleur ; la mesure et les marges vivent
+  ensemble, à l'intérieur.
+*/
+const DEDANS = 'mx-auto w-full max-w-[1200px] px-14 py-16'
+
+/*
+  ⚠️ LES TITRES DE BANDE N'ONT PAS TOUS LA MÊME TAILLE, et je les servais tous
+  au même palier `display`.
+
+  La planche en donne SEPT différentes : 44 pour les quatre bandes de contenu,
+  48 pour les prix, 54 pour l'inclusivité, 38 pour la FAQ, 72 pour la relance
+  finale, 104 pour le claim. Elles ne sont pas au hasard : la FAQ se fait plus
+  petite parce qu'elle vient tard et qu'on ne la lit pas d'un bloc ; la relance
+  finale se fait grande parce qu'elle est le dernier mot. Un palier unique à 56
+  écrasait cette respiration — trop gros partout, trop petit sur le claim.
+
+  ⚠️ L'ÉCHELLE RATIFIÉE ET LA PLANCHE SE CONTREDISENT ICI, et je ne tranche pas
+  tout seul : `--text-display` plafonne à 56 et `--text-statement` à 92, quand
+  la planche écrit 44 et 104. Je n'ai donc PAS touché aux jetons, qui servent
+  aussi l'app ; la déviation est locale à cette page et signalée à Morgan.
+
+  La taille est atteinte à 1200 — la mesure de la planche — et décroît sous
+  cette largeur, jusqu'à 62 % sur les petits écrans.
+*/
+/*
+  ⚠️ LES CLASSES SONT ÉCRITES EN TOUTES LETTRES, ET C'EST OBLIGATOIRE.
+
+  J'avais d'abord CALCULÉ ces clamps depuis la taille en pixels, ce qui se lit
+  très bien et ne marche pas du tout : Tailwind lit le code SOURCE pour savoir
+  quelles classes produire, il ne l'exécute pas. Une classe fabriquée à
+  l'exécution n'existe dans aucune feuille de style — l'attribut est bien posé
+  sur l'élément, l'inspecteur la montre, et elle ne peint rien. Tous les titres
+  retombaient donc sur `display`, à 56, exactement l'état que je croyais avoir
+  corrigé. Constaté en mesurant le rendu, pas en relisant le code.
+
+  Le prix à payer est cette table ; le prix de l'élégance était une correction
+  invisible.
+*/
+const TITRE_DE_BANDE: Record<number, string> = {
+  104: 'display text-[clamp(4.03rem,8.67vw,6.5rem)]',
+  72: 'display text-[clamp(2.79rem,6vw,4.5rem)]',
+  54: 'display text-[clamp(2.093rem,4.5vw,3.375rem)]',
+  44: 'display text-[clamp(1.705rem,3.67vw,2.75rem)]',
+  38: 'display text-[clamp(1.473rem,3.17vw,2.375rem)]',
+  34: 'display text-[clamp(1.318rem,2.83vw,2.125rem)]',
+}
+const titreDeBande = (px: number) => TITRE_DE_BANDE[px]
 
 /**
  * wiggy.fr — la home. Planche 19a (composition de référence, 1180), plus les
@@ -86,7 +140,7 @@ function Entete() {
         ce groupe se ferre donc À DROITE. En avoir fait trois enfants poussait
         les liens au centre, ce qui n'est ni la planche ni un usage.
       */}
-      <div className={`${DEDANS} flex items-center justify-between px-14 py-[22px]`}>
+      <div className="mx-auto flex w-full max-w-[1200px] items-center justify-between px-14 py-[22px]">
         <span className="mot-symbole">Wiggy</span>
         <div className="flex items-center gap-7">
           <nav className="hidden items-center gap-7 md:flex" aria-label="Sections">
@@ -114,8 +168,8 @@ function Entete() {
 
 function Hero() {
   return (
-    <section data-bande="heros" data-apparait className="bg-fond pb-16">
-      <div className={`${DEDANS} flex flex-col items-center gap-12 px-14 pt-14 pb-16 md:flex-row`}>
+    <section data-bande="heros" data-apparait className="bg-fond">
+      <div className="mx-auto flex w-full max-w-[1200px] flex-col items-center gap-12 px-14 pt-14 pb-16 md:flex-row">
         {/* `flex: 1.5` contre une carte FIXE de 320 px : la planche ne fait pas
             une grille de fractions, elle pose une carte de largeur donnée. */}
         {/* `max-width: 660px` sur la planche : la colonne ne s'étire plus
@@ -123,7 +177,7 @@ function Hero() {
         <div className="flex max-w-[660px] flex-1 flex-col gap-[22px] md:flex-[1.5]">
           {/* H1 UNIQUE de la page, sur le claim. Toutes les autres sections
               ouvrent en h2 : c'est la seule hiérarchie que le SEO comprend. */}
-          <h1 className="statement tracking-tight">{S.hero.claim}</h1>
+          <h1 className={`${titreDeBande(104)} statement tracking-tight`}>{S.hero.claim}</h1>
           <p className="max-w-[40ch] text-xl leading-[1.5] text-texte-secondaire">
             {S.hero.sousTitre}
           </p>
@@ -155,8 +209,15 @@ function Hero() {
           </div>
           <p className="text-[12.5px] text-texte-attenue">{S.hero.rassurance}</p>
         </div>
-        <div className="w-full shrink-0 md:w-[320px]">
+        {/*
+          `position: relative` sur le conteneur de 320 : c'est lui qui tient
+          l'avatar, que la planche fait DÉBORDER du coin bas-gauche de la carte.
+          Il manquait entièrement, et c'est lui qui donne à ce bloc son air
+          d'écran habité plutôt que de capture d'écran.
+        */}
+        <div className="relative w-full shrink-0 md:w-[320px]">
           <VitrineHeros />
+          <Avatar />
         </div>
       </div>
     </section>
@@ -205,14 +266,23 @@ function Bandeau() {
 
 function Probleme() {
   return (
-    <section data-bande="probleme" data-apparait className={`bg-surface ${BANDE}`}>
+    <section data-bande="probleme" data-apparait className="bg-surface">
       <div className={`${DEDANS} flex flex-col gap-7`}>
-        <h2 className="display max-w-[22ch] tracking-tight">{S.probleme.titre}</h2>
-        <div className="mt-10 grid gap-5 md:grid-cols-3">
+        <h2 className={`${titreDeBande(44)} max-w-[22ch] tracking-tight`}>{S.probleme.titre}</h2>
+        {/*
+          ⚠️ CARTES CRÈME SUR BANDE BLANCHE — je les avais mises en `bg-surface`,
+          c'est-à-dire exactement la couleur de leur bande : les cartes
+          n'existaient plus, il ne restait que trois colonnes de texte nu. Même
+          défaut que les rangées du carrousel du héros, même cause.
+
+          Et le titre de carte est en FRAUNCES 21, pas en sans 15 : c'est ce qui
+          fait qu'on lit trois problèmes et non trois entrées de liste.
+        */}
+        <div className="grid gap-5 md:grid-cols-3">
           {S.probleme.cartes.map((c) => (
-            <article key={c.titre} className="rounded-carte bg-surface p-6">
-              <h3 className="text-[15px] font-bold">{c.titre}</h3>
-              <p className="mt-2.5 text-[13.5px] leading-[1.6] text-texte-secondaire">{c.texte}</p>
+            <article key={c.titre} className="flex flex-col gap-2 rounded-[24px] bg-fond p-[22px]">
+              <h3 className="titre text-[21px]">{c.titre}</h3>
+              <p className="text-[14px] leading-[1.55] text-texte-secondaire">{c.texte}</p>
             </article>
           ))}
         </div>
@@ -229,7 +299,7 @@ function Tournee() {
       data-bande="tournee"
       data-apparait
       id="produit"
-      className={`bg-prune text-texte-sur-plein ${BANDE}`}
+      className="bg-prune text-texte-sur-plein"
     >
       {/*
         Planche 19a : UNE bande, DEUX colonnes. « 5 à 10 h » ouvre la colonne de
@@ -246,15 +316,30 @@ function Tournee() {
         */}
         <div className="flex flex-1 flex-col gap-2 md:flex-[1.4]">
           <p className="chiffre-heros text-celebration">{S.probleme.chiffre}</p>
-          <p className="titre">{S.probleme.chiffreLegende}</p>
-          <h2 className="titre mt-4">{S.tournee.titre}</h2>
+          {/*
+            La planche écrit 34 pour la légende et 30 pour le titre : la légende
+            est PLUS GROSSE que le titre qu'elle précède. Je l'avais commenté
+            sans jamais poser les tailles, et les deux sortaient à 26.
+          */}
+          <p className="titre text-[clamp(1.5rem,4vw,2.125rem)]">{S.probleme.chiffreLegende}</p>
+          <h2 className="titre mt-4 text-[clamp(1.375rem,3.6vw,1.875rem)]">{S.tournee.titre}</h2>
           <p className="max-w-[44ch] text-base leading-[1.6] text-texte-sur-plein-doux">
             {S.tournee.texte}
           </p>
           <p className="text-[13px] font-bold text-texte-sur-plein-doux">{S.tournee.mention}</p>
         </div>
-        <div className="w-full shrink-0 md:w-[300px]">
-          <VitrineTournee />
+        {/*
+          ⚠️ LA CARTE EST CENTRÉE DANS SA MOITIÉ, et c'est ce que Morgan a vu.
+
+          La planche ne pose pas la carte de 300 comme enfant direct de la
+          bande : elle la met dans une boîte `flex: 1` qui la CENTRE. J'avais
+          supprimé cette boîte, la carte se collait donc au bord droit de la
+          bande. Le geste tient en une boîte, et il change tout l'équilibre.
+        */}
+        <div className="flex w-full flex-1 justify-center">
+          <div className="w-full shrink-0 md:w-[300px]">
+            <VitrineTournee />
+          </div>
         </div>
       </div>
     </section>
@@ -265,14 +350,19 @@ function Tournee() {
 
 function Fonctions() {
   return (
-    <section data-bande="fonctions" data-apparait className={`bg-fond ${BANDE}`}>
+    <section data-bande="fonctions" data-apparait className="bg-fond">
       <div className={`${DEDANS} flex flex-col gap-6`}>
-        <h2 className="display tracking-tight">{S.fonctions.titre}</h2>
-        <div className="grid gap-5 md:grid-cols-3">
+        <h2 className={`${titreDeBande(44)} tracking-tight`}>{S.fonctions.titre}</h2>
+        {/* Ici l'inverse : bande crème, cartes blanches. Le titre est en
+            Fraunces 20, d'un cran sous celui de « Le soir ». */}
+        <div className="grid gap-[18px] md:grid-cols-3">
           {S.fonctions.cartes.map((c) => (
-            <article key={c.titre} className="rounded-carte bg-surface p-6">
-              <h3 className="text-[15px] font-bold">{c.titre}</h3>
-              <p className="mt-2.5 text-[13.5px] leading-[1.6] text-texte-secondaire">{c.texte}</p>
+            <article
+              key={c.titre}
+              className="flex flex-col gap-2 rounded-[24px] bg-surface p-[22px]"
+            >
+              <h3 className="titre text-[20px]">{c.titre}</h3>
+              <p className="text-[13.5px] leading-[1.55] text-texte-secondaire">{c.texte}</p>
             </article>
           ))}
         </div>
@@ -299,9 +389,11 @@ function Fonctions() {
 function Inclusivite() {
   const [avant, apres] = S.hero.inclusivite.split('tous les cheveux')
   return (
-    <section data-bande="inclusivite" data-apparait className="bg-fond px-14 pb-[72px]">
-      <div className={DEDANS}>
-        <p className="display max-w-[21ch] tracking-tight [font-variation-settings:var(--wonk)]">
+    <section data-bande="inclusivite" data-apparait className="bg-fond">
+      <div className="mx-auto w-full max-w-[1200px] px-14 pb-[72px]">
+        <p
+          className={`${titreDeBande(54)} max-w-[21ch] tracking-tight [font-variation-settings:var(--wonk)]`}
+        >
           {avant}
           <span className="text-action">tous les cheveux</span>
           {apres}
@@ -315,21 +407,35 @@ function Inclusivite() {
 
 function Etapes() {
   return (
-    <section
-      data-bande="etapes"
-      data-apparait
-      className={`bg-action text-texte-sur-plein ${BANDE}`}
-    >
+    <section data-bande="etapes" data-apparait className="bg-action text-texte-sur-plein">
       <div className={`${DEDANS} flex flex-col gap-6`}>
-        <h2 className="display tracking-tight">{S.etapes.titre}</h2>
+        <h2 className={`${titreDeBande(44)} tracking-tight`}>{S.etapes.titre}</h2>
+        {/*
+          ⚠️ IL N'Y A PAS DE CARTE ICI, et j'en avais posé trois.
+
+          La planche pose les trois gestes À MÊME LA BANDE FRAMBOISE : un grand
+          chiffre miel en Fraunces 52, un titre, un texte. J'avais mis trois
+          cartes blanches avec une pastille numérotée de 36 px, ce qui donnait
+          une quatrième famille de cartes sur une page qui en a déjà trois, et
+          ce qui enterrait le chiffre — or le chiffre EST le propos : trois
+          gestes, on les compte.
+        */}
         <ol className="grid gap-5 md:grid-cols-3">
           {S.etapes.liste.map((e, i) => (
-            <li key={e.titre} className="rounded-carte bg-surface p-6 text-texte-principal">
-              <span className="flex size-9 items-center justify-center rounded-pilule bg-celebration text-[15px] font-extrabold text-texte-sur-miel">
+            <li key={e.titre} className="flex flex-col gap-2">
+              <span className="titre text-[clamp(2.25rem,4.3vw,3.25rem)] leading-none text-celebration">
                 {i + 1}
               </span>
-              <h3 className="mt-4 text-[15px] font-bold">{e.titre}</h3>
-              <p className="mt-2 text-[13.5px] leading-[1.6] text-texte-secondaire">{e.texte}</p>
+              <h3 className="text-[16px] font-extrabold">{e.titre}</h3>
+              {/*
+                ⚠️ ENCRE PLEINE, pas atténuée. La planche écrit du blanc à 85 %
+                ici, ce qui tombe à 3,38:1 sur le framboise — sous AA, relevé
+                par `npm run vues`. C'est la troisième fois que la même erreur
+                se pose sur cette couleur : atténuer hiérarchise sur une surface
+                claire et EFFACE sur une couleur pleine. La hiérarchie passe par
+                la taille et la graisse, jamais par l'opacité.
+              */}
+              <p className="text-[13.5px] leading-[1.55]">{e.texte}</p>
             </li>
           ))}
         </ol>
@@ -350,9 +456,9 @@ function Avis() {
   const temoignages = temoignagesDePlanche()
 
   return (
-    <section data-bande="avis" data-apparait className={`bg-fond ${BANDE}`}>
+    <section data-bande="avis" data-apparait className="bg-fond">
       <div className={`${DEDANS} flex flex-col gap-5`}>
-        <h2 className="display tracking-tight">{S.avis.titre}</h2>
+        <h2 className={`${titreDeBande(44)} tracking-tight`}>{S.avis.titre}</h2>
         {/*
           Hauteurs ALIGNÉES : trois citations de longueurs différentes donnaient
           trois cartes en escalier, et le regard lisait le désordre avant les
@@ -365,8 +471,16 @@ function Avis() {
                 « {t.texte} »
               </blockquote>
               <figcaption className="mt-auto flex items-center gap-3 pt-5">
-                <span className="flex size-9 items-center justify-center rounded-pilule bg-celebration text-[14px] font-extrabold text-texte-sur-miel">
-                  {t.prenom.slice(0, 1)}
+                {/*
+                  La planche pose un disque de 40 en trait discret et l'initiale
+                  en Fraunces atténuée : une place tenue, pas une décoration.
+                  En miel plein, trois pastilles vives tiraient l'œil vers les
+                  initiales au lieu des témoignages.
+                */}
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-pilule bg-trait-discret">
+                  <span className="titre text-[17px] text-texte-attenue">
+                    {t.prenom.slice(0, 1)}
+                  </span>
                 </span>
                 <span className="text-[12.5px]">
                   <span className="block font-bold">{t.prenom}</span>
@@ -407,14 +521,16 @@ function Ambassadrices({ restantes }: { restantes: number }) {
       data-bande="ambassadrices"
       data-apparait
       id="ambassadrices"
-      className={`bg-celebration text-texte-sur-miel ${BANDE}`}
+      className="bg-celebration text-texte-sur-miel"
     >
       <div className={`${DEDANS} flex flex-col items-center gap-14 md:flex-row`}>
         <div className="flex flex-1 flex-col gap-3 md:flex-[1.4]">
           <p className="text-[13px] font-bold tracking-[0.12em] uppercase">
             {S.ambassadrices.etiquette}
           </p>
-          <p className="chiffre-heros">{S.ambassadrices.places}</p>
+          {/* 96 ici, contre 120 dans la bande tournée : les deux chiffres
+              héros de la page n'ont pas le même poids, et la planche le dit. */}
+          <p className="chiffre-heros text-[clamp(3.72rem,8vw,6rem)]">{S.ambassadrices.places}</p>
           <p className="max-w-[50ch] text-[15px] leading-[1.6]">
             <strong className="font-extrabold">{S.ambassadrices.titre1}</strong>{' '}
             {S.ambassadrices.texte1}{' '}
@@ -440,9 +556,9 @@ function Ambassadrices({ restantes }: { restantes: number }) {
 
 function Faq() {
   return (
-    <section data-bande="faq" data-apparait id="faq" className="bg-surface py-20">
+    <section data-bande="faq" data-apparait id="faq" className="bg-surface">
       <div className={`${DEDANS} flex flex-col gap-2.5`}>
-        <h2 className="display tracking-tight">{S.faq.titre}</h2>
+        <h2 className={`${titreDeBande(38)} tracking-tight`}>{S.faq.titre}</h2>
         {/*
           Les réponses sont TOUJOURS visibles. La planche les montre en clair, et
           une FAQ qui se replie oblige à chercher : la question qu'on se pose
@@ -466,15 +582,10 @@ function Faq() {
 function Final() {
   return (
     <>
-      <section
-        data-bande="demo"
-        data-apparait
-        id="demo"
-        className={`bg-prune text-texte-sur-plein ${BANDE}`}
-      >
+      <section data-bande="demo" data-apparait id="demo" className="bg-prune text-texte-sur-plein">
         <div className={`${DEDANS} flex flex-col items-center gap-12 md:flex-row`}>
           <div className="flex flex-1 flex-col gap-2.5">
-            <h2 className="display tracking-tight">{S.final.demoTitre}</h2>
+            <h2 className={`${titreDeBande(34)} tracking-tight`}>{S.final.demoTitre}</h2>
             <p className="text-[15px]">{S.final.demoTexte}</p>
           </div>
           {/*
@@ -513,9 +624,9 @@ function Final() {
         `align-items: flex-start` sur la planche, et « tout-centré banni » dans
         CLAUDE.md : deux fois la même chose, et je l'avais centré.
       */}
-      <section data-bande="final" data-apparait className={`bg-fond px-14 py-[72px]`}>
-        <div className={`${DEDANS} flex flex-col items-start gap-4.5`}>
-          <h2 className="display max-w-[18ch] tracking-tight">{S.final.titre}</h2>
+      <section data-bande="final" data-apparait className="bg-fond">
+        <div className="mx-auto flex w-full max-w-[1200px] flex-col items-start gap-4.5 px-14 py-[72px]">
+          <h2 className={`${titreDeBande(72)} max-w-[18ch] tracking-tight`}>{S.final.titre}</h2>
           <Link
             href="/inscription"
             className="tactile rounded-pilule bg-action px-[34px] py-[18px] text-[17px] font-bold text-texte-sur-plein hover:bg-action-survol"
@@ -532,8 +643,8 @@ const LIEN_PIED = 'text-[12.5px] text-texte-sur-plein-doux hover:text-texte-sur-
 
 function Pied() {
   return (
-    <footer data-bande="pied" data-apparait className="bg-prune px-14 py-11 text-texte-sur-plein">
-      <div className={`${DEDANS} flex flex-wrap items-center justify-between gap-5`}>
+    <footer data-bande="pied" data-apparait className="bg-prune text-texte-sur-plein">
+      <div className="mx-auto flex w-full max-w-[1200px] flex-wrap items-center justify-between gap-5 px-14 py-11">
         {/* La planche pose le mot-symbole du pied à 40 px, pas à 15 : c'est
             la signature de la page, elle n'est pas une ligne de menu. */}
         <span className="mot-symbole [--mot-symbole:2.5rem]">Wiggy</span>

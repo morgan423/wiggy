@@ -69,43 +69,64 @@ body {
   planche ne le demande pas ici. La couleur est héritée, ce qui lui permet
   d'être prune sur la crème et crème sur le prune sans rien redéfinir.
 */
-.mot-symbole {
-  font-family: var(--font-display);
-  font-weight: 700;
-  line-height: 1;
-  font-size: var(--mot-symbole, 1.75rem);
+@layer components {
+  .mot-symbole {
+    font-family: var(--font-display);
+    font-weight: 700;
+    line-height: 1;
+    font-size: var(--mot-symbole, 1.75rem);
+  }
 }
 
-.statement {
-  font-family: var(--font-display);
-  font-size: var(--text-statement);
-  line-height: var(--leading-statement);
-  font-weight: var(--font-weight-statement);
-  font-variation-settings: var(--wonk);
-}
-.display {
-  font-family: var(--font-display);
-  font-size: var(--text-display);
-  line-height: var(--leading-display);
-  font-weight: var(--font-weight-display);
-}
-.titre {
-  font-family: var(--font-display);
-  font-size: var(--text-titre);
-  line-height: var(--leading-titre);
-  font-weight: var(--font-weight-titre);
+/*
+  ⚠️ LES TROIS NIVEAUX VIVENT DANS `components`, ET C'EST UN CORRECTIF.
+
+  Déclarés hors couche, ils avaient la même spécificité qu'un utilitaire mais
+  arrivaient APRÈS dans la feuille : `.titre text-[20px]` sortait à 26 px, et
+  moi je lisais mon code en croyant l'avoir posé à 20. Tous les titres de carte
+  et tous les titres d'écran des carrousels étaient donc trop gros d'un tiers,
+  ce qui faisait passer sur deux lignes des titres que la planche tient sur une
+  — et rallongeait toutes les cartes.
+
+  Le défaut est silencieux par nature : rien n'échoue, la classe est bien là,
+  la taille est bien écrite. Il ne se voit qu'en mesurant le rendu. En les
+  mettant dans `components`, la couche des utilitaires passe devant, et une
+  taille écrite à la main gagne toujours contre le niveau par défaut.
+*/
+@layer components {
+  .statement {
+    font-family: var(--font-display);
+    font-size: var(--text-statement);
+    line-height: var(--leading-statement);
+    font-weight: var(--font-weight-statement);
+    font-variation-settings: var(--wonk);
+  }
+  .display {
+    font-family: var(--font-display);
+    font-size: var(--text-display);
+    line-height: var(--leading-display);
+    font-weight: var(--font-weight-display);
+  }
+  .titre {
+    font-family: var(--font-display);
+    font-size: var(--text-titre);
+    line-height: var(--leading-titre);
+    font-weight: var(--font-weight-titre);
+  }
 }
 
 /* Le statement qui OUVRE un écran, sans le titrer : Fraunces 30 px, interligne
    serré, axe WONK. Deux emplois, tous deux au board : l'authentification
    (14b, 30 px) et « Journée bouclée. » (16d, 32 px). Une seule taille pour les
    deux, l'écart de 2 px ne vaut pas une seconde classe. */
-.statement-ecran {
-  font-family: var(--font-display);
-  font-size: 30px;
-  line-height: 1.05;
-  font-weight: 700;
-  font-variation-settings: var(--wonk);
+@layer components {
+  .statement-ecran {
+    font-family: var(--font-display);
+    font-size: 30px;
+    line-height: 1.05;
+    font-weight: 700;
+    font-variation-settings: var(--wonk);
+  }
 }
 
 /* Sur un bloc pleine couleur, les champs gardent leur surface, mais tout ce
@@ -149,23 +170,37 @@ body {
    composant `Prix` de la trousse porte cette classe, il prend des CENTIMES et
    non une chaîne, et `design:check` refuse la classe partout ailleurs. Aucun
    texte ne peut donc l'emprunter. */
-.prix {
-  font-family: var(--font-display);
-  font-size: 17px;
-  line-height: 1.1;
-  font-weight: 700;
+@layer components {
+  .prix {
+    font-family: var(--font-display);
+    font-size: 17px;
+    line-height: 1.1;
+    font-weight: 700;
+  }
 }
 
 /* Le chiffre héros : la seule place de l'axe WONK dans l'application.
    Le board (8a) réserve WONK aux statements ET aux chiffres héros ; la planche
    11d le montre à l'œuvre dans l'app, en miel sur un bloc prune. Jamais en
    interface courante, jamais sous 20 px. */
-.chiffre-heros {
-  font-family: var(--font-display);
-  font-size: var(--text-display);
-  line-height: 1;
-  font-weight: var(--font-weight-display);
-  font-variation-settings: var(--wonk);
+@layer components {
+  .chiffre-heros {
+    font-family: var(--font-display);
+    /*
+      ⚠️ PLUS GROS QUE LE TITRE DE PAGE, et c'est voulu par la planche : elle
+      écrit 120 ici contre 104 pour le claim du héros. C'est le chiffre qui porte
+      la bande. Je servais `--text-display`, qui plafonne à 56 : le chiffre
+      passait sous sa propre légende et la bande n'avait plus d'accroche.
+  
+      L'échelle ratifiée n'est pas touchée — ce palier n'existe qu'ici, et
+      l'inscrire dans les jetons en ferait une taille réutilisable qui n'a pas
+      lieu d'être.
+    */
+    font-size: clamp(4rem, 10vw, 7.5rem);
+    line-height: 1;
+    font-weight: var(--font-weight-display);
+    font-variation-settings: var(--wonk);
+  }
 }
 
 /* Le motif trajet : la ligne pointillée entre deux rendez-vous. C'est la

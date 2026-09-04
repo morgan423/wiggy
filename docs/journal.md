@@ -20,6 +20,131 @@ _Rien en attente : les trois questions ouvertes ont été tranchées le 03/09._
 
 ---
 
+## 2026-09-04 (13) Étape : la home rendue et comparée à la planche, enfin
+
+**Fait :**
+
+### Ce qui n'allait pas, et pourquoi je ne le voyais pas
+
+Morgan : « les interfaces ne ressemblent en rien du tout à celle de design, et l'interface du
+bloc 5 à 10 h est trop à droite ». Il avait raison sur les deux, et la cause est unique :
+**je n'avais jamais RENDU la planche**. Je l'avais lue au script — séquence des fonds,
+présence des animations, chaînes de texte — et j'en avais tiré la conviction d'être conforme.
+`CLAUDE.md` demande pourtant de « rendre la planche et l'écran, les comparer côte à côte ».
+Un contrôle qui lit le HTML d'une maquette ne voit pas une carte invisible : elle est bien
+déclarée, avec la bonne classe, au bon endroit.
+
+J'ai donc rendu les deux en PNG et comparé bande par bande. Six défauts, tous du même genre —
+**le code se relit juste et l'écran est faux**.
+
+### ① Les marges étaient hors mesure
+
+La planche pose une page de 1200 et met ses marges **dedans**. J'avais mis le `px-14` sur la
+bande pleine largeur, donc **à l'extérieur** de la boîte de 1200 : la marge était mangée par le
+vide du navigateur et le contenu touchait les deux bords. D'où les interfaces collées à droite.
+La bande ne porte plus que sa couleur ; la mesure et les marges vivent ensemble, à l'intérieur.
+
+### ② Trois familles de blocs étaient invisibles
+
+Les cartes de « Le soir » étaient `bg-surface` sur une bande `bg-surface`, et les rangées du
+carrousel du héros avaient la couleur exacte de leur carte. **Les deux carrousels ont des fonds
+inversés** — carte blanche et rangées crème dans le héros, l'inverse dans la tournée — et une
+classe partagée supposait le contraire. La couleur de rangée est désormais passée à chaque
+carrousel, elle ne peut plus être supposée.
+
+### ③ Toutes les tailles de titre étaient fausses, dans les deux sens
+
+Deux causes distinctes, invisibles l'une comme l'autre à la relecture :
+
+- `.titre`, `.display`, `.statement`, `.mot-symbole`, `.prix`, `.chiffre-heros` étaient déclarées
+  **hors couche** : même spécificité qu'un utilitaire, mais plus loin dans la feuille. `titre
+text-[20px]` sortait donc à 26. Elles vivent maintenant dans `@layer components`, où un
+  utilitaire passe devant.
+- J'avais ensuite **calculé** les clamps depuis la taille en pixels. Tailwind lit la source, il
+  ne l'exécute pas : la classe était posée sur l'élément et n'existait dans aucune feuille. Tout
+  retombait sur le palier par défaut, exactement l'état que je croyais corriger. Les classes sont
+  désormais écrites en toutes lettres, dans une table.
+
+La planche donne **sept tailles de titre différentes** (38 pour la FAQ, 44 pour les bandes de
+contenu, 48 pour les prix, 54 pour l'inclusivité, 72 pour la relance, 96 et 120 pour les deux
+chiffres héros, 104 pour le claim), là où j'en servais une seule à 56.
+
+### ④ Les vignettes ne montraient pas ce que la planche montre
+
+L'**avatar** accroché au coin bas-gauche de la carte du héros manquait entièrement. Le rendez-vous
+en cours n'était pas cerné de framboise et sa pastille était abricot comme celle de « Terminé »,
+si bien que les deux états se confondaient. L'écran « Journée bouclée » avait perdu son chiffre
+en Fraunces 32. Le créneau proposé était en trait plein au lieu de tirets — un trait plein en
+fait un rendez-vous confirmé, ce que la planche refuse de montrer.
+
+Et « Ta semaine » n'est **pas un histogramme**, j'en avais fait un : la planche empile des blocs
+de hauteur fixe, un par rendez-vous. Une barre dit « ce jour-là, beaucoup » ; une pile dit « ce
+jour-là, ces rendez-vous-là », et c'est ce qui rend lisible le créneau vide en tirets.
+
+### ⑤ « Trois gestes » n'a pas de cartes
+
+La planche pose les trois gestes à même la bande framboise, avec un chiffre miel en Fraunces 52.
+J'avais mis trois cartes blanches à pastille numérotée : une quatrième famille de cartes sur une
+page qui en a déjà trois, et le chiffre enterré alors qu'il **est** le propos.
+
+En les sortant des cartes, j'ai reposé du `texte-sur-plein-doux` sur du framboise — **3,38:1,
+sous AA**, relevé par `npm run vues`. Troisième fois sur cette couleur. La planche fait pareil
+(blanc à 85 %) et c'est la règle AA qui gagne : la hiérarchie passe par la taille et la graisse,
+jamais par l'opacité.
+
+### ⑥ Le contrôle passait pendant que tout ça était faux
+
+C'est le vrai sujet. `npm run planche:check` disait « 15 bandes conformes » avec les six défauts
+en place. Il vérifiait ce qui était facile à vérifier, pas ce qui dérivait. Trois critères
+ajoutés, **chacun prouvé par un échec délibéré** :
+
+| Critère            | Ce qu'il attrape                                                              |
+| ------------------ | ----------------------------------------------------------------------------- |
+| ④ Bloc invisible   | un bloc arrondi de la couleur exacte de son fond, sans trait qui le détoure   |
+| ⑤ Largeur utile    | 1200 moins 56 de marge de chaque côté — dit si les marges sont dans la mesure |
+| ⑥ Tailles de texte | relevées sur la planche, exigées sur le rendu, texte par texte                |
+
+Le sixième a immédiatement trouvé un défaut que je n'avais pas vu : « 50 places » sortait à 120
+au lieu de 96, `.chiffre-heros` souffrant du même défaut de couche que `.titre`. Il compare
+aujourd'hui **29 textes** et refuse de se croire s'il en compare moins de huit.
+
+**Décisions :** aucune.
+
+**Écarts au brief :** un, et il est signalé plus bas. **L'échelle typographique ratifiée et la
+planche se contredisent** : `--text-display` plafonne à 56 et `--text-statement` à 92, quand la
+planche écrit 44 et 104. Je n'ai **pas** touché aux jetons, qui servent aussi l'app pro ; la
+déviation est locale à cette page, dans une table nommée. C'est à Morgan de dire lequel des deux
+a tort.
+
+**Questions ouvertes :**
+
+1. **L'échelle typographique contre la planche** (ci-dessus). Faut-il corriger les jetons, ou la
+   home reste-t-elle en déviation locale ?
+2. **Trois encres de la planche sont hors palette** : `#A4552F` (les temps de trajet), `#8C6A5C`
+   et `#6B4A3C` (textes secondaires). Je les ai mappées sur `texte-secondaire`. À ratifier ou à
+   corriger côté Design.
+3. **L'avatar du héros porte deux encres d'illustration** (`#8A5A2B` le teint, `#241209` le trait
+   des yeux) déclarées à l'endroit unique où elles servent, volontairement pas dans les jetons :
+   une carnation n'est pas une couleur de marque.
+
+**À recetter par Morgan :**
+
+1. **Regarde le bloc « 5 à 10 h »** : la carte est centrée dans sa moitié, plus ferrée à droite.
+2. **Regarde la bande « Le soir »** : les trois cartes crème existent, titres en Fraunces.
+3. **Regarde la carte du héros** : l'avatar déborde du coin bas-gauche, le rendez-vous de 10:30
+   est cerné de framboise et sa pastille est framboise, pas abricot.
+4. **Attends le troisième écran de la carte tournée** : « Ta semaine » empile des blocs, avec un
+   créneau vide en tirets.
+5. **Regarde « Trois gestes »** : plus de cartes, trois grands chiffres miel sur le framboise.
+6. **Mets `bg-surface` à une carte de « Le soir »**, puis `npm run planche:check` : il refuse en
+   disant que le bloc est invisible.
+7. **Ajoute `px-14` à une `<section>`**, puis relance : il refuse en donnant la largeur utile.
+8. **Ajoute `!important` à la taille de `.titre`**, puis relance : il liste les textes trop gros.
+
+**Statut à reporter dans la roadmap :** la home : « conforme à 19a révisée, et vérifiée ».
+
+---
+
 ## 2026-09-04 (12) Étape : la planche révisée, relue en entier
 
 **Fait :**
