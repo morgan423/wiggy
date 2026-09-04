@@ -20,6 +20,76 @@ _Rien en attente : les trois questions ouvertes ont été tranchées le 03/09._
 
 ---
 
+## 2026-09-04 (10) Correctif : le mot-symbole, et le SVG de marque tranché
+
+**Fait :**
+
+- **« Wiggy » a sa propre définition, `.mot-symbole`.** Il portait `.titre`, le style d'un titre
+  courant : 26 px et graisse 600, là où la planche 19a demande **28 px et graisse 700**. Et dans le
+  pied il était à **15 px** quand la planche le pose à **40 px** — la signature de la page réduite à
+  une ligne de menu.
+- **Dimensionnable par une propriété**, `--mot-symbole`, plutôt que par des variantes : la planche
+  le pose à deux tailles et il y en aura d'autres. La taille est un réglage du lieu, pas une
+  seconde définition. La couleur reste **héritée**, ce qui lui permet d'être prune sur la crème et
+  crème sur le prune sans rien redéfinir. Pas de WONK : l'axe reste aux statements et aux chiffres
+  héros, et la planche ne le demande pas ici.
+- **Le mot-symbole n'est pas un titre.** C'est le fond de l'affaire : en empruntant `.titre`, il
+  serait redevenu faux au premier ajustement de l'échelle typographique, sans que personne fasse le
+  lien.
+
+### ⚠️ Le SVG de marque : c'est le TEXTE qui fait foi sur le web
+
+**Trois raisons, et la troisième suffirait :**
+
+① **La planche elle-même pose du texte vivant**, aux deux endroits. Le board fait foi pour la
+composition.
+
+② **Le SVG livré n'est pas un tracé, c'est du `<text>` en Fraunces.** Design le dit dans sa propre
+légende de 13a : « texte + webfont, **à vectoriser pour l'imprimé** ». Or **un SVG chargé en image
+n'accède pas aux polices de la page** : il se rendrait en Georgia. Le fichier n'est donc pas un
+asset web, c'est une source de fabrication pour l'imprimé.
+
+③ **Son `fill` est prune, en dur.** Le pied de page a besoin du mot-symbole en **crème sur prune**.
+Un fichier unique à couleur figée ne peut pas servir les deux emplacements, alors que du texte
+hérite de la couleur de son bloc.
+
+S'y ajoutent les qualités ordinaires du texte : sélectionnable, lisible par un lecteur d'écran sans
+`aria-label` de rattrapage, net à toutes les tailles, et aucune requête.
+
+**Conséquence : `apps/web/public/wiggy-wordmark.svg` est SUPPRIMÉ.** Ce n'était pas un fichier
+inoffensif qui traînait : posé dans `public/`, il était servi publiquement, et quiconque l'aurait
+utilisé aurait obtenu un mot-symbole **en Georgia et en prune**, invisible sur un fond sombre. Le
+maître reste chez Design, `Design/livrable-dev/assets/wiggy-wordmark.svg`, à sa place : un livrable
+de marque destiné à l'imprimé, à vectoriser avant usage.
+
+### Le héros en étroit
+
+**La mention passait au-dessus du bouton de démo.** En rangée qui se replie, elle voyageait avec le
+bouton auquel elle appartient : dès que la largeur manquait, la colonne primaire passait à la ligne
+et la mention se retrouvait entre les deux boutons, comme si elle concernait la démo.
+
+Remplacé par **une grille**, qui sépare les deux questions : en large, la planche — les deux boutons
+côte à côte, la mention dessous et centrée sur le premier ; en étroit, une colonne et l'ordre du
+document — action, démo, mention. Vérifié aux deux largeurs dans un navigateur.
+
+**Schéma :** aucune migration. 0027 reste EN ATTENTE.
+
+**Décisions :** le texte fait foi pour le mot-symbole sur le web ; le SVG est un livrable
+d'imprimé.
+
+**Écarts au brief :** aucun.
+
+**Questions ouvertes :** aucune nouvelle.
+
+**À recetter par Morgan :**
+
+1. **En-tête et pied** : le mot-symbole est en Fraunces 28 puis 40, graisse 700, crème sur le prune.
+2. **Rétrécis la fenêtre** sous 640 px : la mention reste **sous** les deux boutons, jamais entre.
+
+**Statut à reporter dans la roadmap :** rien à bouger.
+
+---
+
 ## 2026-09-04 (9) Correctif : la composition exacte de 19a, et l'apparition au défilement
 
 **Fait :**

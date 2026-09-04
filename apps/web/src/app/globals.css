@@ -53,6 +53,29 @@ body {
    grandes tailles ; l'axe WONK reste réservé aux statements.
    Les tailles design sont le plafond d'un clamp : 92 px sur un écran de
    375 px déborderait. */
+/*
+  LE MOT-SYMBOLE. « Wiggy » n'est pas un titre, c'est la MARQUE.
+
+  Il portait `.titre`, le style d'un titre courant : 26 px et graisse 600, là où
+  la planche 19a demande 28 px et graisse 700. Surtout, il redevenait faux au
+  premier changement de l'échelle typographique, puisqu'il empruntait un style
+  qui ne le concerne pas. Il lui faut donc sa définition à lui.
+
+  **Dimensionnable par une propriété** plutôt que par des variantes : la planche
+  le pose à 28 px dans l'en-tête et à 40 px dans le pied, et il y en aura
+  d'autres. La taille est un réglage du lieu, pas une seconde définition.
+
+  Pas de WONK : l'axe est réservé aux statements et aux chiffres héros, et la
+  planche ne le demande pas ici. La couleur est héritée, ce qui lui permet
+  d'être prune sur la crème et crème sur le prune sans rien redéfinir.
+*/
+.mot-symbole {
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: 1;
+  font-size: var(--mot-symbole, 1.75rem);
+}
+
 .statement {
   font-family: var(--font-display);
   font-size: var(--text-statement);

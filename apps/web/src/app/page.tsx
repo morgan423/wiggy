@@ -85,7 +85,7 @@ function Entete() {
         les liens au centre, ce qui n'est ni la planche ni un usage.
       */}
       <div className={`${DEDANS} flex items-center justify-between px-14 py-[22px]`}>
-        <span className="titre">Wiggy</span>
+        <span className="mot-symbole">Wiggy</span>
         <div className="flex items-center gap-7">
           <nav className="hidden items-center gap-7 md:flex" aria-label="Sections">
             <a href="#produit" className={LIEN_NAV}>
@@ -128,24 +128,35 @@ function Hero() {
             colonne, la phrase centrée sous le bouton. Et « Voir une démo » est
             un BOUTON bordé de la même taille, pas un lien souligné posé à côté.
           */}
-          <div className="flex flex-wrap items-center gap-3">
-            <span className="flex flex-col gap-1.5">
-              <Link
-                href="/inscription"
-                className="tactile rounded-pilule bg-action px-[34px] py-[18px] text-center text-[17px] font-bold text-texte-sur-plein hover:bg-action-survol"
-              >
-                {S.hero.action}
-              </Link>
-              <span className="text-center text-[12.5px] text-texte-attenue">
-                {S.hero.rassurance}
-              </span>
-            </span>
+          {/*
+            UNE grille plutôt qu'une rangée qui se replie.
+
+            En rangée, la mention voyageait avec le bouton auquel elle
+            appartient : dès que la largeur manquait, la colonne primaire passait
+            à la ligne et la mention se retrouvait AU-DESSUS du bouton de démo,
+            comme si elle le concernait.
+
+            La grille sépare les deux questions. En large, la planche : les deux
+            boutons côte à côte, la mention en dessous et centrée sur le premier.
+            En étroit, une seule colonne et l'ordre du document : action, démo,
+            puis la mention. Elle ne peut plus se glisser entre les deux.
+          */}
+          <div className="grid gap-x-3 gap-y-2 sm:grid-cols-[auto_auto] sm:justify-start">
+            <Link
+              href="/inscription"
+              className="tactile rounded-pilule bg-action px-[34px] py-[18px] text-center text-[17px] font-bold text-texte-sur-plein hover:bg-action-survol sm:col-start-1 sm:row-start-1"
+            >
+              {S.hero.action}
+            </Link>
             <a
               href="#demo"
-              className="tactile self-start rounded-pilule border border-trait-discret bg-surface px-[34px] py-[18px] text-[17px] font-bold hover:border-prune"
+              className="tactile rounded-pilule border border-trait-discret bg-surface px-[34px] py-[18px] text-center text-[17px] font-bold hover:border-prune sm:col-start-2 sm:row-start-1 sm:self-start"
             >
               {S.hero.demo}
             </a>
+            <span className="text-[12.5px] text-texte-attenue sm:col-start-1 sm:row-start-2 sm:text-center">
+              {S.hero.rassurance}
+            </span>
           </div>
           {/*
             Les deux phrases se ressemblaient sans avoir le même statut : la
@@ -584,7 +595,9 @@ function Pied() {
   return (
     <footer data-bande="pied" data-apparait className="bg-prune px-14 py-11 text-texte-sur-plein">
       <div className={`${DEDANS} flex flex-wrap items-center justify-between gap-5`}>
-        <span className="text-[15px] font-extrabold">Wiggy</span>
+        {/* La planche pose le mot-symbole du pied à 40 px, pas à 15 : c'est
+            la signature de la page, elle n'est pas une ligne de menu. */}
+        <span className="mot-symbole [--mot-symbole:2.5rem]">Wiggy</span>
         <nav className="flex flex-wrap gap-5" aria-label="Pied de page">
           <a href="#produit" className={LIEN_PIED}>
             {S.nav.produit}
