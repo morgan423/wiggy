@@ -248,6 +248,49 @@ a[href]:active,
   transform: scale(var(--tap-scale));
 }
 
+/* ── Le mouvement de la HOME, et de la home seulement ───────────────────
+   Planche 19a. Ces deux animations n'existent que sur la page de vente : la
+   règle « zéro animation ambiante » ci-dessous vaut pour l'APPLICATION, qui
+   s'ouvre trente fois par jour. Une page qu'on visite une fois, pour se faire
+   une idée, n'a pas le même contrat.
+   Valeurs relevées sur la planche, pas choisies : 26 s linéaire pour le ruban,
+   2,4 s et 2,8 s pour les pulsations, dont une décalée de 1,4 s pour qu'elles
+   ne battent pas ensemble. */
+@keyframes wiggy-marquee {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    /* -50 % et non -100 % : le contenu est dupliqué, donc la moitié du ruban
+       est une copie exacte de l'autre. Arrivé à -50 %, l'image est identique
+       au départ et la boucle ne se voit pas. */
+    transform: translateX(-50%);
+  }
+}
+@keyframes wiggy-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.45;
+  }
+}
+.ruban-defilant {
+  display: flex;
+  width: max-content;
+  animation: wiggy-marquee 26s linear infinite;
+}
+.pulsation {
+  animation: wiggy-pulse 2.8s ease-in-out infinite;
+}
+.pulsation-courte {
+  animation: wiggy-pulse 2.4s ease-in-out infinite;
+}
+.pulsation-decalee {
+  animation: wiggy-pulse 2.8s ease-in-out 1.4s infinite;
+}
+
 /* Zéro animation ambiante : l'app s'ouvre trente fois par jour. Ce qui bouge
    ici bouge parce qu'un geste vient d'avoir lieu, jamais tout seul. */
 
@@ -265,6 +308,15 @@ a[href]:active,
   .squelette {
     animation: none;
     opacity: 0.7;
+  }
+  /* ⚠️ Le ruban et les pulsations s'arrêtent. Un bandeau qui défile sans fin
+     est exactement ce que ce réglage existe pour éteindre, et une opacité qui
+     respire est du mouvement même quand rien ne se déplace. */
+  .ruban-defilant,
+  .pulsation,
+  .pulsation-courte,
+  .pulsation-decalee {
+    animation: none !important;
   }
   /* Le tap lui-même disparaît : pas de scale sous mouvement réduit. */
   button:active,

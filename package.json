@@ -12,7 +12,7 @@
     "lint": "eslint .",
     "web": "npm run dev --workspace @wiggy/web",
     "pro": "npm run start --workspace @wiggy/pro",
-    "verify": "npm run tokens:build && npm run db:types && npm run db:check && npm run db:rejeu && npm run db:test && npm run db:matrice && npm run journal:inventaire && npm run design:check && npm run archi:check && npm run copy:manques && npm run check && npm test && npm run e2e && npm run pwa:check && npm run vues",
+    "verify": "npm run tokens:build && npm run db:types && npm run db:check && npm run db:rejeu && npm run db:test && npm run db:matrice && npm run journal:inventaire && npm run design:check && npm run archi:check && npm run copy:manques && npm run check && npm test && npm run e2e && npm run pwa:check && npm run planche:check && npm run vues",
     "db:test": "node --test scripts/db-test.mjs",
     "db:bundle": "node scripts/db-bundle.mjs",
     "db:matrice": "node scripts/db-matrice.mjs",
@@ -38,7 +38,8 @@
     "db:rejeu": "node scripts/db-rejeu.mjs",
     "db:etat": "node scripts/db-etat.mjs",
     "journal:inventaire": "node scripts/journal-inventaire.mjs",
-    "pwa:check": "node scripts/pwa-check.mjs"
+    "pwa:check": "node scripts/pwa-check.mjs",
+    "planche:check": "node scripts/planche-check.mjs"
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.3.13",

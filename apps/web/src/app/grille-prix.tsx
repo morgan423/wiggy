@@ -31,8 +31,12 @@ const P = S.prix
 export function GrillePrix() {
   const [essentielle, tournee, intelligence] = P.offres
 
+  /*
+    Planche 19a : bloc PRUNE plein, les trois cartes posées dessus. En crème, la
+    section se fondait dans le reste de la page et les cartes flottaient.
+  */
   return (
-    <section id="tarif" className="bg-fond py-20">
+    <section data-bande="prix" id="tarif" className="bg-prune py-20 text-texte-sur-plein">
       <div className="mx-auto max-w-[1180px] px-6">
         <h2 className="display tracking-tight">{P.titre}</h2>
 
@@ -48,19 +52,17 @@ export function GrillePrix() {
           <CarteVedetteMobile offre={tournee} />
           <RangeeRepliee offre={essentielle} />
           <RangeeRepliee offre={intelligence} />
-          <p className="mt-2 text-center text-[11.5px] font-semibold text-texte-secondaire">
-            {P.mentionsMobile}
-          </p>
+          <p className="mt-2 text-center text-[11.5px] font-semibold">{P.mentionsMobile}</p>
         </div>
 
         <ul className="mt-10 hidden flex-wrap justify-center gap-x-6 gap-y-2 md:flex">
           {P.mentions.map((m) => (
-            <li key={m} className="text-[12.5px] font-semibold text-texte-secondaire">
+            <li key={m} className="text-[12.5px] font-semibold">
               {m}
             </li>
           ))}
         </ul>
-        <p className="mx-auto mt-6 max-w-3xl text-center text-[11.5px] leading-[1.6] text-texte-attenue">
+        <p className="mx-auto mt-6 max-w-3xl text-center text-[11.5px] leading-[1.6] text-texte-sur-plein-doux">
           {P.noteSms}
         </p>
       </div>
@@ -159,7 +161,7 @@ function CarteVedetteMobile({ offre }: { offre: Offre }) {
 /** 19b : les deux rangées crème compactes, prix en 22, dépliables au tap. */
 function RangeeRepliee({ offre }: { offre: Offre }) {
   return (
-    <details className="group rounded-carte bg-surface px-4 py-3.5">
+    <details className="group rounded-carte bg-surface px-4 py-3.5 text-texte-principal">
       <summary className="cursor-pointer list-none [&::-webkit-details-marker]:hidden">
         <span className="flex items-baseline justify-between gap-3">
           <span className="min-w-0">

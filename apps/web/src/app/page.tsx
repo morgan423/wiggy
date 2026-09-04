@@ -60,11 +60,11 @@ export default function Accueil() {
 
 /* ── 1. L'en-tête et le héros ─────────────────────────────────────────── */
 
-const LIEN_NAV = 'text-[13px] font-bold text-texte-sur-plein-doux hover:text-texte-sur-plein'
+const LIEN_NAV = 'text-[13px] font-bold text-texte-secondaire hover:text-texte-principal'
 
 function Entete() {
   return (
-    <header className="sticky top-0 z-40 bg-prune text-texte-sur-plein">
+    <header data-bande="entete" className="sticky top-0 z-40 bg-fond">
       <div className="mx-auto flex max-w-[1180px] items-center justify-between px-6 py-4">
         <span className="text-[17px] font-extrabold">Wiggy</span>
         <nav className="hidden items-center gap-7 md:flex" aria-label="Sections">
@@ -91,13 +91,13 @@ function Entete() {
 
 function Hero() {
   return (
-    <section className="bg-prune pb-16 text-texte-sur-plein">
+    <section data-bande="heros" className="bg-fond pb-16">
       <div className="mx-auto grid max-w-[1180px] items-center gap-12 px-6 pt-10 md:grid-cols-[1.15fr_1fr] md:pt-16">
         <div>
           {/* H1 UNIQUE de la page, sur le claim. Toutes les autres sections
               ouvrent en h2 : c'est la seule hiérarchie que le SEO comprend. */}
           <h1 className="statement tracking-tight">{S.hero.claim}</h1>
-          <p className="mt-6 max-w-xl text-lg leading-[1.55] text-texte-sur-plein-doux">
+          <p className="mt-6 max-w-xl text-lg leading-[1.55] text-texte-secondaire">
             {S.hero.sousTitre}
           </p>
           <div className="mt-9 flex flex-wrap items-center gap-4">
@@ -111,8 +111,8 @@ function Hero() {
               {S.hero.demo}
             </a>
           </div>
-          <p className="mt-4 text-[12.5px] text-texte-sur-plein-doux">{S.hero.rassurance}</p>
-          <p className="mt-8 border-t border-texte-sur-plein/15 pt-6 text-[13px] font-semibold text-texte-sur-plein-doux">
+          <p className="mt-4 text-[12.5px] text-texte-attenue">{S.hero.rassurance}</p>
+          <p className="mt-8 border-t border-trait-discret pt-6 text-[13px] font-semibold text-texte-secondaire">
             {S.hero.inclusivite}
           </p>
         </div>
@@ -125,7 +125,7 @@ function Hero() {
 /** La tournée de Sophie, en vignette. Données de démonstration, assumées. */
 function VignetteTournee() {
   return (
-    <div className="rounded-bloc bg-fond p-5 text-texte-principal shadow-flottante">
+    <div className="rounded-bloc bg-surface p-5 shadow-flottante">
       <p className="text-[15px] font-bold">{S.hero.vignetteTitre}</p>
       <ul className="mt-4 flex flex-col gap-2">
         {S.hero.vignetteRdvs.map((r) => (
@@ -137,10 +137,11 @@ function VignetteTournee() {
             <span className="min-w-0 flex-1 truncate font-semibold">{r.libelle}</span>
             {'etat' in r && r.etat ? (
               <span
-                className={`shrink-0 rounded-pilule px-2.5 py-1 text-[10.5px] font-extrabold ${
-                  r.etat === 'En cours'
-                    ? 'bg-attente text-texte-sur-miel'
-                    : 'bg-celebration text-texte-sur-miel'
+                // Planche 19a : « En cours » PULSE, à 2,4 s. C'est le seul
+                // état vivant de la vignette, et c'est ce qui fait comprendre
+                // qu'on regarde une journée en train de se dérouler.
+                className={`shrink-0 rounded-pilule px-2.5 py-1 text-[10.5px] font-extrabold text-texte-sur-miel ${
+                  r.etat === 'En cours' ? 'pulsation-courte bg-attente' : 'bg-celebration'
                 }`}
               >
                 {r.etat}
@@ -160,14 +161,25 @@ function Bandeau() {
   // un trou à droite sur les grands écrans.
   const suite = [...S.bandeau, ...S.bandeau, ...S.bandeau, ...S.bandeau]
   return (
-    <div className="overflow-hidden border-y border-trait-discret bg-fond py-3.5">
-      <p className="flex flex-nowrap gap-4 px-6 text-[12.5px] font-bold whitespace-nowrap text-texte-secondaire">
-        {suite.map((mot, i) => (
-          <span key={i} className="flex shrink-0 items-center gap-4">
-            {mot}
-            <span aria-hidden className="text-action">
-              ·
-            </span>
+    <div data-bande="bandeau" className="overflow-hidden bg-prune py-3.5 text-texte-sur-plein">
+      {/*
+        Le ruban défile (planche 19a) : `translateX` de 0 à -50 %, 26 s, linéaire,
+        infini. Le contenu est DUPLIQUÉ, et c'est ce qui rend la boucle
+        invisible — arrivé à mi-course, l'image est identique au départ.
+        `aria-hidden` sur la copie : un lecteur d'écran n'a pas à entendre deux
+        fois la même phrase pour un effet visuel.
+      */}
+      <p className="ruban-defilant text-[12.5px] font-bold whitespace-nowrap">
+        {[false, true].map((copie) => (
+          <span key={String(copie)} className="flex shrink-0" aria-hidden={copie || undefined}>
+            {suite.map((mot, i) => (
+              <span key={i} className="flex shrink-0 items-center gap-4 pr-4">
+                {mot}
+                <span aria-hidden className="text-celebration">
+                  ·
+                </span>
+              </span>
+            ))}
           </span>
         ))}
       </p>
@@ -179,22 +191,18 @@ function Bandeau() {
 
 function Probleme() {
   return (
-    <section className="mx-auto max-w-[1180px] px-6 py-20">
-      <h2 className="display max-w-2xl tracking-tight">{S.probleme.titre}</h2>
-      <div className="mt-10 grid gap-5 md:grid-cols-3">
-        {S.probleme.cartes.map((c) => (
-          <article key={c.titre} className="rounded-carte bg-surface p-6">
-            <h3 className="text-[15px] font-bold">{c.titre}</h3>
-            <p className="mt-2.5 text-[13.5px] leading-[1.6] text-texte-secondaire">{c.texte}</p>
-          </article>
-        ))}
+    <section data-bande="probleme" className="bg-surface py-20">
+      <div className="mx-auto max-w-[1180px] px-6">
+        <h2 className="display max-w-2xl tracking-tight">{S.probleme.titre}</h2>
+        <div className="mt-10 grid gap-5 md:grid-cols-3">
+          {S.probleme.cartes.map((c) => (
+            <article key={c.titre} className="rounded-carte bg-surface p-6">
+              <h3 className="text-[15px] font-bold">{c.titre}</h3>
+              <p className="mt-2.5 text-[13.5px] leading-[1.6] text-texte-secondaire">{c.texte}</p>
+            </article>
+          ))}
+        </div>
       </div>
-      <p className="mt-10 flex flex-wrap items-baseline gap-3">
-        <span className="chiffre-heros text-action">{S.probleme.chiffre}</span>
-        <span className="text-[15px] font-semibold text-texte-secondaire">
-          {S.probleme.chiffreLegende}
-        </span>
-      </p>
     </section>
   )
 }
@@ -203,7 +211,19 @@ function Probleme() {
 
 function Tournee() {
   return (
-    <section id="produit" className="bg-prune py-20 text-texte-sur-plein">
+    <section data-bande="tournee" id="produit" className="bg-prune py-20 text-texte-sur-plein">
+      <div className="mx-auto max-w-[1180px] px-6">
+        {/*
+          Planche 19a : « 5 à 10 h » et « La tournée te rend tes soirées » sont
+          UN SEUL bloc prune, le chiffre en miel. En faire deux sections, dont
+          une sur crème, cassait le rythme de la page et privait le chiffre de
+          son fond.
+        */}
+        <p className="flex flex-wrap items-baseline gap-3 pb-12">
+          <span className="chiffre-heros text-celebration">{S.probleme.chiffre}</span>
+          <span className="text-[15px] font-semibold">{S.probleme.chiffreLegende}</span>
+        </p>
+      </div>
       <div className="mx-auto grid max-w-[1180px] items-center gap-12 px-6 md:grid-cols-2">
         <div>
           <h2 className="display tracking-tight">{S.tournee.titre}</h2>
@@ -251,7 +271,14 @@ function Timeline() {
             </div>
             {/* La pastille de trajet, À CHEVAL sur le rail (19c). */}
             {i < S.tournee.trajets.length ? (
-              <p className="relative z-10 my-1.5 ml-[-4px] w-fit rounded-pilule bg-attente/30 px-2.5 py-1 text-[11px] font-bold text-texte-principal">
+              <p
+                // Les deux trajets pulsent à 2,8 s, le second DÉCALÉ de 1,4 s
+                // (19a) : battre ensemble ferait clignoter la timeline, se
+                // décaler donne une tournée qui avance.
+                className={`relative z-10 my-1.5 ml-[-4px] w-fit rounded-pilule bg-attente/30 px-2.5 py-1 text-[11px] font-bold text-texte-principal ${
+                  i === 0 ? 'pulsation' : 'pulsation-decalee'
+                }`}
+              >
                 {S.tournee.trajets[i]}
               </p>
             ) : null}
@@ -266,15 +293,17 @@ function Timeline() {
 
 function Fonctions() {
   return (
-    <section className="mx-auto max-w-[1180px] px-6 py-20">
-      <h2 className="display tracking-tight">{S.fonctions.titre}</h2>
-      <div className="mt-10 grid gap-5 md:grid-cols-3">
-        {S.fonctions.cartes.map((c) => (
-          <article key={c.titre} className="rounded-carte bg-surface p-6">
-            <h3 className="text-[15px] font-bold">{c.titre}</h3>
-            <p className="mt-2.5 text-[13.5px] leading-[1.6] text-texte-secondaire">{c.texte}</p>
-          </article>
-        ))}
+    <section data-bande="fonctions" className="bg-fond py-20">
+      <div className="mx-auto max-w-[1180px] px-6">
+        <h2 className="display tracking-tight">{S.fonctions.titre}</h2>
+        <div className="mt-10 grid gap-5 md:grid-cols-3">
+          {S.fonctions.cartes.map((c) => (
+            <article key={c.titre} className="rounded-carte bg-surface p-6">
+              <h3 className="text-[15px] font-bold">{c.titre}</h3>
+              <p className="mt-2.5 text-[13.5px] leading-[1.6] text-texte-secondaire">{c.texte}</p>
+            </article>
+          ))}
+        </div>
       </div>
     </section>
   )
@@ -284,13 +313,13 @@ function Fonctions() {
 
 function Etapes() {
   return (
-    <section className="bg-fond py-20">
+    <section data-bande="etapes" className="bg-action py-20 text-texte-sur-plein">
       <div className="mx-auto max-w-[1180px] px-6">
         <h2 className="display tracking-tight">{S.etapes.titre}</h2>
         <ol className="mt-10 grid gap-5 md:grid-cols-3">
           {S.etapes.liste.map((e, i) => (
-            <li key={e.titre} className="rounded-carte bg-surface p-6">
-              <span className="flex size-9 items-center justify-center rounded-pilule bg-action text-[15px] font-extrabold text-texte-sur-plein">
+            <li key={e.titre} className="rounded-carte bg-surface p-6 text-texte-principal">
+              <span className="flex size-9 items-center justify-center rounded-pilule bg-celebration text-[15px] font-extrabold text-texte-sur-miel">
                 {i + 1}
               </span>
               <h3 className="mt-4 text-[15px] font-bold">{e.titre}</h3>
@@ -315,30 +344,32 @@ function Avis() {
   const temoignages = temoignagesDePlanche()
 
   return (
-    <section className="mx-auto max-w-[1180px] px-6 py-20">
-      <h2 className="display tracking-tight">{S.avis.titre}</h2>
-      <div className="mt-10 grid gap-5 md:grid-cols-3">
-        {temoignages.map((t) => (
-          <figure key={t.prenom} className="rounded-carte bg-surface p-6">
-            <blockquote className="text-[14px] leading-[1.6] font-semibold">
-              « {t.texte} »
-            </blockquote>
-            <figcaption className="mt-5 flex items-center gap-3">
-              <span className="flex size-9 items-center justify-center rounded-pilule bg-celebration text-[14px] font-extrabold text-texte-sur-miel">
-                {t.prenom.slice(0, 1)}
-              </span>
-              <span className="text-[12.5px]">
-                <span className="block font-bold">{t.prenom}</span>
-                <span className="text-texte-attenue">{t.contexte}</span>
-              </span>
-            </figcaption>
-          </figure>
-        ))}
+    <section data-bande="avis" className="bg-fond py-20">
+      <div className="mx-auto max-w-[1180px] px-6">
+        <h2 className="display tracking-tight">{S.avis.titre}</h2>
+        <div className="mt-10 grid gap-5 md:grid-cols-3">
+          {temoignages.map((t) => (
+            <figure key={t.prenom} className="rounded-carte bg-surface p-6">
+              <blockquote className="text-[14px] leading-[1.6] font-semibold">
+                « {t.texte} »
+              </blockquote>
+              <figcaption className="mt-5 flex items-center gap-3">
+                <span className="flex size-9 items-center justify-center rounded-pilule bg-celebration text-[14px] font-extrabold text-texte-sur-miel">
+                  {t.prenom.slice(0, 1)}
+                </span>
+                <span className="text-[12.5px]">
+                  <span className="block font-bold">{t.prenom}</span>
+                  <span className="text-texte-attenue">{t.contexte}</span>
+                </span>
+              </figcaption>
+            </figure>
+          ))}
+        </div>
+        <p className="mt-6 rounded-carte bg-attente/25 px-4 py-3 text-[12px] leading-[1.5] font-semibold">
+          Témoignages de composition, visibles en développement seulement. Ils ne peuvent pas partir
+          en production : le build échoue s’ils sont demandés ailleurs.
+        </p>
       </div>
-      <p className="mt-6 rounded-carte bg-attente/25 px-4 py-3 text-[12px] leading-[1.5] font-semibold">
-        Témoignages de composition, visibles en développement seulement. Ils ne peuvent pas partir
-        en production : le build échoue s’ils sont demandés ailleurs.
-      </p>
     </section>
   )
 }
@@ -346,27 +377,31 @@ function Avis() {
 /* ── 9. Le programme Ambassadrices ────────────────────────────────────── */
 
 function Ambassadrices({ restantes }: { restantes: number }) {
+  /*
+    Le SEUL moment jaune de la page, et c'est ce qui fait exister le programme.
+    En prune, il ressemblait à toutes les autres sections sombres.
+  */
   return (
-    <section id="ambassadrices" className="bg-prune py-20 text-texte-sur-plein">
+    <section
+      data-bande="ambassadrices"
+      id="ambassadrices"
+      className="bg-celebration py-20 text-texte-sur-miel"
+    >
       <div className="mx-auto max-w-[1180px] px-6">
         <p className="flex flex-wrap items-center gap-3 text-[12px] font-extrabold tracking-widest uppercase">
-          <span className="text-celebration">{S.ambassadrices.etiquette}</span>
-          <span className="rounded-pilule bg-celebration px-2.5 py-1 text-texte-sur-miel">
+          <span>{S.ambassadrices.etiquette}</span>
+          <span className="rounded-pilule bg-prune px-2.5 py-1 text-texte-sur-plein">
             {S.ambassadrices.places}
           </span>
         </p>
         <div className="mt-8 grid gap-6 md:grid-cols-2">
           <article>
             <h2 className="display tracking-tight">{S.ambassadrices.titre1}</h2>
-            <p className="mt-3 text-[14px] leading-[1.6] text-texte-sur-plein-doux">
-              {S.ambassadrices.texte1}
-            </p>
+            <p className="mt-3 text-[14px] leading-[1.6]">{S.ambassadrices.texte1}</p>
           </article>
           <article>
             <h3 className="display tracking-tight">{S.ambassadrices.titre2}</h3>
-            <p className="mt-3 text-[14px] leading-[1.6] text-texte-sur-plein-doux">
-              {S.ambassadrices.texte2}
-            </p>
+            <p className="mt-3 text-[14px] leading-[1.6]">{S.ambassadrices.texte2}</p>
           </article>
         </div>
         {/*
@@ -376,12 +411,12 @@ function Ambassadrices({ restantes }: { restantes: number }) {
           chiffre inventé sur une page de vente reste un chiffre inventé, même
           quand la promesse qui l'entoure est légitimement en avance (D19).
         */}
-        <p className="mt-8 text-[12px] leading-[1.6] text-texte-sur-plein-doux">
+        <p className="mt-8 text-[12px] leading-[1.6]">
           {remplir(S.gabarits.ambassadricesMention, { restantes: String(restantes) })}
         </p>
         <Link
           href="/inscription"
-          className="tactile mt-6 inline-flex rounded-pilule bg-celebration px-7 text-[14px] font-bold text-texte-sur-miel"
+          className="tactile mt-6 inline-flex rounded-pilule bg-prune px-7 text-[14px] font-bold text-texte-sur-plein"
         >
           {S.ambassadrices.action}
         </Link>
@@ -394,17 +429,19 @@ function Ambassadrices({ restantes }: { restantes: number }) {
 
 function Faq() {
   return (
-    <section id="faq" className="mx-auto max-w-[1180px] px-6 py-20">
-      <h2 className="display tracking-tight">{S.faq.titre}</h2>
-      <div className="mt-10 grid gap-3 md:grid-cols-2">
-        {S.faq.questions.map((q) => (
-          <details key={q.q} className="group rounded-carte bg-surface px-5 py-4">
-            <summary className="tactile cursor-pointer list-none text-[14px] font-bold [&::-webkit-details-marker]:hidden">
-              {q.q}
-            </summary>
-            <p className="mt-2.5 text-[13.5px] leading-[1.6] text-texte-secondaire">{q.r}</p>
-          </details>
-        ))}
+    <section data-bande="faq" id="faq" className="bg-surface py-20">
+      <div className="mx-auto max-w-[1180px] px-6">
+        <h2 className="display tracking-tight">{S.faq.titre}</h2>
+        <div className="mt-10 grid gap-3 md:grid-cols-2">
+          {S.faq.questions.map((q) => (
+            <details key={q.q} className="group rounded-carte bg-surface px-5 py-4">
+              <summary className="tactile cursor-pointer list-none text-[14px] font-bold [&::-webkit-details-marker]:hidden">
+                {q.q}
+              </summary>
+              <p className="mt-2.5 text-[13.5px] leading-[1.6] text-texte-secondaire">{q.r}</p>
+            </details>
+          ))}
+        </div>
       </div>
     </section>
   )
@@ -415,11 +452,11 @@ function Faq() {
 function Final() {
   return (
     <>
-      <section id="demo" className="bg-fond py-20">
+      <section data-bande="demo" id="demo" className="bg-prune py-14 text-texte-sur-plein">
         <div className="mx-auto grid max-w-[1180px] items-center gap-10 px-6 md:grid-cols-2">
           <div>
             <h2 className="display tracking-tight">{S.final.demoTitre}</h2>
-            <p className="mt-3 text-[15px] text-texte-secondaire">{S.final.demoTexte}</p>
+            <p className="mt-3 text-[15px]">{S.final.demoTexte}</p>
           </div>
           {/*
             ⚠️ Formulaire de composition, sans action serveur : « Réserver une
@@ -449,7 +486,7 @@ function Final() {
         </div>
       </section>
 
-      <section className="bg-prune py-20 text-center text-texte-sur-plein">
+      <section data-bande="final" className="bg-fond py-20 text-center">
         <div className="mx-auto max-w-[1180px] px-6">
           <h2 className="display tracking-tight">{S.final.titre}</h2>
           <Link
@@ -464,11 +501,11 @@ function Final() {
   )
 }
 
-const LIEN_PIED = 'text-[12.5px] text-texte-secondaire hover:text-texte-principal'
+const LIEN_PIED = 'text-[12.5px] text-texte-sur-plein-doux hover:text-texte-sur-plein'
 
 function Pied() {
   return (
-    <footer className="border-t border-trait-discret py-12">
+    <footer data-bande="pied" className="bg-prune py-12 text-texte-sur-plein">
       <div className="mx-auto flex max-w-[1180px] flex-wrap items-center justify-between gap-6 px-6">
         <span className="text-[15px] font-extrabold">Wiggy</span>
         <nav className="flex flex-wrap gap-5" aria-label="Pied de page">
@@ -496,7 +533,7 @@ function Pied() {
         </nav>
         {/* A2 : le maillage vers les fiches pros. La home ne cannibalise pas
             les requêtes locales, elle y renvoie. */}
-        <Link href="/recherche" className="text-[12.5px] font-bold text-action underline">
+        <Link href="/recherche" className="text-[12.5px] font-bold text-celebration underline">
           {S.pied.cliente}
         </Link>
       </div>

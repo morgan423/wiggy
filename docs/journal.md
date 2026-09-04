@@ -20,6 +20,98 @@ _Rien en attente : les trois questions ouvertes ont été tranchées le 03/09._
 
 ---
 
+## 2026-09-04 (8) Correctif : la home rejoint sa planche, et la planche devient opposable
+
+**Fait :**
+
+### ① Le mouvement, qui manquait parce que la planche était amputée
+
+Les `@keyframes` sont là dans la planche réextraite. Repris tels quels : le **ruban** défile en
+26 s, linéaire, infini, par `translateX` de 0 à **-50 %** — d'où le contenu dupliqué, qui rend la
+boucle invisible puisque la moitié du ruban est la copie exacte de l'autre. Et **trois
+pulsations** : la pastille « En cours » du héros à 2,4 s, les deux libellés de trajet de la
+timeline à 2,8 s, **le second décalé de 1,4 s** pour qu'ils ne battent pas ensemble.
+
+**Sous `prefers-reduced-motion`, les deux s'arrêtent.** Un bandeau qui défile sans fin est
+exactement ce que ce réglage existe pour éteindre.
+
+⚠️ **Ces animations sont les seules du produit qui bougent sans geste**, et c'est une exception
+assumée à « zéro animation ambiante ». Le motif est écrit dans `globals.css` : cette règle protège
+l'**application**, qu'on ouvre trente fois par jour. Une page de vente qu'on visite une fois n'a
+pas le même contrat.
+
+### ② Le rythme des couleurs : onze bandes sur quatorze étaient fausses
+
+J'avais construit l'inverse du principe de 8a. La page relue bande par bande **sur la planche** :
+crème pour l'en-tête, le héros, les fonctions, les avis et l'appel final ; **prune** pour le
+bandeau, la tournée, les prix, la démo et le pied ; **surface** pour le problème et la FAQ ;
+**framboise** pour les trois gestes ; **miel** pour les Ambassadrices.
+
+- « 5 à 10 h » **rejoint le bloc prune** de la tournée, le chiffre en miel. J'en avais fait deux
+  sections dont une sur crème, ce qui cassait le rythme et privait le chiffre de son fond.
+- Les Ambassadrices sont **le seul moment jaune de la page**, et c'est ce qui fait exister le
+  programme. En prune, il ressemblait à toutes les autres sections sombres.
+- **La planche a corrigé ta liste sur deux points**, et tu avais raison de me dire de la lire :
+  le problème et la FAQ sont sur **surface** (`#FFFDFB`) et non sur crème. Deux blancs voisins mais
+  distincts, et c'est la planche qui tranche.
+
+### ③ Le contrôle : `npm run planche:check`
+
+**Ce que je compare, et pourquoi pas plus.** Un diff d'image intégral serait plus ambitieux et
+moins utile : la planche est une maquette avec sa chrome de navigateur et ses annotations que la
+page n'a pas, les polices chargent à des instants différents, l'antialiasing varie d'une machine à
+l'autre. Il échouerait pour des raisons qui ne sont pas des défauts, **et un contrôle qui crie au
+loup finit désactivé**.
+
+**La séquence des fonds de bande** se compare exactement : une liste ordonnée de couleurs,
+symbolique, insensible au rendu. Et c'est précisément la propriété qui a dérivé — elle attrape la
+**totalité** du défaut d'aujourd'hui.
+
+- **La séquence est LUE SUR LA PLANCHE**, pas recopiée dans le script. Une liste recopiée serait
+  une seconde source de vérité, c'est-à-dire exactement ce que ce contrôle existe pour empêcher.
+  Le jour où Design change une bande, la planche change et le contrôle tombe seul.
+- **Chaque bande se déclare** par `data-bande`. Sans ça le contrôle devrait deviner ce qui est une
+  bande dans le DOM, et une devinette ne fait pas un contrôle.
+- **L'ordre est vérifié en plus des couleurs** : deux bandes interverties de même fond passeraient
+  sinon inaperçues.
+
+**Le contrôle a trouvé un défaut dès son premier passage** : quatorze bandes sur la planche,
+treize déclarées. **J'avais oublié la section des prix** en énumérant à la main — elle était restée
+crème alors que la planche la veut prune. C'est exactement ce qu'il devait faire.
+
+**Et il a fallu le corriger lui-même.** Écrit d'abord, il lisait `animationName` et le comparait à
+`none`. Éprouvé en supprimant les keyframes du ruban — **le défaut exact qui a produit ce lot** — il
+n'a rien vu : `getComputedStyle` rend le nom **déclaré** même quand aucun `@keyframes` ne lui
+correspond. Une animation fantôme se déclare comme une vraie. Le contrôle **échantillonne donc
+l'effet à 700 ms d'intervalle** et exige qu'il ait changé. C'est la seule vérification qu'une
+déclaration vide ne peut pas tromper.
+
+**Les deux classes de défaut ont été remises exprès** : le fond d'Ambassadrices repassé en prune,
+puis les keyframes du ruban supprimés. Chacune fait tomber la commande, en nommant la bande et les
+deux couleurs.
+
+**Schéma :** aucune migration. **0027 reste EN ATTENTE**, inchangée.
+
+**Décisions :** aucune. `planche:check` entre dans `npm run verify`.
+
+**Écarts au brief :** aucun. **Aucun texte n'a été touché** : le copy deck est inchangé, et son
+test le vérifie chaîne par chaîne.
+
+**Questions ouvertes :** aucune nouvelle. Restent la région Supabase et « Réserver une démo ».
+
+**À recetter par Morgan :**
+
+1. **Ouvre la home et compare-la à 19a bande par bande.** Le ruban défile, « En cours » et les deux
+   trajets pulsent, le second décalé.
+2. **Active « réduire les animations »** dans le système : tout s'immobilise, rien ne disparaît.
+3. **Change une couleur de bande dans le code**, puis `npm run planche:check` : il refuse en
+   nommant la bande et les deux couleurs.
+
+**Statut à reporter dans la roadmap :** la home : « conforme à 19a, contrôlée par
+`npm run planche:check` ».
+
+---
+
 ## 2026-09-04 (7) Étape : la home, le hors-ligne des fiches, le site public
 
 **LES DEUX RÉPONSES QUE MORGAN ATTEND, EN TÊTE.**
