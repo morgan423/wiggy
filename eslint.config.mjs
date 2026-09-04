@@ -10,13 +10,24 @@ import prettier from 'eslint-config-prettier'
 
 export default tseslint.config(
   {
+    /*
+      TOUTE EXCEPTION PORTE SON MOTIF ÉCRIT. Une exception sans justification se
+      retire, elle ne se conserve pas : personne ne saura plus, dans six mois,
+      si elle protégeait quelque chose ou si elle cachait un défaut.
+
+      Éprouvées le 04/09 en les retirant une à une. `apps/pro/App.tsx` et
+      `apps/pro/index.ts` y figuraient « gabarit Expo » : ils passent le
+      contrôle sans elles, l'exception est donc supprimée plutôt que documentée.
+    */
     ignores: [
+      // Code d'autrui et artefacts de construction : rien de ce qui est ici
+      // n'est écrit par nous, et rien n'y est corrigeable.
       '**/node_modules/**',
       '**/.next/**',
       '**/.expo/**',
       '**/dist/**',
-      'apps/pro/App.tsx',
-      'apps/pro/index.ts', // gabarit Expo, remplacé plus tard
+      // Déclarations de types GÉNÉRÉES (`next-env.d.ts` en tête) : réécrites à
+      // chaque construction, donc toute correction y serait perdue.
       '**/*.d.ts',
       // Le service worker : il tourne dans un contexte `ServiceWorkerGlobalScope`
       // que le projet TypeScript ne décrit pas, et il est servi tel quel depuis

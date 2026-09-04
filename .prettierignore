@@ -1,11 +1,27 @@
+# Ce que le formateur ne touche pas, et POURQUOI.
+#
+# Règle : une exception porte son motif. Sans motif écrit, elle se retire.
+# Toutes celles-ci relèvent d'un seul principe : on ne formate pas ce qu'on
+# n'écrit pas.
+
+# Code d'autrui et artefacts de construction.
 node_modules
 .next
 .expo
 package-lock.json
+
+# Polices : fichiers binaires et leur déclaration générée par Next.
 apps/web/src/app/_polices
+
+# GÉNÉRÉS par nos propres scripts. Les reformater les ferait diverger de leur
+# source à la première régénération, et le contrôle de format échouerait juste
+# après le script qui les produit.
 packages/tokens/wiggy-tokens.css
 packages/tokens/reference
+packages/api/src/database.types.ts
 docs/matrice-acces.md
 docs/journal-evenements.md
+
+# Fichier de transit vers l'éditeur Supabase : concaténation brute de SQL déjà
+# écrit ailleurs. Il est ignoré par Git et ne fait foi sur rien.
 MIGRATIONS-A-COLLER*.sql
-packages/api/src/database.types.ts
