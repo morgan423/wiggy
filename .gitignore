@@ -50,3 +50,6 @@ MIGRATIONS-A-COLLER*.sql
 
 # Captures produites par `npm run vues` : régénérables, jamais versionnées.
 captures/
+
+# Zips de resynchronisation, générés hors du dépôt.
+wiggy-resync-*.zip
