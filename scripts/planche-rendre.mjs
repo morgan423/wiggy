@@ -52,6 +52,8 @@ const ECRANS = {
   '19a': { url: '/', largeur: 1400 },
   '19b': { url: '/#tarif', largeur: 390 },
   '19c': { url: '/', largeur: 390 },
+  // 20a REMPLACE 15a : la page publique, réordonnée le 05/09.
+  '20a': { url: '/zzz-vues-rempli', largeur: 390 },
 }
 
 /*

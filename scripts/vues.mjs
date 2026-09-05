@@ -385,6 +385,8 @@ async function executer() {
   const aaGlobal = []
   /** Blocs arrondis qui ont la couleur de leur fond : signalés, non bloquants. */
   const blocsInvisibles = []
+  /** Planche 20a : écarts de STRUCTURE sur la page publique. Bloquants. */
+  const echecs20a = []
   const mesures = { hubEnEcrans: null }
   const capturees = []
 
@@ -511,6 +513,53 @@ async function executer() {
       })
       for (const q of invisibles) blocsInvisibles.push({ vue: vue.nom, quoi: q })
 
+      /*
+        ── PLANCHE 20a : L'ORDRE DE LA PAGE PUBLIQUE ─────────────────────────
+
+        ⚠️ `planche:check` NE SAIT PAS LIRE CET ÉCRAN, et ce n'est pas un
+        contournement : il tourne sans authentification et sans semis, or la
+        page publique n'existe que pour une pro PUBLIÉE, avec des prestations
+        et des réglages. Sans compte semé, elle répond 404. Ce script-ci sème,
+        c'est donc lui qui porte le contrôle.
+
+        Ce qu'on vérifie est exactement ce que 20a change, et rien d'autre :
+
+        · LES CONDITIONS AVANT LE CATALOGUE. C'est tout le sujet de la planche.
+          Morgan l'a constaté avant recette : avec cinq ou six prestations, le
+          bloc « Réserver avec {prénom} » tombait sous la ligne de flottaison,
+          et c'est lui qui décide si une cliente réserve.
+
+        · LE REPLI EST NATIF. Les prestations repliées doivent être DANS la
+          page dès le premier rendu : lisibles par les moteurs même fermées, et
+          lisibles hors réseau. Charger au tap aurait donné une page vide aux
+          moteurs pour économiser quelques kilo-octets de texte. On compte donc
+          les rangées présentes à l'intérieur d'un `<details>` FERMÉ — s'il y en
+          a zéro alors qu'un repli existe, c'est que le contenu arrive au tap.
+      */
+      if (vue.nom === '20-cliente-page-publique') {
+        const forme = await page.evaluate(() => ({
+          sections: [...document.querySelectorAll('[data-section]')].map((e) => e.dataset.section),
+          replis: document.querySelectorAll('details').length,
+          repliesDansLeDom: document.querySelectorAll('details:not([open]) li').length,
+        }))
+        const conditions = forme.sections.indexOf('conditions')
+        const prestations = forme.sections.indexOf('prestations')
+        if (conditions === -1) {
+          echecs20a.push('le bloc « conditions » a disparu de la page publique')
+        } else if (prestations !== -1 && conditions > prestations) {
+          echecs20a.push(
+            `les conditions (position ${String(conditions)}) passent APRÈS le catalogue ` +
+              `(position ${String(prestations)}) : c'est l'ordre que 20a corrige`,
+          )
+        }
+        if (forme.replis > 0 && forme.repliesDansLeDom === 0) {
+          echecs20a.push(
+            'un repli est fermé et ne contient aucune rangée : le catalogue se charge au tap, ' +
+              'donc il est invisible pour les moteurs et cassé sans réseau',
+          )
+        }
+      }
+
       const fichier = join(DOSSIER, `${vue.nom}.png`)
       await page.screenshot({ path: fichier, fullPage: true })
       capturees.push(vue)
@@ -544,6 +593,13 @@ async function executer() {
   }
 
   console.log(`${capturees.length} vues dans ${DOSSIER}`)
+
+  if (echecs20a.length > 0) {
+    console.error('\n✖ La page publique a dérivé de la planche 20a :')
+    for (const e of echecs20a) console.error(`   ${e}`)
+    process.exit(1)
+  }
+  console.log('Planche 20a : conditions avant catalogue, repli natif.')
 
   if (blocsInvisibles.length > 0) {
     console.warn(

@@ -20,6 +20,142 @@ _Rien en attente : les trois questions ouvertes ont été tranchées le 03/09._
 
 ---
 
+## 2026-09-05 (18) Étape : la page publique reprise, planche 20a
+
+**Fait :** 20a **remplace 15a** pour cet écran. Le nouvel ordre est posé :
+identité · conditions · prestations repliées · réalisations · avis.
+
+Le constat de Morgan avant recette : avec cinq ou six prestations, le bloc
+« Réserver avec {prénom} » et ses mentions tombaient sous la ligne de flottaison.
+C'est ce bloc qui décide si une cliente réserve ; le catalogue, lui, supporte
+très bien d'être replié.
+
+**Aucune donnée nouvelle, aucune migration.** Les groupes existent (B13), les
+réalisations aussi. La note globale est un **calcul**, pas une colonne.
+
+### Ce qui vit dans `core` plutôt que dans l'écran
+
+`catalogue.ts` et `note-globale.ts`, avec **15 tests**. Les seuils sont
+exactement ce qui se déforme quand on les laisse dans une page :
+
+| Cas                   | Forme                                       |
+| --------------------- | ------------------------------------------- |
+| 1 à 3 sans groupe     | tout à plat, aucun repli                    |
+| 4 et plus sans groupe | 3 à plat + « Ses N autres prestations »     |
+| avec groupes          | rangées de groupes, **la première dépliée** |
+| aucune                | la section disparaît                        |
+
+Un test protège la décision centrale : **l'ordre de la pro fait foi**, on ne trie
+ni par prix ni par nom. C'est ce qui rend le repli acceptable — la page cache le
+bas de SA liste, pas le bas d'un classement qu'elle n'a pas choisi.
+
+La note suit le seuil de trois, et le **balisage pour les moteurs suit le même
+seuil** : sinon on annoncerait aux moteurs une note que la page refuse de
+montrer, avec plus de portée.
+
+### Les trois états, comparés
+
+Morgan a demandé que les trois le soient, pas seulement le premier. Le compte
+semé n'en donne qu'un ; j'ai donc façonné les données pour les trois et capturé
+chacun. Résultats mesurés, pas devinés :
+
+- **① avec groupes** : 3 replis, 1 ouvert, section avis présente, note « · 3 avis,
+  à lire en bas de page » ;
+- **② sans groupe** : 1 repli, 0 ouvert, la rangée repliée est **dans le DOM** ;
+- **③ sans rien** : 0 repli, pas de section avis, pas de ligne de note, et **le
+  CTA n'est pas collant**.
+
+Le premier essai de ③ était faux et je l'aurais pris pour bon : les groupes posés
+pour ① survivaient dans les données, et « sans rien » sortait avec une rangée de
+groupe dépliée.
+
+### Ce que j'ai INTERPRÉTÉ au lieu de lire, et corrigé après que Morgan a demandé
+
+Il a demandé en cours de route si je regardais vraiment la planche. Deux endroits
+où non :
+
+1. **L'icône Instagram** : j'avais posé un caractère « ◎ ». La planche la dessine
+   en **trois blocs** — carré de 14 arrondi à 5, cercle de 6 centré, point de 2
+   dans l'angle. Un glyphe de police ne se dessine pas pareil d'un appareil à
+   l'autre, ne suit pas l'épaisseur voulue, et n'a pas le point qui fait qu'on
+   reconnaît Instagram.
+2. **Je n'avais comparé qu'un seul état**, alors que la consigne en demandait
+   trois. C'est ce qui a produit le paragraphe ci-dessus.
+
+### Quatre défauts que le rendu a montrés
+
+1. **Les rangées de prestation étaient crème sur crème.** Attrapé par le contrôle
+   de bloc invisible **avant** que Morgan ne le voie : c'est exactement ce pour
+   quoi il a été étendu à tous les écrans hier. Deux fonds distincts sont
+   nécessaires — blanche à plat, sans carte à l'intérieur d'un groupe ouvert, où
+   une carte blanche sur une carte blanche referait disparaître la rangée.
+2. **L'identité n'était pas dans un bloc prune.** Je l'avais posée à même la
+   crème, ce que la règle de ratio (planche 8a) refuse explicitement : le contenu
+   vient DANS le bloc pleine couleur, pas à côté.
+3. **Le CTA collant se coupait en deux lignes** à 390. La planche l'empile :
+   sous-titre au-dessus, bouton pleine largeur dessous.
+4. **Les cartes d'avis étaient invisibles**, et **le garde-fou ne pouvait pas le
+   voir** : `vues` ne sème aucun avis, donc cette section ne s'affiche jamais
+   pendant les captures. Un contrôle ne voit que ce que les données lui montrent.
+   C'est une limite à connaître, et elle est écrite dans le code.
+
+### Deux trous de spécification, comblés et journalisés
+
+La planche n'écrit **que des pluriels** : ses groupes vont de 2 à 5, et son repli
+cache 6 prestations. Or **le singulier arrive dès la 4ᵉ prestation** — trois à
+plat en laissent une seule dessous. « Ses 1 autres prestations » et
+« 1 prestations » se lisaient à l'écran. Deux chaînes ajoutées au deck, déclarées
+dans `MANQUES.md` : « Son autre prestation » et « 1 prestation ».
+
+### Le contrôle, et ce qu'il ne sait pas faire
+
+⚠️ **`planche:check` NE SAIT PAS LIRE CET ÉCRAN**, et je le dis plutôt que de le
+contourner. Il tourne **sans authentification et sans semis** ; la page publique
+n'existe que pour une pro publiée, avec prestations et réglages. Sans compte
+semé, elle répond 404.
+
+Le contrôle vit donc dans `npm run vues`, qui sème. Il porte exactement ce que
+20a change : **les conditions avant le catalogue**, et **le repli natif** —
+vérifié en comptant les rangées présentes à l'intérieur d'un `<details>` fermé.
+Zéro rangée dans un repli fermé voudrait dire chargement au tap, donc une page
+vide pour les moteurs et un catalogue cassé sans réseau. Les deux branches sont
+**prouvées par un échec délibéré**.
+
+**Schéma :** aucun. Aucune migration pour cet écran, comme la consigne le
+demandait.
+
+**Décisions :** aucune.
+
+**Écarts au brief :** aucun. Les deux singuliers ci-dessus sont des trous de
+planche comblés, pas des écarts.
+
+**Questions ouvertes :**
+
+1. **Les singuliers** : « Son autre prestation » et « 1 prestation » sont de moi.
+   À faire ratifier, ou à remplacer par la formule de Design.
+2. **La section réalisations n'a jamais été vue** : `vues` ne sème aucune
+   réalisation, donc elle ne s'affiche sur aucune capture. Le code la rend, mais
+   personne ne l'a regardée. Même angle mort que les avis.
+
+**À recetter par Morgan :**
+
+1. **Ouvre une page publique** : les conditions et le « dès X € » se lisent sans
+   faire défiler, quel que soit le nombre de prestations.
+2. **Range des prestations en groupes** : des rangées apparaissent, **la première
+   est dépliée** et montre des prix réels sans un tap.
+3. **Retire tous les groupes, garde 4 prestations** : trois à plat, une sous
+   « Son autre prestation ».
+4. **Descends à 2 prestations, retire bio et avis** : plus de repli, plus de ligne
+   de note, et le CTA n'est plus collant.
+5. **Coupe JavaScript et recharge** : le catalogue se déplie toujours au tap.
+6. **Inverse `data-section` conditions et prestations**, puis `npm run vues` : il
+   refuse en donnant les deux positions.
+
+**Statut à reporter dans la roadmap :** A1 : « page publique conforme à 20a,
+recette à valider ». 15a est remplacée pour cet écran.
+
+---
+
 ## 2026-09-05 (17) Correctif : la puce collée du ruban
 
 **Fait :** Morgan, en recette : « dans le marquee il y a un point de séparation qui est

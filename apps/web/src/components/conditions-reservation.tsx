@@ -60,10 +60,13 @@ export function ConditionsReservation({
 
 function Ligne({ children }: { children: React.ReactNode }) {
   return (
+    /*
+      Une PUCE MIEL, pas une coche (planche 20a). La coche disait « c'est
+      validé » d'une condition qui n'est ni acquise ni cochable — elle promettait
+      là où la planche énumère.
+    */
     <li className="flex gap-3">
-      <span aria-hidden className="text-action">
-        ✓
-      </span>
+      <span aria-hidden className="mt-[7px] size-1.5 shrink-0 rounded-pilule bg-celebration" />
       <span>{children}</span>
     </li>
   )

@@ -93,7 +93,20 @@
     "propositionDeclinee": "C'est noté. Vous serez recontactée.",
     "creneauxProchesLegende": "Ces moments-là, {pro} est déjà dans votre quartier.",
     "creneauxAucunNeConvient": "Aucun ne convient ?",
-    "creneauxToutVoir": "Voir toutes les disponibilités"
+    "creneauxToutVoir": "Voir toutes les disponibilités",
+    "$note20a": "Planche 20a du 05/09, qui REMPLACE 15a : les conditions passent avant le catalogue, et le catalogue se replie. Ces chaînes sont relevées VERBATIM sur la planche, pas retapées. « Ses prestations » remplace « Ce que {pro} propose » comme intitulé de section : la planche l'écrit ainsi, et la page ne parle plus d'elle à la troisième personne juste avant de la nommer.",
+    "prestationsLabel": "Ses prestations",
+    "reserverAvec": "Réserver avec {pro}",
+    "des": "dès",
+    "groupeCompte": "{n} prestations",
+    "groupeDes": "dès {prix}",
+    "autresPrestations": "Ses {n} autres prestations",
+    "noteSur5": "{note} sur 5",
+    "noteAvecAvis": "· {n} avis, à lire en bas de page",
+    "noteSansMoyenne": "· à lire en bas de page",
+    "avisCompte": "{n} avis",
+    "autresPrestationsUne": "Son autre prestation",
+    "groupeCompteUne": "1 prestation"
   },
   "rappel": {
     "$note": "Livrées par Design le 02/09. La cliente ne doit jamais pouvoir deviner l'offre de sa coiffeuse ni qu'une limite a été atteinte : le texte dit comment elle sera prévenue, jamais pourquoi.",

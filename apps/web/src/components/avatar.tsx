@@ -66,6 +66,7 @@ export function Avatar({
   illustration,
   taille = 'md',
   diametre,
+  surPlein = false,
   pastille,
   className = '',
 }: {
@@ -84,6 +85,16 @@ export function Avatar({
    * `taille`, et rien d'autre.
    */
   diametre?: number
+  /**
+   * L'avatar posé sur une SURFACE PLEINE (planche 20a, en-tête prune).
+   *
+   * Sur du prune, aucune pastille de la palette ne convient : les quatre
+   * teintes y font une tache, et le prune s'y confond avec son fond — c'est
+   * exactement le défaut que `vues` a relevé dans l'en-tête d'écran. La planche
+   * pose donc un disque translucide et l'initiale en crème atténuée. C'est le
+   * contraire d'une pastille : elle tient la place sans se signaler.
+   */
+  surPlein?: boolean
   /** Force la couleur — sert à éviter deux pastilles identiques côte à côte. */
   pastille?: Pastille
   className?: string
@@ -121,6 +132,21 @@ export function Avatar({
         style={mesure}
         className={rond}
       />
+    )
+  }
+
+  if (surPlein) {
+    return (
+      <span
+        role="img"
+        aria-label={nom}
+        style={mesure}
+        className={`${rond} flex items-center justify-center bg-texte-sur-plein/15`}
+      >
+        <span aria-hidden className="titre text-texte-sur-plein-doux">
+          {initiale(nom)}
+        </span>
+      </span>
     )
   }
 
