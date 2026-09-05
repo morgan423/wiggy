@@ -26,7 +26,12 @@
     "adresseAComplete": "Ce rendez-vous a été créé sans adresse, avant qu’elle ne devienne obligatoire. Renseigne-la pour qu’il compte dans ta tournée.",
     "propositionEnvoyee": "Proposition envoyée. Tu seras prévenue de sa réponse.",
     "propositionMot": "Ton mot pour elle",
-    "propositionMotAide": "C'est lui qui fait accepter. Dis ce que tu as vu sur ses photos."
+    "propositionMotAide": "C'est lui qui fait accepter. Dis ce que tu as vu sur ses photos.",
+    "forfaitTitre": "Proposer un forfait de déplacement",
+    "forfaitAide": "Cette adresse est hors de ta zone. Le montant s’ajoute au prix, et ta cliente le confirme avant que le rendez-vous existe.",
+    "forfaitLabel": "Montant du forfait",
+    "forfaitBase": "Ton forfait de base",
+    "forfaitEnvoyer": "Proposer le forfait"
   },
   "proposition": {
     "ajuster": "Ajuster la prestation",

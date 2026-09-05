@@ -20,6 +20,7 @@ import { libererPlage } from './actions'
 import { journeeEstLancee } from '@/lib/journee'
 import { trajetsDeLaJournee, type Trajets } from '@/lib/tournee'
 import { IconesEntete } from '@/components/icones-entete'
+import { ChoixDuJour } from '@/components/choix-du-jour'
 import {
   EnteteEcran,
   CorpsEcran,
@@ -316,6 +317,8 @@ export default async function Agenda({
             <BoutonPointille href="/app/agenda/bloquer">+ {T.$aEcrire.bloquer}</BoutonPointille>
           </>
         ) : null}
+
+        <ChoixDuJour chemin="/app/agenda" jour={ancreCourante} autres={{ vue }} />
 
         <nav className="flex justify-between pt-2 text-[12px] font-bold text-texte-attenue">
           <Link href={`/app/agenda?vue=${vue}&le=${precedent}`} className="hover:text-prune">

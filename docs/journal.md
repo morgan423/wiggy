@@ -20,6 +20,115 @@ _Rien en attente : les trois questions ouvertes ont été tranchées le 03/09._
 
 ---
 
+## 2026-09-05 (20) Étape : le forfait, les trajets perdus, le choix du jour, la visionneuse
+
+**Fait :** quatre chantiers sur les six du lot. **⑤ et ⑥ étaient déjà livrés** à
+l'entrée (19), une heure plus tôt : l'édition d'une prestation, le groupe en
+liste déroulante et le renommage. Vérifié avant de rien refaire.
+
+### ① A8 — le forfait de déplacement entre dans la bêta
+
+A6 était marquée « faite » et ne l'était pas : **valider une demande hors zone
+confirmait le rendez-vous sans qu'aucun forfait puisse être annoncé**. La pro
+acceptait trente kilomètres, et son seul moyen de facturer le déplacement était
+de décrocher son téléphone — le geste même que le produit existe pour supprimer.
+
+**Le forfait de base existait déjà** (planche 14e, table `distance_fees`). Ce qui
+manquait était la surcharge au cas par cas.
+
+⚠️ **Un forfait se propose, il ne se décide pas.** Il emprunte exactement le
+chemin d'A11 : une ligne dans `propositions` avec la sorte `forfait`, un lien
+sans compte, et **le rendez-vous ne bouge qu'à l'accord de la cliente**. La
+consigne avait raison, l'architecture attendait : la table portait déjà la sorte
+avec son commentaire, « un forfait ne touche que le montant ».
+
+**Aucune migration.** Le montant envoyé est le NOUVEAU TOTAL et non le supplément
+seul, parce que c'est ce que le chemin d'acceptation applique : la cliente voit un
+prix, pas une soustraction à faire.
+
+Vérifié dans un navigateur, sur une vraie demande hors zone : formulaire présent,
+pré-rempli à 10 €, mention « le prix passerait à 55 € », proposition créée à
+5 500 centimes — et **le rendez-vous toujours à 45 €, toujours en attente**.
+
+### ② Les durées de trajet, revenues entre les cartes
+
+Régression confirmée : `libelleTrajet` existait toujours et **n'avait plus qu'un
+seul appelant**, la carte du prochain rendez-vous. Entre les autres, plus rien.
+Très probablement perdu le 03/09, quand la tournée a été reconstruite contre 16d.
+
+Ce sont ces durées qui font que la timeline est une TOURNÉE et pas une liste de
+rendez-vous : sans elles, l'écran signature ne montrait plus son différenciateur,
+et le motif pointillé de 8a n'avait plus rien à relier.
+
+Les deux cas particuliers sont vérifiés sur capture : le libellé **« même secteur,
+adresse approchée »** s'affiche bien quand deux points sont confondus, et
+**l'absence de trajet avant le premier rendez-vous est correcte** chez une pro
+sans point de départ (D16) — l'écran le dit d'ailleurs en toutes lettres.
+
+### ③ Le choix du jour, sur les deux écrans
+
+Il n'y avait que « Veille » et « Lendemain » : six taps pour vendredi prochain.
+Les deux écrans lisaient déjà `?le=AAAA-MM-JJ`, il ne manquait que le moyen de
+choisir. Sélecteur de la trousse, calendrier Wiggy, lundi en première colonne.
+Les flèches restent : d'un jour à l'autre, un tap vaut mieux qu'un calendrier.
+
+### ④ R2-5 — la visionneuse, dette ouverte depuis le 02/09
+
+Une cliente envoie ses photos d'inspiration, la pro les voyait en vignette de
+96 px sans pouvoir les ouvrir. **C'est la donnée qui qualifie la prestation** :
+une couleur ne se juge pas en 96 px.
+
+`<dialog>` natif, et c'est ce qui évite trois bogues : il apporte le fond modal,
+le piège de focus, la fermeture à Échap et la restauration du focus au retour —
+quatre comportements qu'une implémentation maison rate presque toujours. On
+n'ajoute que la fermeture au clic hors de l'image. Les vignettes sont des
+**boutons**, pas des images cliquables : c'est ce qui les rend atteignables au
+clavier.
+
+Une seule mécanique pour les deux usages : les photos d'un rendez-vous, et les
+réalisations de la page publique où 15a la prévoit explicitement. Vérifiée en la
+pilotant : deux vignettes ouvrables, la boîte s'ouvre, Échap la ferme.
+
+⚠️ **Elle n'apparaît sur AUCUNE capture**, et c'est l'angle mort signalé hier :
+`vues` ne sème ni photo de rendez-vous ni réalisation, donc ces sections ne
+s'affichent jamais pendant les captures. J'ai dû semer moi-même pour la vérifier.
+
+**Schéma :** aucun. ① était le seul chantier qui pouvait en demander un ; il n'en
+a pas eu besoin, la table `propositions` portait déjà tout.
+
+**Décisions :** aucune.
+
+**Écarts au brief :** aucun.
+
+**Questions ouvertes :**
+
+1. **Le barème de forfait par paliers existe en base et n'a pas d'écran.**
+   `distance_fees` accepte plusieurs seuils `from_km` ; seul celui à 0 est lu et
+   réglable. On ne devine pas le reste.
+2. **`vues` ne sème ni photos ni réalisations ni avis**, donc trois sections de
+   l'app ne sont jamais capturées ni contrôlées. Déjà signalé hier ; ce lot en a
+   fait la démonstration.
+
+**À recetter par Morgan :**
+
+1. **Une demande hors zone en attente** : le bloc « Proposer un forfait » apparaît,
+   pré-rempli à ton forfait de base, avec le prix total annoncé.
+2. **Propose-le** : ta cliente reçoit un lien, et **ton rendez-vous ne bouge pas**
+   tant qu'elle n'a pas accepté.
+3. **Sur une demande DANS ta zone** : le bloc n'apparaît pas.
+4. **La tournée** : une durée de trajet entre chaque carte, avec le pointillé.
+5. **Deux adresses très proches** : « même secteur, adresse approchée » au lieu
+   d'un nombre de minutes.
+6. **Agenda et tournée** : « Aller à une date » ouvre le calendrier Wiggy.
+7. **Tape une photo** sur un rendez-vous ou une réalisation : elle s'ouvre en
+   grand, Échap la ferme.
+
+**Statut à reporter dans la roadmap :** A8 : « forfait de base et surcharge au cas
+par cas, recette à valider ». A6 : « hors zone complet avec forfait, recette à
+valider ». R2-5 : « visionneuse, recette à valider ».
+
+---
+
 ## 2026-09-05 (19) Étape : l'édition d'une prestation, et le groupe qui devient un choix
 
 **Fait :** deux chantiers qui n'en font qu'un, trouvés par Morgan en voulant

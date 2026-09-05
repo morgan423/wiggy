@@ -7,8 +7,10 @@ import { supabaseServer } from '@/lib/supabase/server'
 import { photosDuRendezVous } from '@/lib/photos'
 import { EnteteEcran, CorpsEcran, RANGEE_ACTIVABLE } from '@/components/composition'
 import { annulerRdv, validerDemande, refuserDemande, terminerRdv } from '../actions'
+import { GrillePhotos } from '@/components/visionneuse'
 import { FormNoteRdv } from './note-form'
 import { FormProposition } from './proposer/form'
+import { FormForfaitDemande } from './forfait-form'
 
 /**
  * Le rendez-vous, EN LECTURE. Planche 16b, colonne « CONSULTATION ».
@@ -50,7 +52,7 @@ export default async function RendezVous({ params }: { params: Promise<{ id: str
   const { data: rdv } = await supabase
     .from('appointments')
     .select(
-      'id, service_name, price_cents, starts_at, ends_at, address_line1, postal_code, city, lat, lng, access_notes, note, status, travel_min_from_previous, client_id, clients(id, first_name, last_name, technical_notes)',
+      'id, service_name, price_cents, starts_at, ends_at, address_line1, postal_code, city, lat, lng, access_notes, note, status, travel_min_from_previous, out_of_zone, client_id, clients(id, first_name, last_name, technical_notes)',
     )
     .eq('id', id)
     .maybeSingle()
@@ -76,6 +78,20 @@ export default async function RendezVous({ params }: { params: Promise<{ id: str
     : { data: null }
   const maintenant = new Date()
   const aDecider = rdv.status === 'pending' || rdv.status === 'conditional'
+
+  /*
+    Son forfait de base (A8, écran de zone 14e). Il n'est lu que si la demande
+    attend une décision hors zone : ailleurs, la requête serait payée pour rien.
+
+    `from_km = 0` est la ligne de base, celle qui vaut dès le premier kilomètre
+    hors zone. Le barème par paliers existe dans le schéma et n'a pas d'écran :
+    on ne lit donc que la base, et on ne devine pas le reste.
+  */
+  const forfaitDeBase =
+    aDecider && rdv.out_of_zone
+      ? ((await supabase.from('distance_fees').select('fee_cents').eq('from_km', 0).maybeSingle())
+          .data?.fee_cents ?? null)
+      : null
   const annule = rdv.status === 'cancelled'
   const termine = rdv.status === 'done' || new Date(rdv.ends_at) <= maintenant
   const enCours = !termine && new Date(rdv.starts_at) <= maintenant
@@ -145,19 +161,14 @@ export default async function RendezVous({ params }: { params: Promise<{ id: str
         {photos.length > 0 ? (
           <div className="flex flex-col gap-2 rounded-[14px] bg-surface px-3 py-2.5">
             <span className="text-[12.5px] font-extrabold">{T.$aEcrire.photosCliente}</span>
-            <ul className="flex flex-wrap gap-2">
-              {photos.map((photo) => (
-                <li key={photo.url}>
-                  {/* Pas de `next/image` : ces URL sont signées et expirent, les
-                      optimiser reviendrait à les mettre en cache après leur mort. */}
-                  <img
-                    src={photo.url}
-                    alt={photo.kind === 'current' ? 'Cheveux au naturel' : 'Inspiration'}
-                    className="size-24 rounded-champ object-cover"
-                  />
-                </li>
-              ))}
-            </ul>
+            {/* R2-5 : les vignettes s'ouvrent au tap. C'est la donnée qui
+                qualifie la prestation — une couleur ne se juge pas en 96 px. */}
+            <GrillePhotos
+              photos={photos.map((photo) => ({
+                url: photo.url,
+                alt: photo.kind === 'current' ? 'Cheveux au naturel' : 'Inspiration',
+              }))}
+            />
           </div>
         ) : null}
 
@@ -179,6 +190,26 @@ export default async function RendezVous({ params }: { params: Promise<{ id: str
             dureeMin={Math.round(
               (new Date(rdv.ends_at).getTime() - new Date(rdv.starts_at).getTime()) / 60_000,
             )}
+          />
+        ) : null}
+
+        {/*
+          A8 — LE FORFAIT DE DÉPLACEMENT, seulement sur une demande HORS ZONE.
+
+          ⚠️ A6 était marquée « faite » et ne l'était pas : valider une demande
+          hors zone confirmait le rendez-vous sans qu'aucun forfait puisse être
+          annoncé. La pro acceptait trente kilomètres, et son seul moyen de
+          facturer le déplacement était de décrocher son téléphone — le geste
+          même que le produit existe pour supprimer.
+
+          Il se PROPOSE, comme une contre-proposition : le rendez-vous ne bouge
+          qu'à l'accord de la cliente.
+        */}
+        {aDecider && rdv.out_of_zone ? (
+          <FormForfaitDemande
+            id={rdv.id}
+            baseCentimes={forfaitDeBase}
+            prixCentimes={rdv.price_cents}
           />
         ) : null}
 

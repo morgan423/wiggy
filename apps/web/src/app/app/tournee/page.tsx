@@ -11,6 +11,7 @@ import {
   minutesAvantDepart,
   rappelDeDepartPertinent,
   libelleTrajet,
+  type ResultatTrajet,
   memeSecteur,
   fenetreDeReprise,
   rythmeDeRetourSemaines,
@@ -27,6 +28,7 @@ import { mesurerPro } from '@/lib/telemetrie'
 import { PrechargerLesFiches } from '@/components/hors-ligne'
 import { supabaseServer } from '@/lib/supabase/server'
 import { trajetsDeLaJournee, type Trajets } from '@/lib/tournee'
+import { ChoixDuJour } from '@/components/choix-du-jour'
 import { FormRetard } from './retard'
 import { journeeEstLancee, departDuJour } from '@/lib/journee'
 import { LienGps } from './lien-gps'
@@ -354,10 +356,25 @@ export default async function MaTournee({
               et il fallait naviguer vers le LENDEMAIN pour voir ce qui restait
               à clôturer.
             */}
+            {/*
+              ⚠️ LES DURÉES DE TRAJET ENTRE LES CARTES, ET C'ÉTAIT UNE
+              RÉGRESSION.
+
+              `libelleTrajet` n'était plus appelée QUE dans la carte du prochain
+              rendez-vous. Entre les autres, il n'y avait plus rien : la fonction
+              existait, elle n'avait plus qu'un seul appelant. Très probablement
+              perdu le 03/09, quand la tournée a été reconstruite contre 16d.
+
+              Ce sont ces durées qui font que cette liste est une TOURNÉE et pas
+              une liste de rendez-vous. Sans elles, l'écran signature du produit
+              ne montre plus son différenciateur — et le motif pointillé de 8a
+              n'avait plus rien à relier.
+            */}
             <ul className="flex flex-col gap-2">
               {journee.map((r) =>
                 prochain?.id === r.id ? null : (
-                  <li key={r.id}>
+                  <li key={r.id} className="flex flex-col gap-2">
+                    <LigneTrajet trajet={trajets.get(r.id)} />
                     <Link
                       href={`/app/agenda/${r.id}`}
                       className={`${RANGEE} gap-2.5 rounded-[14px] px-3.5 py-[11px] ${RANGEE_ACTIVABLE} ${
@@ -383,6 +400,8 @@ export default async function MaTournee({
         {/* Les flèches de jour ne sont pas sur la planche : le copilote parle
             d'aujourd'hui. Elles restent, en pied et en petit, parce que
             regarder la veille ou le lendemain est un besoin réel. */}
+        <ChoixDuJour chemin="/app/tournee" jour={jourCivil} />
+
         <nav className="flex justify-between pt-2 text-[12px] font-bold text-texte-attenue">
           <Link href={`/app/tournee?le=${veille}`} className="hover:text-prune">
             ‹ Veille
@@ -393,6 +412,34 @@ export default async function MaTournee({
         </nav>
       </CorpsEcran>
     </>
+  )
+}
+
+/**
+ * La durée de trajet entre deux cartes de la timeline.
+ *
+ * Le motif pointillé de la planche 8a, et le libellé du domaine. Deux cas
+ * particuliers y sont déjà traités, et c'est pour ça qu'on n'écrit pas le texte
+ * ici :
+ *
+ * · **le trajet depuis le point de départ (D16)** : `trajetsDeLaJournee` pose
+ *   l'étape zéro, donc le PREMIER rendez-vous a lui aussi son amont. Sans lui,
+ *   le calcul commençait à la deuxième étape et le matin n'avait pas de trajet ;
+ * · **deux points confondus** : `libelleTrajet` dit « même secteur, adresse
+ *   approchée » plutôt qu'un nombre de minutes. Annoncer « 0 min » serait pire
+ *   qu'un chiffre faux, et « 10 min » entre deux portes voisines ne se croirait
+ *   pas.
+ *
+ * Rien quand le trajet est inconnu : un rendez-vous sans coordonnées n'invente
+ * pas de durée.
+ */
+function LigneTrajet({ trajet }: { trajet: ResultatTrajet | undefined }) {
+  if (!trajet) return null
+  return (
+    <p className="flex items-center gap-2.5 pl-1 text-[11px] font-semibold text-texte-attenue">
+      <span aria-hidden className="trait-trajet shrink-0" />
+      {libelleTrajet(trajet)}
+    </p>
   )
 }
 

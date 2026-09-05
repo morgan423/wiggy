@@ -14,6 +14,7 @@ import { copy, remplir } from '@wiggy/copy'
 import { supabaseServer } from '@/lib/supabase/server'
 import { supabaseConfigured } from '@/lib/supabase/admin'
 import { Avatar } from '@/components/avatar'
+import { GrillePhotos } from '@/components/visionneuse'
 import { ConditionsReservation } from '@/components/conditions-reservation'
 
 const C = copy.reservationCliente
@@ -345,19 +346,17 @@ export default async function PagePublique({ params }: Parametres) {
             <h2 className="text-sm font-bold tracking-widest text-texte-secondaire uppercase">
               {C.$aEcrire.realisationsTitre}
             </h2>
-            <ul className="mt-4 flex snap-x gap-3 overflow-x-auto pb-2">
-              {realisations.map((photo) => (
-                <li key={photo.id} className="w-40 shrink-0 snap-start">
-                  {/* Pas de `next/image` : ces URL viennent du stockage public et
-                      changent avec lui. */}
-                  <img
-                    src={urlRealisation(photo.chemin)}
-                    alt=""
-                    className="aspect-[4/5] w-full rounded-carte object-cover"
-                  />
-                </li>
-              ))}
-            </ul>
+            {/* 15a prévoit explicitement la visionneuse au tap : une
+                réalisation en vignette de 160 px ne montre pas un travail. */}
+            <div className="mt-4">
+              <GrillePhotos
+                photos={realisations.map((photo) => ({
+                  url: urlRealisation(photo.chemin),
+                  alt: C.$aEcrire.realisationsTitre,
+                }))}
+                classeVignette="h-48 w-40"
+              />
+            </div>
           </section>
         ) : null}
 
