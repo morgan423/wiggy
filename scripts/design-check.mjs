@@ -397,6 +397,56 @@ for (const celebration of ['celebration-carte', 'bouclee-titre']) {
   }
 }
 
+/*
+  ── AUCUNE CLASSE DE COMPOSANT HORS COUCHE ───────────────────────────────────
+
+  ⚠️ TROIS FOIS LE MÊME DÉFAUT EN DEUX JOURS, et c'est ce qui justifie la règle.
+
+  Une classe déclarée à la racine de `globals.css` a la même spécificité qu'un
+  utilitaire Tailwind, mais elle arrive APRÈS dans la feuille : elle gagne. Un
+  `text-[20px]` écrit à côté de `titre` ne peint donc rien, un `justify-start`
+  écrit à côté de `tactile` non plus. L'attribut est bien posé sur l'élément,
+  l'inspecteur le montre, et il ne fait rien.
+
+  C'est la classe de défauts la plus coûteuse du dépôt, parce qu'elle est
+  INVISIBLE À LA RELECTURE : le code se lit juste. Elle a touché `.titre`,
+  `.chiffre-heros`, puis `.tactile` — trois fois avant qu'on l'empêche.
+
+  Dans `@layer components`, l'ordre s'inverse : les utilitaires passent devant,
+  et une valeur écrite à la main gagne toujours contre le défaut du composant.
+*/
+{
+  const globalsCss = readFileSync(join(racine, 'apps/web/src/app/globals.css'), 'utf8')
+  // On retire les blocs `@layer` : ce qui reste est à la racine.
+  let profondeur = 0
+  let dansUneCouche = -1
+  let horsCouche = ''
+  for (let i = 0; i < globalsCss.length; i++) {
+    const c = globalsCss[i]
+    if (c === '{') {
+      if (dansUneCouche === -1 && /@layer[^;{]*$/.test(globalsCss.slice(Math.max(0, i - 60), i))) {
+        dansUneCouche = profondeur
+      }
+      profondeur += 1
+    } else if (c === '}') {
+      profondeur -= 1
+      if (profondeur === dansUneCouche) dansUneCouche = -1
+    }
+    if (dansUneCouche === -1) horsCouche += c
+    else horsCouche += c === '\n' ? '\n' : ' '
+  }
+  for (const m of horsCouche.matchAll(/(^|\n)\s*(\.[a-z][\w-]*)[^{;]*\{/g)) {
+    const n = horsCouche.slice(0, m.index).split('\n').length
+    signaler(
+      join(racine, 'apps/web/src/app/globals.css'),
+      n,
+      'classe-hors-couche',
+      `\`${m[2]}\` est déclarée hors couche : elle bat les utilitaires Tailwind, ` +
+        'et une taille ou un alignement écrit à la main ne peindra rien. Mets-la dans `@layer components`',
+    )
+  }
+}
+
 for (const a of avertissements) {
   console.warn(`  ⚠ ${a.fichier}:${a.ligne} — ${a.regle} : ${a.detail}`)
 }

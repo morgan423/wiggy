@@ -1,17 +1,41 @@
 import { requirePro } from '@/lib/auth'
 import { supabaseServer } from '@/lib/supabase/server'
-import { EnteteEcran, CorpsEcran, EtatVide, Prix, RANGEE } from '@/components/composition'
+import { EnteteEcran, CorpsEcran, EtatVide } from '@/components/composition'
 import { FormPrestation } from './form'
-import { basculerPrestation, supprimerPrestation } from './actions'
+import { RangeePrestation } from './rangee'
+import { Groupes } from './groupes'
 
 export default async function Prestations() {
   await requirePro()
   const supabase = await supabaseServer()
   const { data: prestations } = await supabase
     .from('services')
-    .select('id, name, price_cents, duration_min, deposit_percent, active')
+    .select(
+      'id, name, price_cents, duration_min, deposit_percent, category, photos_required, active',
+    )
+    /*
+      ⚠️ UN DÉPARTAGE FINAL SUR L'IDENTIFIANT, ET CE N'EST PAS DE LA COQUETTERIE.
+
+      `position` vaut 0 pour toutes les prestations — la colonne existe mais
+      rien ne l'attribue — et `created_at` est identique quand plusieurs
+      prestations naissent d'une même insertion. Les deux critères ne
+      départagent alors RIEN, et Postgres rend les lignes dans l'ordre qui
+      l'arrange : celui du tas, qui CHANGE après chaque écriture.
+
+      Constaté en vérifiant ce lot : après une édition, la liste s'était
+      réordonnée toute seule. Ça n'a l'air de rien sur un écran de
+      paramétrage ; c'est grave sur la page publique, où 20a fait dépendre
+      l'ordre des groupes de « l'ordre de première apparition dans SA liste ».
+      Une pro voyait donc ses groupes changer de place sans avoir rien
+      demandé.
+
+      L'identifiant départage toujours et ne bouge jamais : l'ordre devient
+      STABLE. Il n'est pas encore CHOISI — un vrai réordonnancement demanderait
+      d'attribuer `position`, et c'est une fonctionnalité, pas un correctif.
+    */
     .order('position')
     .order('created_at')
+    .order('id')
 
   const liste = prestations ?? []
 
@@ -24,68 +48,28 @@ export default async function Prestations() {
             titre="Ta liste est vide."
             invitation="Ajoute ta première prestation : deux minutes suffisent, tu pourras tout retoucher."
           >
-            <FormPrestation premiere />
+            <FormPrestation premiere prestations={liste} />
           </EtatVide>
         ) : (
           <>
             <ul className="flex flex-col gap-2">
               {liste.map((p) => (
-                <li key={p.id} className={`${RANGEE} items-start ${p.active ? '' : 'opacity-55'}`}>
-                  <span className="flex min-w-0 flex-col gap-px">
-                    <span className="text-[13.5px] leading-[1.35] font-bold">{p.name}</span>
-                    <span className="text-[11.5px] text-texte-attenue">{meta(p)}</span>
-                    {/*
-                      Écart signalé : la planche 14d fait passer l'édition par
-                      une feuille montante, qui n'est pas construite. Masquer et
-                      supprimer restent donc dans la rangée, en petit, sous le
-                      détail. Rien d'inventé ailleurs.
-                    */}
-                    <span className="mt-1.5 flex gap-3 text-[11.5px] font-bold">
-                      <form action={basculerPrestation}>
-                        <input type="hidden" name="id" value={p.id} />
-                        <input type="hidden" name="active" value={String(p.active)} />
-                        <button type="submit" className="text-texte-attenue hover:text-prune">
-                          {p.active ? 'Masquer' : 'Réafficher'}
-                        </button>
-                      </form>
-                      <form action={supprimerPrestation}>
-                        <input type="hidden" name="id" value={p.id} />
-                        <button type="submit" className="text-texte-attenue hover:text-erreur">
-                          Supprimer
-                        </button>
-                      </form>
-                    </span>
-                  </span>
-                  {/* Le prix est hors du bloc de texte : il ne descend jamais à
-                      la ligne, même sur un libellé de deux lignes. */}
-                  <Prix centimes={p.price_cents} />
-                </li>
+                /*
+                  La rangée est un composant client : c'est elle qui ouvre la
+                  feuille d'édition en place. Elle reçoit TOUTE la liste, parce
+                  que les groupes proposés dans la feuille se déduisent des
+                  prestations de la pro — il n'existe aucune table de groupes.
+                */
+                <RangeePrestation key={p.id} prestation={p} prestations={liste} />
               ))}
             </ul>
-            <FormPrestation />
+            <FormPrestation prestations={liste} />
+            {/* Le renommage, qui met à jour toutes les prestations d'un groupe
+                en une fois. La section n'existe que s'il y a des groupes. */}
+            <Groupes prestations={liste} />
           </>
         )}
       </CorpsEcran>
     </>
   )
-}
-
-/** « 45 min · visible » ou « 1 h 30 · acompte 30 % », comme la planche 14d. */
-function meta(p: {
-  duration_min: number
-  deposit_percent: number | null
-  active: boolean
-}): string {
-  const morceaux = [duree(p.duration_min)]
-  if (p.deposit_percent) morceaux.push(`acompte ${String(p.deposit_percent)} %`)
-  morceaux.push(p.active ? 'visible' : 'masquée de ta page')
-  return morceaux.join(' · ')
-}
-
-/** « 45 min », « 1 h 30 » : la planche écrit les longues durées en heures. */
-function duree(minutes: number): string {
-  if (minutes < 60) return `${String(minutes)} min`
-  const h = Math.floor(minutes / 60)
-  const m = minutes % 60
-  return m === 0 ? `${String(h)} h` : `${String(h)} h ${String(m).padStart(2, '0')}`
 }

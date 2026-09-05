@@ -20,6 +20,127 @@ _Rien en attente : les trois questions ouvertes ont été tranchées le 03/09._
 
 ---
 
+## 2026-09-05 (19) Étape : l'édition d'une prestation, et le groupe qui devient un choix
+
+**Fait :** deux chantiers qui n'en font qu'un, trouvés par Morgan en voulant
+simplement ranger ses prestations.
+
+### ① L'édition manquait, et c'était mon écart déclaré
+
+L'écran le disait en commentaire depuis la livraison : « la planche 14d fait
+passer l'édition par une feuille montante, qui n'est pas construite ». Le
+signaler était juste ; il fallait ensuite le construire.
+
+**La conséquence dépassait le confort** : le champ « Groupe » n'était atteignable
+QU'À LA CRÉATION. Une pro ayant déjà posé ses six prestations ne pouvait plus les
+ranger du tout, sauf à les supprimer et les recréer. C'est ce trou qui a rendu le
+défaut du groupe invisible jusqu'à aujourd'hui.
+
+La feuille s'ouvre **en place** de la rangée. Au-dessus d'elle, il aurait fallu un
+plan flottant, un piège de focus et une gestion du retour arrière : trois
+mécaniques pour un écran de paramétrage qu'on ouvre deux fois par an.
+
+### ② Le groupe devient un choix, et « aucun » en est un
+
+Liste déroulante de la trousse, dont l'**option neutre est obligatoire** — le
+domaine lève si elle manque. L'ordre est celui de la consigne : « Aucun groupe »
+d'abord et par défaut, puis SES groupes, puis les suggérés qu'elle n'emploie pas,
+puis « Créer un groupe » qui révèle la saisie libre.
+
+⚠️ **Le piège de cette reprise était le plus important du lot** : une liste
+déroulante ressemble à un choix obligatoire là où un champ vide ressemblait à une
+option. La saisie libre n'apparaît donc **que si elle est demandée** — la proposer
+en permanence remettrait un champ à remplir, donc l'impression d'une étape. Et un
+« Créer un groupe » laissé sans nom retombe sur « aucun groupe » sans erreur : la
+pro a changé d'avis, elle n'a pas commis de faute.
+
+### ③ Le renommage, qui règle le vrai problème
+
+La liste déroulante empêche d'en créer de nouveaux par erreur ; **elle ne répare
+pas ceux qui existent**. Le nom du groupe est recopié dans chaque prestation :
+sans renommage, passer de « Coupe » à « Coupes femme » demande de rouvrir quatre
+prestations et de retaper la même chaîne. Une seule oubliée, et la page publique
+montre deux groupes.
+
+La comparaison est insensible à la casse et aux espaces, donc il **rattrape aussi
+les divergences déjà en base** : « coupe » et « Coupe » se réunissent.
+
+**Aucune table de groupes, aucune migration** : la liste se déduit des
+prestations, comme le lot le demandait. 11 tests dans `core`.
+
+### Ce que la vérification a trouvé, et qui n'était pas dans le lot
+
+**L'ordre de la liste n'était pas stable.** `position` vaut 0 pour toutes les
+prestations — la colonne existe, rien ne l'attribue — et `created_at` est
+identique quand plusieurs naissent d'une même insertion. Les deux critères ne
+départageaient rien, et Postgres rendait les lignes dans l'ordre du tas, **qui
+change après chaque écriture**. Constaté en vérifiant : après une édition, la
+liste s'était réordonnée toute seule.
+
+Anodin sur un écran de paramétrage ; grave sur la page publique, où 20a fait
+dépendre l'ordre des groupes de « l'ordre de première apparition dans SA liste ».
+Une pro voyait ses groupes changer de place sans avoir rien demandé. L'identifiant
+départage désormais : l'ordre est **stable**. Il n'est pas encore **choisi** — un
+vrai réordonnancement demanderait d'attribuer `position`, et c'est une
+fonctionnalité, pas un correctif.
+
+### Le défaut de couche, pour la troisième fois en deux jours
+
+L'alignement signalé par Morgan — cases à cocher et mentions centrées — avait
+pour cause `.tactile`, qui impose `justify-content: center`. Déclarée **hors
+couche**, elle battait le `justify-start` que le libellé portait pourtant. La
+classe était là, visible dans le balisage, et ne peignait rien.
+
+C'est exactement `.titre` du 04/09 et `.chiffre-heros` du 05/09. **À la troisième,
+on cesse de corriger classe par classe** : tout `globals.css` est passé dans
+`@layer components` — quatorze classes de plus étaient dans le même cas, dont
+`.avant-apparition` qui porte une opacité — et `design:check` refuse désormais
+toute classe hors couche dans ce fichier. Prouvé par un échec délibéré, et la
+classe de défauts est mise à jour dans `CLAUDE.md`.
+
+### Les trois vérifications demandées, jouées dans un navigateur
+
+- **Ranger sans rien supprimer** : trois prestations sans groupe passées dans
+  « Coupe » par la feuille d'édition. C'était le point de départ du lot.
+- **Le renommage se propage** : « Coupe » → « Coupes femme » sur les trois d'un
+  coup.
+- **La page publique suit** : un seul groupe « Coupes femme » plus « Autres », le
+  premier déplié, sections dans l'ordre de 20a.
+
+**Schéma :** aucun. Aucune migration, comme la consigne le demandait.
+
+**Décisions :** aucune.
+
+**Écarts au brief :** aucun. La stabilisation de l'ordre et le passage en couche
+sont des correctifs trouvés en vérifiant, pas des ajouts.
+
+**Questions ouvertes :**
+
+1. **L'ordre des prestations est stable mais pas choisi.** Une pro ne peut pas
+   décider quelle prestation ouvre sa page. `position` existe et n'est jamais
+   attribuée : c'est une ligne de roadmap, pas un correctif.
+2. Les libellés « Tes groupes », « Renommer », « Aucun groupe », « Créer un
+   groupe » sont de moi, déclarés dans `MANQUES.md`. À faire ratifier.
+
+**À recetter par Morgan :**
+
+1. **Ouvre une prestation, « Modifier »** : la feuille arrive pré-remplie.
+2. **Choisis un groupe** dans la liste : « Aucun groupe » est en tête et par
+   défaut, tes groupes passent avant les suggérés.
+3. **Choisis « Créer un groupe »** : un champ apparaît. Laisse-le vide et
+   enregistre : la prestation reste sans groupe, sans erreur.
+4. **Range trois prestations dans le même groupe**, puis **« Renommer »** : les
+   trois suivent d'un coup, et ta page publique n'en montre qu'un.
+5. **Regarde le bas de la feuille** : les deux cases et leurs mentions sont
+   alignées à gauche, sur l'axe des champs.
+6. **Ajoute une classe à la racine de `globals.css`**, puis `npm run design:check` :
+   il refuse en disant qu'elle battrait les utilitaires.
+
+**Statut à reporter dans la roadmap :** B11 ① : « édition d'une prestation,
+recette à valider ». B13 : « groupes choisis et renommables, recette à valider ».
+
+---
+
 ## 2026-09-05 (18) Étape : la page publique reprise, planche 20a
 
 **Fait :** 20a **remplace 15a** pour cet écran. Le nouvel ordre est posé :

@@ -54,8 +54,29 @@ async function chargerFiche(slug: string) {
       // Tri sur `position` seulement : `created_at` n'est pas dans les colonnes
       // accordées au rôle anonyme, et trier sur une colonne qu'on n'a pas le
       // droit de lire fait échouer toute la requête.
+      /*
+        ⚠️ UN DÉPARTAGE FINAL SUR L'IDENTIFIANT, ET CE N'EST PAS DE LA COQUETTERIE.
+
+        `position` vaut 0 pour toutes les prestations — la colonne existe mais
+        rien ne l'attribue — et `created_at` est identique quand plusieurs
+        prestations naissent d'une même insertion. Les deux critères ne
+        départagent alors RIEN, et Postgres rend les lignes dans l'ordre qui
+        l'arrange : celui du tas, qui CHANGE après chaque écriture.
+
+        Constaté en vérifiant ce lot : après une édition, la liste s'était
+        réordonnée toute seule. Ça n'a l'air de rien sur un écran de
+        paramétrage ; c'est grave sur la page publique, où 20a fait dépendre
+        l'ordre des groupes de « l'ordre de première apparition dans SA liste ».
+        Une pro voyait donc ses groupes changer de place sans avoir rien
+        demandé.
+
+        L'identifiant départage toujours et ne bouge jamais : l'ordre devient
+        STABLE. Il n'est pas encore CHOISI — un vrai réordonnancement demanderait
+        d'attribuer `position`, et c'est une fonctionnalité, pas un correctif.
+      */
       .order('position')
-      .order('name'),
+      .order('name')
+      .order('id'),
     supabase
       .from('pro_settings')
       .select(

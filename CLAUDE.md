@@ -246,7 +246,9 @@ Côté cliente finale, tout reste web : zéro installation pour réserver.
 
   - **le bloc de la couleur de son fond** : déclaré, arrondi, au bon endroit, et invisible ;
   - **la classe qui ne peint pas** : déclarée hors couche donc battue par un utilitaire, ou
-    fabriquée à l'exécution donc produite par aucune feuille ;
+    fabriquée à l'exécution donc produite par aucune feuille. **Trois occurrences en deux jours**
+    (`.titre`, `.chiffre-heros`, `.tactile`) avant qu'un contrôle ne la refuse : toute classe de
+    `globals.css` vit désormais dans `@layer components`, et `design:check` échoue sinon ;
   - **la marge hors mesure** : écrite, correcte à lire, posée du mauvais côté de la boîte.
 
   Aucune ne fait échouer quoi que ce soit toute seule. Aucune ne se voit en relisant le fichier.

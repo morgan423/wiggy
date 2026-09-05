@@ -60,288 +60,12 @@ body {
 /* Sur un bloc pleine couleur, le prune disparaîtrait dans le fond : le miel
    prend le relais. Même traitement, une seule couleur à la fois, jamais deux
    contours superposés. */
-.sur-plein :focus-visible {
-  outline-color: var(--color-celebration);
-}
-
-/* ───────────────────────────────────────────────────────────────
- * Règles invisibles, rendues matérielles.
- * ─────────────────────────────────────────────────────────────── */
-
-/* Zone tactile minimale : 44 px. Le pro utilise l'app debout, en mouvement,
-   parfois les mains occupées. À appliquer à tout élément interactif. */
-.tactile {
-  min-height: 44px;
-  min-width: 44px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-}
-
-/* Échelle typographique du design. Fraunces n'est un parfum que sur les
-   grandes tailles ; l'axe WONK reste réservé aux statements.
-   Les tailles design sont le plafond d'un clamp : 92 px sur un écran de
-   375 px déborderait. */
-/*
-  LE MOT-SYMBOLE. « Wiggy » n'est pas un titre, c'est la MARQUE.
-
-  Il portait `.titre`, le style d'un titre courant : 26 px et graisse 600, là où
-  la planche 19a demande 28 px et graisse 700. Surtout, il redevenait faux au
-  premier changement de l'échelle typographique, puisqu'il empruntait un style
-  qui ne le concerne pas. Il lui faut donc sa définition à lui.
-
-  **Dimensionnable par une propriété** plutôt que par des variantes : la planche
-  le pose à 28 px dans l'en-tête et à 40 px dans le pied, et il y en aura
-  d'autres. La taille est un réglage du lieu, pas une seconde définition.
-
-  Pas de WONK : l'axe est réservé aux statements et aux chiffres héros, et la
-  planche ne le demande pas ici. La couleur est héritée, ce qui lui permet
-  d'être prune sur la crème et crème sur le prune sans rien redéfinir.
-*/
 @layer components {
-  .mot-symbole {
-    font-family: var(--font-display);
-    font-weight: 700;
-    line-height: 1;
-    font-size: var(--mot-symbole, 1.75rem);
+  .sur-plein :focus-visible {
+    outline-color: var(--color-celebration);
   }
 }
 
-/*
-  ⚠️ LES TROIS NIVEAUX VIVENT DANS `components`, ET C'EST UN CORRECTIF.
-
-  Déclarés hors couche, ils avaient la même spécificité qu'un utilitaire mais
-  arrivaient APRÈS dans la feuille : `.titre text-[20px]` sortait à 26 px, et
-  moi je lisais mon code en croyant l'avoir posé à 20. Tous les titres de carte
-  et tous les titres d'écran des carrousels étaient donc trop gros d'un tiers,
-  ce qui faisait passer sur deux lignes des titres que la planche tient sur une
-  — et rallongeait toutes les cartes.
-
-  Le défaut est silencieux par nature : rien n'échoue, la classe est bien là,
-  la taille est bien écrite. Il ne se voit qu'en mesurant le rendu. En les
-  mettant dans `components`, la couche des utilitaires passe devant, et une
-  taille écrite à la main gagne toujours contre le niveau par défaut.
-*/
-/*
-  ── L'échelle du SITE PUBLIC ──────────────────────────────────────────────
-
-  Ratifiée le 04/09 dans `wiggy-tokens.json`, sous ses propres noms. Elle ne
-  déborde pas sur l'app : `design:check` refuse ces classes dans l'espace pro,
-  comme il refusait déjà `statement`.
-
-  Elle a d'abord vécu dans une table au pied de `page.tsx`, le temps que Morgan
-  tranche entre elle et les plafonds partagés. Il a tranché — le rendu de la
-  home fait foi — et une table locale n'est pas une source de vérité pour la
-  typographie : elle ne se voit pas depuis les jetons, et rien n'empêchait une
-  seconde de naître ailleurs.
-*/
-@layer components {
-  .site-claim,
-  .site-chiffre-majeur,
-  .site-chiffre-mineur,
-  .site-manifeste {
-    font-variation-settings: var(--wonk);
-  }
-  .site-claim,
-  .site-chiffre-majeur,
-  .site-chiffre-mineur,
-  .site-relance,
-  .site-manifeste,
-  .site-offre,
-  .site-bande,
-  .site-question,
-  .site-demo {
-    font-family: var(--font-display);
-  }
-  .site-claim {
-    font-size: var(--text-site-claim);
-    line-height: var(--leading-site-claim);
-    font-weight: var(--font-weight-site-claim);
-  }
-  .site-chiffre-majeur {
-    font-size: var(--text-site-chiffre-majeur);
-    line-height: var(--leading-site-chiffre-majeur);
-    font-weight: var(--font-weight-site-chiffre-majeur);
-  }
-  .site-chiffre-mineur {
-    font-size: var(--text-site-chiffre-mineur);
-    line-height: var(--leading-site-chiffre-mineur);
-    font-weight: var(--font-weight-site-chiffre-mineur);
-  }
-  .site-relance {
-    font-size: var(--text-site-relance);
-    line-height: var(--leading-site-relance);
-    font-weight: var(--font-weight-site-relance);
-  }
-  .site-manifeste {
-    font-size: var(--text-site-manifeste);
-    line-height: var(--leading-site-manifeste);
-    font-weight: var(--font-weight-site-manifeste);
-  }
-  .site-offre {
-    font-size: var(--text-site-offre);
-    line-height: var(--leading-site-offre);
-    font-weight: var(--font-weight-site-offre);
-  }
-  .site-bande {
-    font-size: var(--text-site-bande);
-    line-height: var(--leading-site-bande);
-    font-weight: var(--font-weight-site-bande);
-  }
-  .site-question {
-    font-size: var(--text-site-question);
-    line-height: var(--leading-site-question);
-    font-weight: var(--font-weight-site-question);
-  }
-  .site-demo {
-    font-size: var(--text-site-demo);
-    line-height: var(--leading-site-demo);
-    font-weight: var(--font-weight-site-demo);
-  }
-}
-
-@layer components {
-  .statement {
-    font-family: var(--font-display);
-    font-size: var(--text-statement);
-    line-height: var(--leading-statement);
-    font-weight: var(--font-weight-statement);
-    font-variation-settings: var(--wonk);
-  }
-  .display {
-    font-family: var(--font-display);
-    font-size: var(--text-display);
-    line-height: var(--leading-display);
-    font-weight: var(--font-weight-display);
-  }
-  .titre {
-    font-family: var(--font-display);
-    font-size: var(--text-titre);
-    line-height: var(--leading-titre);
-    font-weight: var(--font-weight-titre);
-  }
-}
-
-/* Le statement qui OUVRE un écran, sans le titrer : Fraunces 30 px, interligne
-   serré, axe WONK. Deux emplois, tous deux au board : l'authentification
-   (14b, 30 px) et « Journée bouclée. » (16d, 32 px). Une seule taille pour les
-   deux, l'écart de 2 px ne vaut pas une seconde classe. */
-@layer components {
-  .statement-ecran {
-    font-family: var(--font-display);
-    font-size: 30px;
-    line-height: 1.05;
-    font-weight: 700;
-    font-variation-settings: var(--wonk);
-  }
-}
-
-/* Sur un bloc pleine couleur, les champs gardent leur surface, mais tout ce
-   qui les entoure prend les teintes du plein (planche 14b). */
-.sur-plein label {
-  color: var(--color-texte-sur-plein);
-}
-.sur-plein .aide-champ {
-  color: var(--color-texte-sur-plein-doux);
-}
-
-/* Le message d'erreur sur prune passe en abricot : la brique ne contraste pas
-   sur ce fond. Cas unique, déclaré par la planche 14b. Le bandeau brique
-   transverse de 14a reste la règle partout ailleurs. */
-.sur-plein .bandeau-erreur {
-  background: transparent;
-  color: var(--color-attente);
-  padding: 0;
-  font-weight: 700;
-}
-
-/* Le segment de trajet encore à parcourir : pointillé, comme le motif trajet
-   de la planche 8a. Le segment déjà parcouru est plein et miel. */
-.trait-pointille {
-  background-image: repeating-linear-gradient(
-    90deg,
-    var(--color-attente) 0 6px,
-    transparent 6px 12px
-  );
-}
-
-/* Le prix, en Fraunces, à droite d'une rangée (planches 14d et 14e).
-   Un accent, pas un chiffre héros : ni WONK, ni la taille du display.
-
-   17 px, sous le plancher de 20 px de Fraunces : c'est l'EXCEPTION accordée le
-   03/09, et elle ne vaut que pour un NOMBRE SEUL, plancher à 16 px. À 20 px le
-   prix devenait plus gros que le libellé de la prestation et inversait la
-   hiérarchie de la planche.
-
-   L'exception est tenue par la structure, pas par la bonne volonté : seul le
-   composant `Prix` de la trousse porte cette classe, il prend des CENTIMES et
-   non une chaîne, et `design:check` refuse la classe partout ailleurs. Aucun
-   texte ne peut donc l'emprunter. */
-@layer components {
-  .prix {
-    font-family: var(--font-display);
-    font-size: 17px;
-    line-height: 1.1;
-    font-weight: 700;
-  }
-}
-
-/* Le chiffre héros : la seule place de l'axe WONK dans l'application.
-   Le board (8a) réserve WONK aux statements ET aux chiffres héros ; la planche
-   11d le montre à l'œuvre dans l'app, en miel sur un bloc prune. Jamais en
-   interface courante, jamais sous 20 px. */
-@layer components {
-  /*
-    Le chiffre héros de l'APP (planche 11d, miel sur prune).
-
-    ⚠️ IL EST REVENU À `--text-display`, ET C'EST UN CORRECTIF. Je l'avais monté
-    à 120 px pour le « 5 à 10 h » de la home, quand le site n'avait pas encore
-    son échelle. Le site a désormais la sienne (`site-chiffre-majeur`), et
-    laisser cette classe à 120 aurait donné une taille de page de vente au
-    premier écran de travail qui s'en serait servi — sans que personne ne
-    l'écrive nulle part.
-
-    Elle n'est employée par aucun écran aujourd'hui : c'est la voie sanctionnée
-    par `design:check` pour ouvrir l'axe WONK dans l'app, réservée à B-quelque
-    chose. Réservée, donc, pas morte.
-  */
-  .chiffre-heros {
-    font-family: var(--font-display);
-    font-size: var(--text-display);
-    line-height: 1;
-    font-weight: var(--font-weight-display);
-    font-variation-settings: var(--wonk);
-  }
-}
-
-/* Le motif trajet : la ligne pointillée entre deux rendez-vous. C'est la
-   signature graphique du produit (brief phase 2, §1.3 ⑤), pas une décoration :
-   elle dit qu'entre deux clientes il y a une route. */
-/*
-  Le rail vertical de la timeline mobile (19c). Même motif signature que le
-  trait horizontal, tourné : pointillé abricot, 3 px de large, 7 px pleins pour
-  8 px de vide.
-*/
-.trait-trajet-vertical {
-  width: 3px;
-  background: repeating-linear-gradient(180deg, var(--color-attente) 0 7px, transparent 7px 15px);
-}
-
-.trait-trajet {
-  display: inline-block;
-  width: 2px;
-  height: 1.75rem;
-  background-image: linear-gradient(to bottom, var(--color-attente) 55%, transparent 55%);
-  background-size: 2px 8px;
-  border-radius: 1px;
-}
-
-/* Squelettes : opacité seule, jamais de translation ni de dégradé mobile. */
-.squelette {
-  animation: squelette var(--duree-squelette) ease-in-out infinite;
-  background: var(--color-trait-discret);
-  border-radius: var(--radius-champ);
-}
 @keyframes squelette {
   0%,
   100% {
@@ -351,9 +75,6 @@ body {
     opacity: 0.45;
   }
 }
-
-/* ── Célébration 1 — confirmation de réservation (cliente) ──
-   Total < 1,3 s. Jamais rejouée. */
 @keyframes carte-miel {
   from {
     transform: scale(0.85);
@@ -380,19 +101,6 @@ body {
     opacity: 1;
   }
 }
-
-.celebration-carte {
-  animation: carte-miel var(--duree-pop) var(--courbe-celebration) 250ms both;
-}
-.celebration-trait {
-  animation: trait-boucle var(--duree-souligne) ease-in-out 700ms both;
-}
-.celebration-sms {
-  animation: fondu var(--duree-toast) ease-out 1100ms both;
-}
-
-/* ── Célébration 2 — « Journée bouclée » (pro) ──
-   La boucle qui se ferme EST l'animation. Une fois par jour au maximum. */
 @keyframes segment-plein {
   from {
     stroke-dashoffset: var(--longueur-segment, 100);
@@ -401,40 +109,6 @@ body {
     stroke-dashoffset: 0;
   }
 }
-.bouclee-segment {
-  /* 120 ms par segment, enchaînés de gauche à droite à partir de 300 ms.
-     Le rang est porté par --rang, posé sur chaque segment. */
-  animation: segment-plein var(--duree-segment) linear
-    calc(300ms + var(--rang, 0) * var(--duree-segment)) both;
-}
-.bouclee-titre {
-  animation: carte-miel var(--duree-pop) var(--courbe-celebration) 900ms both;
-}
-.bouclee-bilan {
-  animation: fondu var(--duree-toast) ease-out 1350ms both;
-}
-
-/* Le tap — seul mouvement permanent de l'interface, et il répond à un geste.
-   Valeurs design : scale 0.97, 100 ms, ease-out. */
-button,
-a[href],
-[role='button'] {
-  transition: transform var(--duree-tap) var(--courbe-standard);
-}
-button:active,
-a[href]:active,
-[role='button']:active {
-  transform: scale(var(--tap-scale));
-}
-
-/* ── Le mouvement de la HOME, et de la home seulement ───────────────────
-   Planche 19a. Ces deux animations n'existent que sur la page de vente : la
-   règle « zéro animation ambiante » ci-dessous vaut pour l'APPLICATION, qui
-   s'ouvre trente fois par jour. Une page qu'on visite une fois, pour se faire
-   une idée, n'a pas le même contrat.
-   Valeurs relevées sur la planche, pas choisies : 26 s linéaire pour le ruban,
-   2,4 s et 2,8 s pour les pulsations, dont une décalée de 1,4 s pour qu'elles
-   ne battent pas ensemble. */
 @keyframes wiggy-marquee {
   from {
     transform: translateX(0);
@@ -455,15 +129,6 @@ a[href]:active,
     opacity: 0.45;
   }
 }
-/*
-  Les deux CARROUSELS d'interface de la planche révisée : trois écrans qui se
-  relaient dans la même carte, et trois points qui disent où l'on en est.
-
-  13,5 s pour trois écrans, soit 4,5 s chacun, obtenus par des retards NÉGATIFS
-  (-4,5 s et -9 s) : les trois animations sont identiques et démarrent déjà
-  entamées. Aucun script, aucun état à tenir, et les trois restent en phase pour
-  toujours — un compteur en JavaScript dériverait.
-*/
 @keyframes wiggy-screen {
   0%,
   26% {
@@ -499,123 +164,486 @@ a[href]:active,
     transform: scale(1.3);
   }
 }
-.ecran-vitrine {
-  animation: wiggy-screen 13.5s ease-in-out infinite;
-}
-.point-vitrine {
-  animation: wiggy-dot 13.5s ease-in-out infinite;
-}
-.retard-1 {
-  animation-delay: -9s;
-}
-.retard-2 {
-  animation-delay: -4.5s;
-}
 
-.ruban-defilant {
-  display: flex;
-  width: max-content;
-  /* ⚠️ 60 s et non les 26 s de la planche, et c'est délibéré.
-     La vitesse PERÇUE est une distance divisée par un temps, pas un temps. Le
-     ruban de la planche est celui d'une maquette de 1200 ; le nôtre reprend les
-     quatre phrases plusieurs fois pour couvrir n'importe quelle largeur
-     d'écran, donc il est bien plus long. À 26 s, il traversait deux fois plus
-     vite et devenait illisible. On garde l'allure de la planche, pas son
-     chiffre. */
-  animation: wiggy-marquee 60s linear infinite;
-}
-.pulsation {
-  animation: wiggy-pulse 2.8s ease-in-out infinite;
-}
-.pulsation-courte {
-  animation: wiggy-pulse 2.4s ease-in-out infinite;
-}
-.pulsation-decalee {
-  animation: wiggy-pulse 2.8s ease-in-out 1.4s infinite;
-}
+/*
+  ⚠️ TOUTE CETTE PARTIE VIT DANS `components`, ET C'EST LA MÊME RAISON.
 
-/* ── L'APPARITION AU DÉFILEMENT, pages publiques uniquement ─────────────
-   Règle du 04/09 : sur les pages de vente, un bloc apparaît en fondu quand on
-   arrive à son niveau. On vend un produit, et une page qui se pose bloc après
-   bloc se regarde autrement qu'une page déjà toute là.
+  Une classe déclarée à la racine de la feuille a la même spécificité qu'un
+  utilitaire Tailwind mais arrive APRÈS lui : elle gagne. Un `text-[20px]` ou un
+  `justify-start` écrit à côté d'elle ne peint alors RIEN — l'attribut est posé,
+  l'inspecteur le montre, et il ne fait rien.
 
-   ⚠️ LA CLASSE QUI CACHE EST POSÉE PAR LE SCRIPT, JAMAIS PAR LE HTML. C'est
-   la seule façon sûre : si le JavaScript ne tourne pas (erreur, réseau coupé,
-   robot d'indexation), rien n'a jamais été caché et la page est entière. Poser
-   `opacity: 0` en CSS et compter sur le script pour le retirer, c'est risquer
-   une page de vente entièrement invisible le jour où il échoue. */
-.avant-apparition {
-  opacity: 0;
-  transform: translateY(14px);
-}
-.apparait {
-  transition:
-    opacity 600ms var(--courbe-standard),
-    transform 600ms var(--courbe-standard);
-}
-.apparu {
-  opacity: 1;
-  transform: none;
-}
+  Le défaut a coûté trois corrections en deux jours : `.titre`, puis
+  `.chiffre-heros`, puis `.tactile` — qui centrait les cases à cocher du
+  formulaire de prestation dont le libellé demandait pourtant `justify-start`.
+  À la troisième, on cesse de corriger classe par classe.
 
-/* À l'impression, tout est là. Une page qui s'imprime ne défile pas, et
-   l'observateur ne se déclencherait jamais pour ce qui est sous la ligne de
-   flottaison : la moitié de la page sortirait blanche. */
-@media print {
-  .avant-apparition,
-  .apparait {
-    opacity: 1 !important;
-    transform: none !important;
+  `design:check` refuse désormais toute classe hors couche dans ce fichier.
+
+  Les `@keyframes` restent dehors : ils n'appartiennent à aucune couche. Les
+  surcharges `@media` entrent avec le reste — une règle dans un média non couché
+  bat elle aussi les utilitaires — et celles qui doivent gagner contre tout
+  portent déjà `!important`, qui reste prioritaire depuis une couche.
+*/
+@layer components {
+  /* ───────────────────────────────────────────────────────────────
+   * Règles invisibles, rendues matérielles.
+   * ─────────────────────────────────────────────────────────────── */
+
+  /* Zone tactile minimale : 44 px. Le pro utilise l'app debout, en mouvement,
+     parfois les mains occupées. À appliquer à tout élément interactif. */
+  .tactile {
+    min-height: 44px;
+    min-width: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
   }
-}
 
-/* Zéro animation ambiante : l'app s'ouvre trente fois par jour. Ce qui bouge
-   ici bouge parce qu'un geste vient d'avoir lieu, jamais tout seul. */
+  /* Échelle typographique du design. Fraunces n'est un parfum que sur les
+     grandes tailles ; l'axe WONK reste réservé aux statements.
+     Les tailles design sont le plafond d'un clamp : 92 px sur un écran de
+     375 px déborderait. */
+  /*
+    LE MOT-SYMBOLE. « Wiggy » n'est pas un titre, c'est la MARQUE.
 
-@media (prefers-reduced-motion: reduce) {
-  /* Les deux célébrations deviennent un simple fondu. Aucune exception. */
-  .celebration-carte,
-  .celebration-trait,
-  .celebration-sms,
-  .bouclee-segment,
-  .bouclee-titre,
-  .bouclee-bilan {
-    animation: fondu var(--duree-fondu) ease-out both;
-    transform: none;
+    Il portait `.titre`, le style d'un titre courant : 26 px et graisse 600, là où
+    la planche 19a demande 28 px et graisse 700. Surtout, il redevenait faux au
+    premier changement de l'échelle typographique, puisqu'il empruntait un style
+    qui ne le concerne pas. Il lui faut donc sa définition à lui.
+
+    **Dimensionnable par une propriété** plutôt que par des variantes : la planche
+    le pose à 28 px dans l'en-tête et à 40 px dans le pied, et il y en aura
+    d'autres. La taille est un réglage du lieu, pas une seconde définition.
+
+    Pas de WONK : l'axe est réservé aux statements et aux chiffres héros, et la
+    planche ne le demande pas ici. La couleur est héritée, ce qui lui permet
+    d'être prune sur la crème et crème sur le prune sans rien redéfinir.
+  */
+  @layer components {
+    .mot-symbole {
+      font-family: var(--font-display);
+      font-weight: 700;
+      line-height: 1;
+      font-size: var(--mot-symbole, 1.75rem);
+    }
   }
+
+  /*
+    ⚠️ LES TROIS NIVEAUX VIVENT DANS `components`, ET C'EST UN CORRECTIF.
+
+    Déclarés hors couche, ils avaient la même spécificité qu'un utilitaire mais
+    arrivaient APRÈS dans la feuille : `.titre text-[20px]` sortait à 26 px, et
+    moi je lisais mon code en croyant l'avoir posé à 20. Tous les titres de carte
+    et tous les titres d'écran des carrousels étaient donc trop gros d'un tiers,
+    ce qui faisait passer sur deux lignes des titres que la planche tient sur une
+    — et rallongeait toutes les cartes.
+
+    Le défaut est silencieux par nature : rien n'échoue, la classe est bien là,
+    la taille est bien écrite. Il ne se voit qu'en mesurant le rendu. En les
+    mettant dans `components`, la couche des utilitaires passe devant, et une
+    taille écrite à la main gagne toujours contre le niveau par défaut.
+  */
+  /*
+    ── L'échelle du SITE PUBLIC ──────────────────────────────────────────────
+
+    Ratifiée le 04/09 dans `wiggy-tokens.json`, sous ses propres noms. Elle ne
+    déborde pas sur l'app : `design:check` refuse ces classes dans l'espace pro,
+    comme il refusait déjà `statement`.
+
+    Elle a d'abord vécu dans une table au pied de `page.tsx`, le temps que Morgan
+    tranche entre elle et les plafonds partagés. Il a tranché — le rendu de la
+    home fait foi — et une table locale n'est pas une source de vérité pour la
+    typographie : elle ne se voit pas depuis les jetons, et rien n'empêchait une
+    seconde de naître ailleurs.
+  */
+  @layer components {
+    .site-claim,
+    .site-chiffre-majeur,
+    .site-chiffre-mineur,
+    .site-manifeste {
+      font-variation-settings: var(--wonk);
+    }
+    .site-claim,
+    .site-chiffre-majeur,
+    .site-chiffre-mineur,
+    .site-relance,
+    .site-manifeste,
+    .site-offre,
+    .site-bande,
+    .site-question,
+    .site-demo {
+      font-family: var(--font-display);
+    }
+    .site-claim {
+      font-size: var(--text-site-claim);
+      line-height: var(--leading-site-claim);
+      font-weight: var(--font-weight-site-claim);
+    }
+    .site-chiffre-majeur {
+      font-size: var(--text-site-chiffre-majeur);
+      line-height: var(--leading-site-chiffre-majeur);
+      font-weight: var(--font-weight-site-chiffre-majeur);
+    }
+    .site-chiffre-mineur {
+      font-size: var(--text-site-chiffre-mineur);
+      line-height: var(--leading-site-chiffre-mineur);
+      font-weight: var(--font-weight-site-chiffre-mineur);
+    }
+    .site-relance {
+      font-size: var(--text-site-relance);
+      line-height: var(--leading-site-relance);
+      font-weight: var(--font-weight-site-relance);
+    }
+    .site-manifeste {
+      font-size: var(--text-site-manifeste);
+      line-height: var(--leading-site-manifeste);
+      font-weight: var(--font-weight-site-manifeste);
+    }
+    .site-offre {
+      font-size: var(--text-site-offre);
+      line-height: var(--leading-site-offre);
+      font-weight: var(--font-weight-site-offre);
+    }
+    .site-bande {
+      font-size: var(--text-site-bande);
+      line-height: var(--leading-site-bande);
+      font-weight: var(--font-weight-site-bande);
+    }
+    .site-question {
+      font-size: var(--text-site-question);
+      line-height: var(--leading-site-question);
+      font-weight: var(--font-weight-site-question);
+    }
+    .site-demo {
+      font-size: var(--text-site-demo);
+      line-height: var(--leading-site-demo);
+      font-weight: var(--font-weight-site-demo);
+    }
+  }
+
+  @layer components {
+    .statement {
+      font-family: var(--font-display);
+      font-size: var(--text-statement);
+      line-height: var(--leading-statement);
+      font-weight: var(--font-weight-statement);
+      font-variation-settings: var(--wonk);
+    }
+    .display {
+      font-family: var(--font-display);
+      font-size: var(--text-display);
+      line-height: var(--leading-display);
+      font-weight: var(--font-weight-display);
+    }
+    .titre {
+      font-family: var(--font-display);
+      font-size: var(--text-titre);
+      line-height: var(--leading-titre);
+      font-weight: var(--font-weight-titre);
+    }
+  }
+
+  /* Le statement qui OUVRE un écran, sans le titrer : Fraunces 30 px, interligne
+     serré, axe WONK. Deux emplois, tous deux au board : l'authentification
+     (14b, 30 px) et « Journée bouclée. » (16d, 32 px). Une seule taille pour les
+     deux, l'écart de 2 px ne vaut pas une seconde classe. */
+  @layer components {
+    .statement-ecran {
+      font-family: var(--font-display);
+      font-size: 30px;
+      line-height: 1.05;
+      font-weight: 700;
+      font-variation-settings: var(--wonk);
+    }
+  }
+
+  /* Sur un bloc pleine couleur, les champs gardent leur surface, mais tout ce
+     qui les entoure prend les teintes du plein (planche 14b). */
+  .sur-plein label {
+    color: var(--color-texte-sur-plein);
+  }
+  .sur-plein .aide-champ {
+    color: var(--color-texte-sur-plein-doux);
+  }
+
+  /* Le message d'erreur sur prune passe en abricot : la brique ne contraste pas
+     sur ce fond. Cas unique, déclaré par la planche 14b. Le bandeau brique
+     transverse de 14a reste la règle partout ailleurs. */
+  .sur-plein .bandeau-erreur {
+    background: transparent;
+    color: var(--color-attente);
+    padding: 0;
+    font-weight: 700;
+  }
+
+  /* Le segment de trajet encore à parcourir : pointillé, comme le motif trajet
+     de la planche 8a. Le segment déjà parcouru est plein et miel. */
+  .trait-pointille {
+    background-image: repeating-linear-gradient(
+      90deg,
+      var(--color-attente) 0 6px,
+      transparent 6px 12px
+    );
+  }
+
+  /* Le prix, en Fraunces, à droite d'une rangée (planches 14d et 14e).
+     Un accent, pas un chiffre héros : ni WONK, ni la taille du display.
+
+     17 px, sous le plancher de 20 px de Fraunces : c'est l'EXCEPTION accordée le
+     03/09, et elle ne vaut que pour un NOMBRE SEUL, plancher à 16 px. À 20 px le
+     prix devenait plus gros que le libellé de la prestation et inversait la
+     hiérarchie de la planche.
+
+     L'exception est tenue par la structure, pas par la bonne volonté : seul le
+     composant `Prix` de la trousse porte cette classe, il prend des CENTIMES et
+     non une chaîne, et `design:check` refuse la classe partout ailleurs. Aucun
+     texte ne peut donc l'emprunter. */
+  @layer components {
+    .prix {
+      font-family: var(--font-display);
+      font-size: 17px;
+      line-height: 1.1;
+      font-weight: 700;
+    }
+  }
+
+  /* Le chiffre héros : la seule place de l'axe WONK dans l'application.
+     Le board (8a) réserve WONK aux statements ET aux chiffres héros ; la planche
+     11d le montre à l'œuvre dans l'app, en miel sur un bloc prune. Jamais en
+     interface courante, jamais sous 20 px. */
+  @layer components {
+    /*
+      Le chiffre héros de l'APP (planche 11d, miel sur prune).
+
+      ⚠️ IL EST REVENU À `--text-display`, ET C'EST UN CORRECTIF. Je l'avais monté
+      à 120 px pour le « 5 à 10 h » de la home, quand le site n'avait pas encore
+      son échelle. Le site a désormais la sienne (`site-chiffre-majeur`), et
+      laisser cette classe à 120 aurait donné une taille de page de vente au
+      premier écran de travail qui s'en serait servi — sans que personne ne
+      l'écrive nulle part.
+
+      Elle n'est employée par aucun écran aujourd'hui : c'est la voie sanctionnée
+      par `design:check` pour ouvrir l'axe WONK dans l'app, réservée à B-quelque
+      chose. Réservée, donc, pas morte.
+    */
+    .chiffre-heros {
+      font-family: var(--font-display);
+      font-size: var(--text-display);
+      line-height: 1;
+      font-weight: var(--font-weight-display);
+      font-variation-settings: var(--wonk);
+    }
+  }
+
+  /* Le motif trajet : la ligne pointillée entre deux rendez-vous. C'est la
+     signature graphique du produit (brief phase 2, §1.3 ⑤), pas une décoration :
+     elle dit qu'entre deux clientes il y a une route. */
+  /*
+    Le rail vertical de la timeline mobile (19c). Même motif signature que le
+    trait horizontal, tourné : pointillé abricot, 3 px de large, 7 px pleins pour
+    8 px de vide.
+  */
+  .trait-trajet-vertical {
+    width: 3px;
+    background: repeating-linear-gradient(180deg, var(--color-attente) 0 7px, transparent 7px 15px);
+  }
+
+  .trait-trajet {
+    display: inline-block;
+    width: 2px;
+    height: 1.75rem;
+    background-image: linear-gradient(to bottom, var(--color-attente) 55%, transparent 55%);
+    background-size: 2px 8px;
+    border-radius: 1px;
+  }
+
+  /* Squelettes : opacité seule, jamais de translation ni de dégradé mobile. */
   .squelette {
-    animation: none;
-    opacity: 0.7;
+    animation: squelette var(--duree-squelette) ease-in-out infinite;
+    background: var(--color-trait-discret);
+    border-radius: var(--radius-champ);
   }
-  /* ⚠️ Le ruban et les pulsations s'arrêtent. Un bandeau qui défile sans fin
-     est exactement ce que ce réglage existe pour éteindre, et une opacité qui
-     respire est du mouvement même quand rien ne se déplace. */
-  .ruban-defilant,
-  .ecran-vitrine,
-  .point-vitrine,
-  .pulsation,
-  .pulsation-courte,
-  .pulsation-decalee {
-    animation: none !important;
+
+  /* ── Célébration 1 — confirmation de réservation (cliente) ──
+     Total < 1,3 s. Jamais rejouée. */
+
+  .celebration-carte {
+    animation: carte-miel var(--duree-pop) var(--courbe-celebration) 250ms both;
   }
-  /* L'apparition disparaît, et le contenu reste. Le script ne pose de toute
-     façon rien sous ce réglage : ceci est la seconde ceinture. */
-  .avant-apparition,
-  .apparait {
-    opacity: 1 !important;
-    transform: none !important;
-    transition: none !important;
+  .celebration-trait {
+    animation: trait-boucle var(--duree-souligne) ease-in-out 700ms both;
   }
-  /* Le tap lui-même disparaît : pas de scale sous mouvement réduit. */
+  .celebration-sms {
+    animation: fondu var(--duree-toast) ease-out 1100ms both;
+  }
+
+  /* ── Célébration 2 — « Journée bouclée » (pro) ──
+     La boucle qui se ferme EST l'animation. Une fois par jour au maximum. */
+
+  .bouclee-segment {
+    /* 120 ms par segment, enchaînés de gauche à droite à partir de 300 ms.
+       Le rang est porté par --rang, posé sur chaque segment. */
+    animation: segment-plein var(--duree-segment) linear
+      calc(300ms + var(--rang, 0) * var(--duree-segment)) both;
+  }
+  .bouclee-titre {
+    animation: carte-miel var(--duree-pop) var(--courbe-celebration) 900ms both;
+  }
+  .bouclee-bilan {
+    animation: fondu var(--duree-toast) ease-out 1350ms both;
+  }
+
+  /* Le tap — seul mouvement permanent de l'interface, et il répond à un geste.
+     Valeurs design : scale 0.97, 100 ms, ease-out. */
+  button,
+  a[href],
+  [role='button'] {
+    transition: transform var(--duree-tap) var(--courbe-standard);
+  }
   button:active,
   a[href]:active,
   [role='button']:active {
+    transform: scale(var(--tap-scale));
+  }
+
+  /* ── Le mouvement de la HOME, et de la home seulement ───────────────────
+     Planche 19a. Ces deux animations n'existent que sur la page de vente : la
+     règle « zéro animation ambiante » ci-dessous vaut pour l'APPLICATION, qui
+     s'ouvre trente fois par jour. Une page qu'on visite une fois, pour se faire
+     une idée, n'a pas le même contrat.
+     Valeurs relevées sur la planche, pas choisies : 26 s linéaire pour le ruban,
+     2,4 s et 2,8 s pour les pulsations, dont une décalée de 1,4 s pour qu'elles
+     ne battent pas ensemble. */
+
+  /*
+    Les deux CARROUSELS d'interface de la planche révisée : trois écrans qui se
+    relaient dans la même carte, et trois points qui disent où l'on en est.
+
+    13,5 s pour trois écrans, soit 4,5 s chacun, obtenus par des retards NÉGATIFS
+    (-4,5 s et -9 s) : les trois animations sont identiques et démarrent déjà
+    entamées. Aucun script, aucun état à tenir, et les trois restent en phase pour
+    toujours — un compteur en JavaScript dériverait.
+  */
+
+  .ecran-vitrine {
+    animation: wiggy-screen 13.5s ease-in-out infinite;
+  }
+  .point-vitrine {
+    animation: wiggy-dot 13.5s ease-in-out infinite;
+  }
+  .retard-1 {
+    animation-delay: -9s;
+  }
+  .retard-2 {
+    animation-delay: -4.5s;
+  }
+
+  .ruban-defilant {
+    display: flex;
+    width: max-content;
+    /* ⚠️ 60 s et non les 26 s de la planche, et c'est délibéré.
+       La vitesse PERÇUE est une distance divisée par un temps, pas un temps. Le
+       ruban de la planche est celui d'une maquette de 1200 ; le nôtre reprend les
+       quatre phrases plusieurs fois pour couvrir n'importe quelle largeur
+       d'écran, donc il est bien plus long. À 26 s, il traversait deux fois plus
+       vite et devenait illisible. On garde l'allure de la planche, pas son
+       chiffre. */
+    animation: wiggy-marquee 60s linear infinite;
+  }
+  .pulsation {
+    animation: wiggy-pulse 2.8s ease-in-out infinite;
+  }
+  .pulsation-courte {
+    animation: wiggy-pulse 2.4s ease-in-out infinite;
+  }
+  .pulsation-decalee {
+    animation: wiggy-pulse 2.8s ease-in-out 1.4s infinite;
+  }
+
+  /* ── L'APPARITION AU DÉFILEMENT, pages publiques uniquement ─────────────
+     Règle du 04/09 : sur les pages de vente, un bloc apparaît en fondu quand on
+     arrive à son niveau. On vend un produit, et une page qui se pose bloc après
+     bloc se regarde autrement qu'une page déjà toute là.
+
+     ⚠️ LA CLASSE QUI CACHE EST POSÉE PAR LE SCRIPT, JAMAIS PAR LE HTML. C'est
+     la seule façon sûre : si le JavaScript ne tourne pas (erreur, réseau coupé,
+     robot d'indexation), rien n'a jamais été caché et la page est entière. Poser
+     `opacity: 0` en CSS et compter sur le script pour le retirer, c'est risquer
+     une page de vente entièrement invisible le jour où il échoue. */
+  .avant-apparition {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  .apparait {
+    transition:
+      opacity 600ms var(--courbe-standard),
+      transform 600ms var(--courbe-standard);
+  }
+  .apparu {
+    opacity: 1;
     transform: none;
   }
-  *,
-  *::before,
-  *::after {
-    transition-duration: 1ms !important;
-    scroll-behavior: auto !important;
+
+  /* À l'impression, tout est là. Une page qui s'imprime ne défile pas, et
+     l'observateur ne se déclencherait jamais pour ce qui est sous la ligne de
+     flottaison : la moitié de la page sortirait blanche. */
+  @media print {
+    .avant-apparition,
+    .apparait {
+      opacity: 1 !important;
+      transform: none !important;
+    }
+  }
+
+  /* Zéro animation ambiante : l'app s'ouvre trente fois par jour. Ce qui bouge
+     ici bouge parce qu'un geste vient d'avoir lieu, jamais tout seul. */
+
+  @media (prefers-reduced-motion: reduce) {
+    /* Les deux célébrations deviennent un simple fondu. Aucune exception. */
+    .celebration-carte,
+    .celebration-trait,
+    .celebration-sms,
+    .bouclee-segment,
+    .bouclee-titre,
+    .bouclee-bilan {
+      animation: fondu var(--duree-fondu) ease-out both;
+      transform: none;
+    }
+    .squelette {
+      animation: none;
+      opacity: 0.7;
+    }
+    /* ⚠️ Le ruban et les pulsations s'arrêtent. Un bandeau qui défile sans fin
+       est exactement ce que ce réglage existe pour éteindre, et une opacité qui
+       respire est du mouvement même quand rien ne se déplace. */
+    .ruban-defilant,
+    .ecran-vitrine,
+    .point-vitrine,
+    .pulsation,
+    .pulsation-courte,
+    .pulsation-decalee {
+      animation: none !important;
+    }
+    /* L'apparition disparaît, et le contenu reste. Le script ne pose de toute
+       façon rien sous ce réglage : ceci est la seconde ceinture. */
+    .avant-apparition,
+    .apparait {
+      opacity: 1 !important;
+      transform: none !important;
+      transition: none !important;
+    }
+    /* Le tap lui-même disparaît : pas de scale sous mouvement réduit. */
+    button:active,
+    a[href]:active,
+    [role='button']:active {
+      transform: none;
+    }
+    *,
+    *::before,
+    *::after {
+      transition-duration: 1ms !important;
+      scroll-behavior: auto !important;
+    }
   }
 }
