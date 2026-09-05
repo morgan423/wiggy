@@ -20,6 +20,47 @@ _Rien en attente : les trois questions ouvertes ont été tranchées le 03/09._
 
 ---
 
+## 2026-09-05 (17) Correctif : la puce collée du ruban
+
+**Fait :** Morgan, en recette : « dans le marquee il y a un point de séparation qui est
+collé au texte ».
+
+Chaque groupe `mot + puce` portait bien son écart, et les deux copies aussi. Mais **rien
+entre la dernière puce d'une copie et le premier mot de la suivante** : le conteneur des
+copies n'avait pas de `gap`. Les deux se touchaient, et comme le ruban défile, cette
+couture traversait l'écran une fois par tour. D'où un défaut qui n'apparaît qu'en
+mouvement, et jamais sur une capture au repos.
+
+**Poser un `gap` sur le conteneur des copies ne marchait pas** : l'animation translate de
+-50 %, ce qui suppose que la largeur totale vaille exactement DEUX copies. Un écart entre
+elles casse cette égalité, et la boucle se met à sauter à chaque tour — on aurait échangé
+une puce collée contre un saut périodique.
+
+Chaque groupe porte donc son écart à DROITE (`pr-14`). Il devient autonome, les copies se
+posent bout à bout sans rien entre elles, et -50 % redevient exact.
+
+**Vérifié par la mesure, pas à l'œil** : les mots du ruban sont des nœuds de texte, sans
+boîte propre — il faut passer par un `Range` pour connaître leur emprise. Les 23 écarts
+successifs valent **56 px, tous**, ce qui est la valeur de la planche. Aucun sous 40.
+
+**Décisions :** aucune.
+
+**Écarts au brief :** aucun.
+
+**Questions ouvertes :** aucune nouvelle.
+
+**Non fait, et c'est un choix :** je n'ai PAS ajouté de critère « écarts réguliers du
+ruban » à `planche:check`. Le produit est gelé pour la recette, et ce lot est un correctif
+d'un défaut nommé, pas une occasion d'étendre. Le critère se pose en une dizaine de
+lignes — il attend l'après-recette, si Morgan le veut.
+
+**À recetter par Morgan :** regarde le ruban tourner un cycle entier. Plus aucune puce ne
+touche un mot, à aucun moment du défilement.
+
+**Statut à reporter dans la roadmap :** rien à bouger.
+
+---
+
 ## 2026-09-05 (16) Étape : dernière passe design, puis vérification avant recette
 
 **Fait :**

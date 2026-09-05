@@ -225,13 +225,29 @@ function Bandeau() {
       */}
       <p className="ruban-defilant text-[13.5px] font-bold whitespace-nowrap">
         {[false, true].map((copie) => (
-          <span
-            key={String(copie)}
-            className="flex shrink-0 gap-14"
-            aria-hidden={copie || undefined}
-          >
+          <span key={String(copie)} className="flex shrink-0" aria-hidden={copie || undefined}>
+            {/*
+              ⚠️ L'ÉCART EST UN `pr`, PAS UN `gap`, ET LA COUTURE EST LA RAISON.
+
+              Chaque groupe portait `gap-14` et les deux copies aussi, ce qui
+              espaçait correctement tout l'intérieur d'une copie — mais RIEN
+              entre la dernière puce d'une copie et le premier mot de la
+              suivante. Les deux se touchaient, et comme le ruban défile, cette
+              couture traversait l'écran périodiquement : on voyait passer un
+              point collé à un mot, une fois par tour. C'est ce que Morgan a vu.
+
+              Mettre un `gap` sur le conteneur des deux copies ne marche pas :
+              l'animation translate de -50 %, ce qui suppose que la largeur
+              totale soit exactement DEUX fois une copie. Un écart entre elles
+              casse cette égalité, et la boucle se met à sauter à chaque tour.
+
+              Chaque groupe porte donc son écart de droite. Il devient
+              autonome : les copies se posent bout à bout sans rien entre
+              elles, l'espacement reste régulier d'un bout à l'autre, et -50 %
+              redevient exact.
+            */}
             {suite.map((mot, i) => (
-              <span key={i} className="flex shrink-0 items-center gap-14">
+              <span key={i} className="flex shrink-0 items-center gap-14 pr-14">
                 {mot}
                 <span aria-hidden className="text-celebration">
                   ·
